@@ -14,6 +14,7 @@ def get_canonical_representation(graph, return_features = False):
     def get_features_strings(features):
         features_strings = []
         for feature in features:
+            # TODO: this subgraph extraction is weird
             subgraph = feature.as_subgraph(graph)
             canon_str = get_canonical_representation(subgraph)
             feature_string = u"{0}.{1};{2}".format(feature.rule, feature.subrule, canon_str)
@@ -36,7 +37,6 @@ def get_canonical_representation(graph, return_features = False):
         
         return u",".join(labels)
     
-    @staticmethod
     def rule_0(hypergraph):
         modified = False
         
@@ -83,7 +83,6 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified
         
-    @staticmethod
     def rule_1(hypergraph, return_features = False):
         modified = False
         pendant_features = ReducibleFeature.extract_rule_1_features(hypergraph)
@@ -104,7 +103,6 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified, pendant_features if return_features else None
     
-    @staticmethod
     def rule_2(hypergraph, return_features = False):
         modified = False
         series_features = ReducibleFeature.extract_rule_2_features(hypergraph)
@@ -116,7 +114,6 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified, series_features if return_features else None
     
-    @staticmethod
     def rule_3(hypergraph):
         modified = False
         
@@ -152,7 +149,6 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified
     
-    @staticmethod
     def rules_4_5_6_7(hypergraph, return_features = False):
         modified = False
         degree_3_features = ReducibleFeature.extract_degree_3_features(hypergraph)
@@ -182,8 +178,8 @@ def get_canonical_representation(graph, return_features = False):
         if return_features:
             features.append(get_features_strings(new_features))
         
-#             if hypergraph.number_of_nodes() < 50: 
-#                 hypergraph.visualize()
+#         if hypergraph.number_of_nodes() < 50: 
+#             hypergraph.visualize()
         
         modified = rule_0(hypergraph)
         if modified:

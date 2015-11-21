@@ -226,7 +226,7 @@ class Hypergraph(object):
         
         # add nodes
         for node in nx_graph.nodes_iter():
-            self.bipartite_graph.add_node(u"n_{0}".format(node), attr_dict=nx_graph.node[node], bipartite=0)
+            self.bipartite_graph.add_node(u"n_{0}".format(node), attr_dict=nx_graph.node[node].copy(), bipartite=0)
         
         # add edges of order 2
         if nx_graph.is_directed():
