@@ -1,0 +1,2625 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.co-ode.org/roberts/family-tree.owl#"
+     xml:base="http://www.co-ode.org/roberts/family-tree.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl2xml="http://www.w3.org/2006/12/owl2-xml#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">A simple family relationships ontology and associated instances. the description is of the family of Robert Stevens and the intention is to use the minimal of asserted relationships and the maximum of inference. To do this  I&#39;ve used role chains, nominals and properties hierarchies.</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <owl:AnnotationProperty rdf:about="http://www.w3.org/2000/01/rdf-schema#comment"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasAncestor -->
+
+    <owl:ObjectProperty rdf:about="#hasAncestor">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#isAncestorOf"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasAunt -->
+
+    <owl:ObjectProperty rdf:about="#hasAunt">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#isAuntOf"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasAuntInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasAuntInLaw">
+        <owl:inverseOf rdf:resource="#hasAuntInLaw"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasBrother -->
+
+    <owl:ObjectProperty rdf:about="#hasBrother">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasBrotherInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasBrotherInLaw"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasChild -->
+
+    <owl:ObjectProperty rdf:about="#hasChild">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#isChildOf"/>
+        <owl:equivalentProperty rdf:resource="#isParentOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasDaughter -->
+
+    <owl:ObjectProperty rdf:about="#hasDaughter">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasChild"/>
+        <owl:inverseOf rdf:resource="#isDaughterOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasFather -->
+
+    <owl:ObjectProperty rdf:about="#hasFather">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasForeFather"/>
+        <rdfs:subPropertyOf rdf:resource="#hasParent"/>
+        <owl:inverseOf rdf:resource="#isFatherOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasFatherInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasFatherInLaw">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasParentInLaw"/>
+        <owl:inverseOf rdf:resource="#isFatherInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSpouseOf"/>
+            <rdf:Description rdf:about="#hasFather"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasFemalePartner -->
+
+    <owl:ObjectProperty rdf:about="#hasFemalePartner">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasForeFather -->
+
+    <owl:ObjectProperty rdf:about="#hasForeFather">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasAncestor"/>
+        <owl:inverseOf rdf:resource="#isForefatherOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasForeMother -->
+
+    <owl:ObjectProperty rdf:about="#hasForeMother">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasAncestor"/>
+        <owl:inverseOf rdf:resource="#isForemotherOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGrandParent -->
+
+    <owl:ObjectProperty rdf:about="#hasGrandParent">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasAncestor"/>
+        <owl:inverseOf rdf:resource="#isGrandParentOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGrandfather -->
+
+    <owl:ObjectProperty rdf:about="#hasGrandfather">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasGrandParent"/>
+        <owl:inverseOf rdf:resource="#isGrandfatherOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasParent"/>
+            <rdf:Description rdf:about="#hasFather"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGrandmother -->
+
+    <owl:ObjectProperty rdf:about="#hasGrandmother">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasGrandParent"/>
+        <owl:inverseOf rdf:resource="#isGrandmotherOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasParent"/>
+            <rdf:Description rdf:about="#hasMother"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGreatAunt -->
+
+    <owl:ObjectProperty rdf:about="#hasGreatAunt">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:inverseOf rdf:resource="#isGreatAuntOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGreatGrandParent -->
+
+    <owl:ObjectProperty rdf:about="#hasGreatGrandParent">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasAncestor"/>
+        <owl:inverseOf rdf:resource="#isGreatGrandParentOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGreatGrandfather -->
+
+    <owl:ObjectProperty rdf:about="#hasGreatGrandfather">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasGreatGrandParent"/>
+        <owl:inverseOf rdf:resource="#isGreatGrandfatherOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasParent"/>
+            <rdf:Description rdf:about="#hasGrandfather"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGreatGrandmother -->
+
+    <owl:ObjectProperty rdf:about="#hasGreatGrandmother">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasGreatGrandParent"/>
+        <owl:inverseOf rdf:resource="#isGreatGrandmotherOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasParent"/>
+            <rdf:Description rdf:about="#hasGrandmother"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasGreatUncle -->
+
+    <owl:ObjectProperty rdf:about="#hasGreatUncle">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:inverseOf rdf:resource="#isGreatUncleOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasHusband -->
+
+    <owl:ObjectProperty rdf:about="#hasHusband">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#isHusbandOf"/>
+        <rdfs:subPropertyOf rdf:resource="#isSpouseOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isFemalePartnerIn"/>
+            <rdf:Description rdf:about="#hasMalePartner"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasMalePartner -->
+
+    <owl:ObjectProperty rdf:about="#hasMalePartner">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasMother -->
+
+    <owl:ObjectProperty rdf:about="#hasMother">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasForeMother"/>
+        <rdfs:subPropertyOf rdf:resource="#hasParent"/>
+        <owl:inverseOf rdf:resource="#isMotherOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasMotherInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasMotherInLaw">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#hasParentInLaw"/>
+        <owl:inverseOf rdf:resource="#isMotherInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSpouseOf"/>
+            <rdf:Description rdf:about="#hasMother"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasParent -->
+
+    <owl:ObjectProperty rdf:about="#hasParent">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasAncestor"/>
+        <owl:inverseOf rdf:resource="#isParentOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasParentInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasParentInLaw"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasPartner -->
+
+    <owl:ObjectProperty rdf:about="#hasPartner"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasSex -->
+
+    <owl:ObjectProperty rdf:about="#hasSex">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Sex"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasSister -->
+
+    <owl:ObjectProperty rdf:about="#hasSister"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasSisterInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasSisterInLaw"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasSon -->
+
+    <owl:ObjectProperty rdf:about="#hasSon">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasChild"/>
+        <owl:inverseOf rdf:resource="#isSonOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasUncle -->
+
+    <owl:ObjectProperty rdf:about="#hasUncle">
+        <rdfs:range rdf:resource="#Man"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:inverseOf rdf:resource="#isUncleOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasUncleInLaw -->
+
+    <owl:ObjectProperty rdf:about="#hasUncleInLaw"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasWife -->
+
+    <owl:ObjectProperty rdf:about="#hasWife">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#isSpouseOf"/>
+        <owl:inverseOf rdf:resource="#isWifeOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isMalePartnerIn"/>
+            <rdf:Description rdf:about="#hasFemalePartner"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isAncestorOf -->
+
+    <owl:ObjectProperty rdf:about="#isAncestorOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isAuntInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isAuntInLawOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#hasAuntInLaw"/>
+        <rdfs:subPropertyOf rdf:resource="#isInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isWifeOf"/>
+            <rdf:Description rdf:about="#isBrotherOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isAuntOf -->
+
+    <owl:ObjectProperty rdf:about="#isAuntOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSisterOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isBloodRelationOf -->
+
+    <owl:ObjectProperty rdf:about="#isBloodRelationOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasAncestor"/>
+            <rdf:Description rdf:about="#isAncestorOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isBrotherInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isBrotherInLawOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#hasBrotherInLaw"/>
+        <rdfs:subPropertyOf rdf:resource="#isSiblingInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isHusbandOf"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+        </owl:propertyChainAxiom>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isBrotherOf"/>
+            <rdf:Description rdf:about="#isSpouseOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isBrotherOf -->
+
+    <owl:ObjectProperty rdf:about="#isBrotherOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#hasBrother"/>
+        <rdfs:subPropertyOf rdf:resource="#isDirectSiblingOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isChildOf -->
+
+    <owl:ObjectProperty rdf:about="#isChildOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isDaughterOf -->
+
+    <owl:ObjectProperty rdf:about="#isDaughterOf">
+        <rdfs:subPropertyOf rdf:resource="#hasParent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isDirectSiblingOf -->
+
+    <owl:ObjectProperty rdf:about="#isDirectSiblingOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isSiblingOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isFatherInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isFatherInLawOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isFatherOf -->
+
+    <owl:ObjectProperty rdf:about="#isFatherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isFemalePartnerIn -->
+
+    <owl:ObjectProperty rdf:about="#isFemalePartnerIn">
+        <rdfs:range rdf:resource="#Marriage"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#hasFemalePartner"/>
+        <rdfs:subPropertyOf rdf:resource="#isPartnerIn"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isFirstCousinOf -->
+
+    <owl:ObjectProperty rdf:about="#isFirstCousinOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasParent"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isFirstCousinOnceRemovedOf -->
+
+    <owl:ObjectProperty rdf:about="#isFirstCousinOnceRemovedOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isFirstCousinOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isForefatherOf -->
+
+    <owl:ObjectProperty rdf:about="#isForefatherOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:subPropertyOf rdf:resource="#isAncestorOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isForemotherOf -->
+
+    <owl:ObjectProperty rdf:about="#isForemotherOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:subPropertyOf rdf:resource="#isAncestorOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGrandParentOf -->
+
+    <owl:ObjectProperty rdf:about="#isGrandParentOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGrandfatherOf -->
+
+    <owl:ObjectProperty rdf:about="#isGrandfatherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGrandmotherOf -->
+
+    <owl:ObjectProperty rdf:about="#isGrandmotherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGreatAuntOf -->
+
+    <owl:ObjectProperty rdf:about="#isGreatAuntOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSisterOf"/>
+            <rdf:Description rdf:about="#isGrandParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGreatGrandParentOf -->
+
+    <owl:ObjectProperty rdf:about="#isGreatGrandParentOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGreatGrandfatherOf -->
+
+    <owl:ObjectProperty rdf:about="#isGreatGrandfatherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGreatGrandmotherOf -->
+
+    <owl:ObjectProperty rdf:about="#isGreatGrandmotherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isGreatUncleOf -->
+
+    <owl:ObjectProperty rdf:about="#isGreatUncleOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isBrotherOf"/>
+            <rdf:Description rdf:about="#isGrandParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isHusbandOf -->
+
+    <owl:ObjectProperty rdf:about="#isHusbandOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isInLawOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isRelationOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isMalePartnerIn -->
+
+    <owl:ObjectProperty rdf:about="#isMalePartnerIn">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Marriage"/>
+        <owl:inverseOf rdf:resource="#hasMalePartner"/>
+        <rdfs:subPropertyOf rdf:resource="#isPartnerIn"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isMotherInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isMotherInLawOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isMotherOf -->
+
+    <owl:ObjectProperty rdf:about="#isMotherOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isNephewOf -->
+
+    <owl:ObjectProperty rdf:about="#isNephewOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSonOf"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isNieceOf -->
+
+    <owl:ObjectProperty rdf:about="#isNieceOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isDaughterOf"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isParentInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isParentInLawOf">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#hasParentInLaw"/>
+        <rdfs:subPropertyOf rdf:resource="#isInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isParentOf"/>
+            <rdf:Description rdf:about="#isSpouseOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isParentOf -->
+
+    <owl:ObjectProperty rdf:about="#isParentOf"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isPartnerIn -->
+
+    <owl:ObjectProperty rdf:about="#isPartnerIn">
+        <rdfs:range rdf:resource="#Marriage"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#hasPartner"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isRelationOf -->
+
+    <owl:ObjectProperty rdf:about="#isRelationOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSecondCousinOf -->
+
+    <owl:ObjectProperty rdf:about="#isSecondCousinOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasGrandParent"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+            <rdf:Description rdf:about="#isGrandParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSiblingInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isSiblingInLawOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isInLawOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSiblingOf -->
+
+    <owl:ObjectProperty rdf:about="#isSiblingOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSisterInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isSisterInLawOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#hasSisterInLaw"/>
+        <rdfs:subPropertyOf rdf:resource="#isSiblingInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isWifeOf"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+        </owl:propertyChainAxiom>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isSisterOf"/>
+            <rdf:Description rdf:about="#isSpouseOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSisterOf -->
+
+    <owl:ObjectProperty rdf:about="#isSisterOf">
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Woman"/>
+        <owl:inverseOf rdf:resource="#hasSister"/>
+        <rdfs:subPropertyOf rdf:resource="#isDirectSiblingOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSonOf -->
+
+    <owl:ObjectProperty rdf:about="#isSonOf">
+        <rdfs:subPropertyOf rdf:resource="#hasParent"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isSpouseOf -->
+
+    <owl:ObjectProperty rdf:about="#isSpouseOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isInLawOf"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isThirdCousinOf -->
+
+    <owl:ObjectProperty rdf:about="#isThirdCousinOf">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#hasGreatGrandParent"/>
+            <rdf:Description rdf:about="#isSiblingOf"/>
+            <rdf:Description rdf:about="#isGreatGrandParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isUncleInLawOf -->
+
+    <owl:ObjectProperty rdf:about="#isUncleInLawOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <owl:inverseOf rdf:resource="#hasUncleInLaw"/>
+        <rdfs:subPropertyOf rdf:resource="#isInLawOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isHusbandOf"/>
+            <rdf:Description rdf:about="#isSisterOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isUncleOf -->
+
+    <owl:ObjectProperty rdf:about="#isUncleOf">
+        <rdfs:domain rdf:resource="#Man"/>
+        <rdfs:range rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#isBloodRelationOf"/>
+        <owl:propertyChainAxiom rdf:parseType="Collection">
+            <rdf:Description rdf:about="#isBrotherOf"/>
+            <rdf:Description rdf:about="#isParentOf"/>
+        </owl:propertyChainAxiom>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#isWifeOf -->
+
+    <owl:ObjectProperty rdf:about="#isWifeOf"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#alsoKnownAs -->
+
+    <owl:DatatypeProperty rdf:about="#alsoKnownAs">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#knownAs"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#formerlyKnownAs -->
+
+    <owl:DatatypeProperty rdf:about="#formerlyKnownAs">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#knownAs"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasBirthYear -->
+
+    <owl:DatatypeProperty rdf:about="#hasBirthYear">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasDeathYear -->
+
+    <owl:DatatypeProperty rdf:about="#hasDeathYear">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasFamilyName -->
+
+    <owl:DatatypeProperty rdf:about="#hasFamilyName">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasName"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasFirstGivenName -->
+
+    <owl:DatatypeProperty rdf:about="#hasFirstGivenName">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasName"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasMarriageYear -->
+
+    <owl:DatatypeProperty rdf:about="#hasMarriageYear">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+        <rdfs:domain rdf:resource="#Marriage"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#hasName -->
+
+    <owl:DatatypeProperty rdf:about="#hasName">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#knownAs -->
+
+    <owl:DatatypeProperty rdf:about="#knownAs">
+        <rdfs:domain rdf:resource="#Person"/>
+        <rdfs:subPropertyOf rdf:resource="#hasName"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Ancestor -->
+
+    <owl:Class rdf:about="#Ancestor">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isAncestorOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#AncestorOfRobert -->
+
+    <owl:Class rdf:about="#AncestorOfRobert">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isAncestorOf"/>
+                        <owl:hasValue rdf:resource="#robert_david_bright_1965"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Aunt -->
+
+    <owl:Class rdf:about="#Aunt">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#AuntInLaw -->
+
+    <owl:Class rdf:about="#AuntInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isWifeOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Man"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#BloodRelation -->
+
+    <owl:Class rdf:about="#BloodRelation">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isBloodRelationOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Brother -->
+
+    <owl:Class rdf:about="#Brother">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#BrotherInLaw -->
+
+    <owl:Class rdf:about="#BrotherInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isHusbandOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Woman"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Cousin -->
+
+    <owl:Class rdf:about="#Cousin">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasAncestor"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Daughter -->
+
+    <owl:Class rdf:about="#Daughter">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#DaughterInLaw -->
+
+    <owl:Class rdf:about="#DaughterInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Descendant -->
+
+    <owl:Class rdf:about="#Descendant">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasAncestor"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#DomainEntity -->
+
+    <owl:Class rdf:about="#DomainEntity"/>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Father -->
+
+    <owl:Class rdf:about="#Father">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isFatherOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#FatherInLaw -->
+
+    <owl:Class rdf:about="#FatherInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Female -->
+
+    <owl:Class rdf:about="#Female">
+        <rdfs:subClassOf rdf:resource="#Sex"/>
+        <owl:disjointWith rdf:resource="#Male"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#FemaleAncestor -->
+
+    <owl:Class rdf:about="#FemaleAncestor">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isAncestorOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#FemaleDescendant -->
+
+    <owl:Class rdf:about="#FemaleDescendant">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasAncestor"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#FirstCousin -->
+
+    <owl:Class rdf:about="#FirstCousin">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Forefather -->
+
+    <owl:Class rdf:about="#Forefather">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isForefatherOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Foremother -->
+
+    <owl:Class rdf:about="#Foremother">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isForemotherOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Grandfather -->
+
+    <owl:Class rdf:about="#Grandfather">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isFatherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Grandmother -->
+
+    <owl:Class rdf:about="#Grandmother">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isMotherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Grandparent -->
+
+    <owl:Class rdf:about="#Grandparent">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#GreatAunt -->
+
+    <owl:Class rdf:about="#GreatAunt">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isAuntOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#GreatGrandfather -->
+
+    <owl:Class rdf:about="#GreatGrandfather">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isFatherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#GreatGrandparent -->
+
+    <owl:Class rdf:about="#GreatGrandparent">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#GreatGreatGrandparent -->
+
+    <owl:Class rdf:about="#GreatGreatGrandparent">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom>
+                                                            <owl:Class>
+                                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                                    <rdf:Description rdf:about="#Person"/>
+                                                                    <owl:Restriction>
+                                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                                    </owl:Restriction>
+                                                                </owl:intersectionOf>
+                                                            </owl:Class>
+                                                        </owl:someValuesFrom>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#GreatUncle -->
+
+    <owl:Class rdf:about="#GreatUncle">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isBrotherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Husband -->
+
+    <owl:Class rdf:about="#Husband">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isMalePartnerIn"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Marriage"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#hasFemalePartner"/>
+                                        <owl:someValuesFrom rdf:resource="#Woman"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#InLaw -->
+
+    <owl:Class rdf:about="#InLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isBloodRelationOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isBloodRelationOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Male -->
+
+    <owl:Class rdf:about="#Male">
+        <rdfs:subClassOf rdf:resource="#Sex"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#MaleAncestor -->
+
+    <owl:Class rdf:about="#MaleAncestor">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isAncestorOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#MaleDescendant -->
+
+    <owl:Class rdf:about="#MaleDescendant">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasAncestor"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Man -->
+
+    <owl:Class rdf:about="#Man">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasSex"/>
+                        <owl:someValuesFrom rdf:resource="#Male"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Marriage -->
+
+    <owl:Class rdf:about="#Marriage">
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#DomainEntity"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasFemalePartner"/>
+                        <owl:someValuesFrom rdf:resource="#Woman"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasMalePartner"/>
+                        <owl:someValuesFrom rdf:resource="#Man"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#Person"/>
+        <owl:disjointWith rdf:resource="#Sex"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Mother -->
+
+    <owl:Class rdf:about="#Mother">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isMotherOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#MotherInLaw -->
+
+    <owl:Class rdf:about="#MotherInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isMotherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Parent -->
+
+    <owl:Class rdf:about="#Parent">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#ParentInLaw -->
+
+    <owl:Class rdf:about="#ParentInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isParentOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Person -->
+
+    <owl:Class rdf:about="#Person">
+        <rdfs:subClassOf>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#DomainEntity"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasFather"/>
+                        <owl:someValuesFrom rdf:resource="#Man"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasMother"/>
+                        <owl:someValuesFrom rdf:resource="#Woman"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasSex"/>
+                        <owl:someValuesFrom rdf:resource="#Sex"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </rdfs:subClassOf>
+        <owl:disjointWith rdf:resource="#Sex"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#SecondCousin -->
+
+    <owl:Class rdf:about="#SecondCousin">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#hasParent"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                                        <owl:someValuesFrom>
+                                                            <owl:Class>
+                                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                                    <rdf:Description rdf:about="#Person"/>
+                                                                    <owl:Restriction>
+                                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                        <owl:someValuesFrom>
+                                                                            <owl:Class>
+                                                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                                                    <rdf:Description rdf:about="#Person"/>
+                                                                                    <owl:Restriction>
+                                                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                                                    </owl:Restriction>
+                                                                                </owl:intersectionOf>
+                                                                            </owl:Class>
+                                                                        </owl:someValuesFrom>
+                                                                    </owl:Restriction>
+                                                                </owl:intersectionOf>
+                                                            </owl:Class>
+                                                        </owl:someValuesFrom>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#SecondCousinOfRobert -->
+
+    <owl:Class rdf:about="#SecondCousinOfRobert">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#hasParent"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                                        <owl:someValuesFrom>
+                                                            <owl:Class>
+                                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                                    <rdf:Description rdf:about="#Person"/>
+                                                                    <owl:Restriction>
+                                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                        <owl:someValuesFrom>
+                                                                            <owl:Class>
+                                                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                                                    <rdf:Description rdf:about="#Person"/>
+                                                                                    <owl:Restriction>
+                                                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                                        <owl:hasValue rdf:resource="#robert_david_bright_1965"/>
+                                                                                    </owl:Restriction>
+                                                                                </owl:intersectionOf>
+                                                                            </owl:Class>
+                                                                        </owl:someValuesFrom>
+                                                                    </owl:Restriction>
+                                                                </owl:intersectionOf>
+                                                            </owl:Class>
+                                                        </owl:someValuesFrom>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Sex -->
+
+    <owl:Class rdf:about="#Sex">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Female"/>
+                    <rdf:Description rdf:about="#Male"/>
+                </owl:unionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="#DomainEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Sibling -->
+
+    <owl:Class rdf:about="#Sibling">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#SiblingInLaw -->
+
+    <owl:Class rdf:about="#SiblingInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Sister -->
+
+    <owl:Class rdf:about="#Sister">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#SisterInLaw -->
+
+    <owl:Class rdf:about="#SisterInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#isWifeOf"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Man"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                        </owl:unionOf>
+                    </owl:Class>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Son -->
+
+    <owl:Class rdf:about="#Son">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#SonInLaw -->
+
+    <owl:Class rdf:about="#SonInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Spouse -->
+
+    <owl:Class rdf:about="#Spouse">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSpouseOf"/>
+                        <owl:someValuesFrom rdf:resource="#Person"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#ThirdCousin -->
+
+    <owl:Class rdf:about="#ThirdCousin">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#hasParent"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#hasParent"/>
+                                                <owl:someValuesFrom>
+                                                    <owl:Class>
+                                                        <owl:intersectionOf rdf:parseType="Collection">
+                                                            <rdf:Description rdf:about="#Person"/>
+                                                            <owl:Restriction>
+                                                                <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                                                <owl:someValuesFrom>
+                                                                    <owl:Class>
+                                                                        <owl:intersectionOf rdf:parseType="Collection">
+                                                                            <rdf:Description rdf:about="#Person"/>
+                                                                            <owl:Restriction>
+                                                                                <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                                <owl:someValuesFrom>
+                                                                                    <owl:Class>
+                                                                                        <owl:intersectionOf rdf:parseType="Collection">
+                                                                                            <rdf:Description rdf:about="#Person"/>
+                                                                                            <owl:Restriction>
+                                                                                                <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                                                <owl:someValuesFrom>
+                                                                                                    <owl:Class>
+                                                                                                        <owl:intersectionOf rdf:parseType="Collection">
+                                                                                                            <rdf:Description rdf:about="#Person"/>
+                                                                                                            <owl:Restriction>
+                                                                                                                <owl:onProperty rdf:resource="#isParentOf"/>
+                                                                                                                <owl:someValuesFrom rdf:resource="#Person"/>
+                                                                                                            </owl:Restriction>
+                                                                                                        </owl:intersectionOf>
+                                                                                                    </owl:Class>
+                                                                                                </owl:someValuesFrom>
+                                                                                            </owl:Restriction>
+                                                                                        </owl:intersectionOf>
+                                                                                    </owl:Class>
+                                                                                </owl:someValuesFrom>
+                                                                            </owl:Restriction>
+                                                                        </owl:intersectionOf>
+                                                                    </owl:Class>
+                                                                </owl:someValuesFrom>
+                                                            </owl:Restriction>
+                                                        </owl:intersectionOf>
+                                                    </owl:Class>
+                                                </owl:someValuesFrom>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Uncle -->
+
+    <owl:Class rdf:about="#Uncle">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#UncleInLaw -->
+
+    <owl:Class rdf:about="#UncleInLaw">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isHusbandOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Woman"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:someValuesFrom rdf:resource="#Person"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#UncleOfRichard -->
+
+    <owl:Class rdf:about="#UncleOfRichard">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isBrotherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:hasValue rdf:resource="#richard_john_bright_1962"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#UncleOfRobert -->
+
+    <owl:Class rdf:about="#UncleOfRobert">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Man"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isBrotherOf"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                        <owl:hasValue rdf:resource="#robert_david_bright_1965"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Wife -->
+
+    <owl:Class rdf:about="#Wife">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Woman"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#isFemalePartnerIn"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Marriage"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#hasMalePartner"/>
+                                        <owl:someValuesFrom rdf:resource="#Man"/>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#Woman -->
+
+    <owl:Class rdf:about="#Woman">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasSex"/>
+                        <owl:someValuesFrom rdf:resource="#Female"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.co-ode.org/roberts/family-tree.owl#test -->
+
+    <owl:Class rdf:about="#test">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="#Person"/>
+                    <owl:Class>
+                        <owl:complementOf>
+                            <owl:Restriction>
+                                <owl:onProperty rdf:resource="#hasParent"/>
+                                <owl:someValuesFrom>
+                                    <owl:Class>
+                                        <owl:intersectionOf rdf:parseType="Collection">
+                                            <rdf:Description rdf:about="#Person"/>
+                                            <owl:Restriction>
+                                                <owl:onProperty rdf:resource="#isParentOf"/>
+                                                <owl:hasValue rdf:resource="#robert_david_bright_1965"/>
+                                            </owl:Restriction>
+                                        </owl:intersectionOf>
+                                    </owl:Class>
+                                </owl:someValuesFrom>
+                            </owl:Restriction>
+                        </owl:complementOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="#hasParent"/>
+                        <owl:someValuesFrom>
+                            <owl:Class>
+                                <owl:intersectionOf rdf:parseType="Collection">
+                                    <rdf:Description rdf:about="#Person"/>
+                                    <owl:Restriction>
+                                        <owl:onProperty rdf:resource="#isSiblingOf"/>
+                                        <owl:someValuesFrom>
+                                            <owl:Class>
+                                                <owl:intersectionOf rdf:parseType="Collection">
+                                                    <rdf:Description rdf:about="#Person"/>
+                                                    <owl:Restriction>
+                                                        <owl:onProperty rdf:resource="#isParentOf"/>
+                                                        <owl:hasValue rdf:resource="#robert_david_bright_1965"/>
+                                                    </owl:Restriction>
+                                                </owl:intersectionOf>
+                                            </owl:Class>
+                                        </owl:someValuesFrom>
+                                    </owl:Restriction>
+                                </owl:intersectionOf>
+                            </owl:Class>
+                        </owl:someValuesFrom>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+
+</rdf:RDF>
+
+
+<!-- Generated by the OWL API (version 3.0.0.1272) http://owlapi.sourceforge.net -->
+
