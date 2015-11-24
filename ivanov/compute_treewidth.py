@@ -38,9 +38,9 @@ def aggregate_results(percent=False):
     out_file = codecs.open("../output/agg{0}".format("_percent" if percent else ""), "w", "utf8")
     
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
-
-    for r in [2, 3, 4, 5]:
-        for d in ["in", "out", "all"]:
+    
+    for d in ["in", "out", "all"]:
+        for r in [2, 3, 4, 5]:
             if d == "all" and r > 3:
                 break
             agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
@@ -62,5 +62,6 @@ def aggregate_results(percent=False):
 
 if __name__ == '__main__':
 #     compute_rballs_tw("../data/family.rdf.owl.rdf")
+    aggregate_results()
     aggregate_results(True)
     
