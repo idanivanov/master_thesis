@@ -320,6 +320,9 @@ class ReducibleFeature(object):
                     # Rule 6.1 - K(3,3)
                     conflicts.append(ReducibleFeature(6, 1, raw_conflict[0], raw_conflict[1]))
                     continue
+                elif nodes_in_subgraph == 5:
+                    # this conflict is a wheel which should already be handled by rule 5.2.3.1
+                    continue
                  
                 sys.stderr.write("\n[ReducibleFeature] The conflicting buddies {0} were not handled by any rule.".format(raw_conflicts))
                 conflicts.append(ReducibleFeature(6, 0, raw_conflict[0], raw_conflict[1]))
