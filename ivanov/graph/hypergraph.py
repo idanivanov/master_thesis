@@ -11,6 +11,7 @@ from itertools import permutations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
+import copy
 
 class Hypergraph(object):
         
@@ -226,7 +227,7 @@ class Hypergraph(object):
         
         # add nodes
         for node in nx_graph.nodes_iter():
-            self.bipartite_graph.add_node(u"n_{0}".format(node), attr_dict=nx_graph.node[node].copy(), bipartite=0)
+            self.bipartite_graph.add_node(u"n_{0}".format(node), attr_dict=copy.deepcopy(nx_graph.node[node]), bipartite=0)
         
         # add edges of order 2
         if nx_graph.is_directed():
@@ -243,7 +244,7 @@ class Hypergraph(object):
                         direction = set([(u, v)])
                     else:
                         direction = set([(v, u)])
-                    self.add_edge(set([u, v]), direction=direction, label=edge[0])
+                    self.add_edge(set([u, v]), direction=direction, label=copy.deepcopy(edge[0]))
         else:
             for edge_endpoints in nx_graph.edges_iter():
                 u = u"n_{0}".format(edge_endpoints[0])
@@ -254,5 +255,5 @@ class Hypergraph(object):
                         self.add_edge(set([u, v]), label=edges[i]["label"])
                 else:
                     edge_label = nx_graph.edge[edge_endpoints[0]][edge_endpoints[1]]["label"]
-                    self.add_edge(set([u, v]), label=edge_label)
+                    self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
         

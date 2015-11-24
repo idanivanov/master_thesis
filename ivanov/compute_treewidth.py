@@ -20,12 +20,11 @@ if __name__ == '__main__':
     i = 0
     for node in graph.nodes_iter():
         rball = algorithms.r_ball(graph, node, 2, -1)
-#         nxext.visualize_graph(rball, node_labels=False, edge_labels=False)
-        # TODO: strange behavior, the labels from AP are assigned to the original graph. Why?
         ap_result = arnborg_proskurowski.get_canonical_representation(rball, False)
         line = "{0},{1}\n".format(graph.node[node]["labels"][0], ap_result[0])
         out_file.write(line)
         print i, line
+#         nxext.visualize_graph(rball, node_labels=True, edge_labels=False)
         i += 1
     
     out_file.close()

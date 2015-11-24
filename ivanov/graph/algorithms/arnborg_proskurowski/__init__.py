@@ -14,10 +14,9 @@ def get_canonical_representation(graph, return_features = False):
     def get_features_strings(features):
         features_strings = []
         for feature in features:
-            # TODO: this subgraph extraction is weird
-            subgraph = feature.as_subgraph(graph)
+            subgraph = feature.as_subgraph(hypergraph)
             canon_str = get_canonical_representation(subgraph)
-            feature_string = u"{0}.{1};{2}".format(feature.rule, feature.subrule, canon_str)
+            feature_string = u"{0}.{1}.{2}.{3};{4}".format(feature.rule, feature.subrule, feature.subsubrule, feature.subsubsubrule, canon_str)
             features_strings.append(feature_string)
         return features_strings
     
