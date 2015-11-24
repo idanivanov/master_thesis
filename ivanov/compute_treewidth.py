@@ -34,8 +34,33 @@ def compute_rballs_tw(in_file):
              
             out_file.close()
 
+def aggregate_results(percent=False):
+    out_file = codecs.open("../output/agg{0}".format("_percent" if percent else ""), "w", "utf8")
+    
+    out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
+
+    for r in [2, 3, 4, 5]:
+        for d in ["in", "out", "all"]:
+            if d == "all" and r > 3:
+                break
+            agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
+            out_file.write("[{0};{1}]".format(r, d))
+            for tw in ["0", "1", "2", "3", "-1"]:
+                if agg.has_key(tw):
+                    if percent:
+                        value = (100. / float(agg["total"])) * float(agg[tw])
+                    else:
+                        value = agg[tw]
+                    out_file.write(",{0}".format(value))
+                else:
+                    out_file.write(",0")
+            if not percent:
+                out_file.write(",{0}".format(agg["total"]))
+            out_file.write("\n")
+    
+    out_file.close()
+
 if __name__ == '__main__':
 #     compute_rballs_tw("../data/family.rdf.owl.rdf")
-    
-    print treewidth.aggregate("../output/tw_r3_all")
+    aggregate_results(True)
     
