@@ -180,10 +180,8 @@ def get_canonical_representation(graph, return_features = False):
 #         if hypergraph.number_of_nodes() < 50: 
 #             hypergraph.visualize()
         
-        modified = rule_0(hypergraph)
-        if modified:
-            new_features = []
-            continue
+        # no need to check if modified here to continue, just go to the next rule after
+        rule_0(hypergraph)
         
         modified, new_features = rule_1(hypergraph, return_features)
         if modified:
