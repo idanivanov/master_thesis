@@ -91,7 +91,7 @@ def get_canonical_representation(graph, return_features = False):
             feature.reduce(hypergraph)
         
         # 1.3 - remove self-loops
-        self_loops = hypergraph.self_loops
+        self_loops = list(hypergraph.self_loops)
         for self_loop in self_loops:
             if not modified:
                 modified = True

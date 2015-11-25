@@ -74,10 +74,15 @@ class Hypergraph(object):
         for node in nodes:
             self.bipartite_graph.add_edge(edge_id, node)
         
+        # update parallel edges
         if is_hedge:
             self.update_parallel_hedges_groups([edge_id])
         else:
             self.update_parallel_edges_groups([edge_id])
+        
+        # update self loops
+        if len(set(nodes)) == 1:
+            self.self_loops.add(edge_id)
     
     def remove_node(self, node):
         assert node.startswith(u"n_")
@@ -97,10 +102,16 @@ class Hypergraph(object):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
         self.bipartite_graph.remove_node(edge_id)
         self.edges_count -= 1
+        
+        # update parallel edges
         if edge_id.startswith(u"e_"):
             self.try_remove_from_parallel_edges_groups(edge_id)
         else:
             self.try_remove_from_parallel_hedges_groups(edge_id)
+        
+        # update self loops
+        if edge_id in self.self_loops:
+            self.self_loops.remove(edge_id)
     
     def remove_edges_from(self, edge_ids):
         for edge_id in edge_ids:
@@ -310,6 +321,9 @@ class Hypergraph(object):
     def reset_parallel_hedges_groups(self):
         self.parallel_hedges_groups = {}
     
+    def reset_self_loops(self):
+        self.self_loops = set()
+    
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
     
@@ -325,6 +339,10 @@ class Hypergraph(object):
         self.nodes_count = 0
         self.edges_count = 0
         self.hedges_count = 0
+        
+        # ready sets
+        self.reset_nodes_with_more_labels()
+        self.reset_self_loops()
         
         # add nodes
         for node in nx_graph.nodes_iter():
@@ -364,10 +382,8 @@ class Hypergraph(object):
                     self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
         
         # ready sets
-        self.reset_nodes_with_more_labels()
         self.init_parallel_edges_groups() 
-        self.parallel_hedges_groups = set() # TODO: 
-        self.self_loops = set() # TODO: 
+        self.init_parallel_hedges_groups()
         self.nodes_with_1_neighbor = set() # TODO: 
         self.nodes_with_2_neighbors = set() # TODO: 
         self.nodes_with_3_neighbors = set() # TODO: 
