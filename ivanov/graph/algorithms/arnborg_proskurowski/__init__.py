@@ -53,12 +53,13 @@ def get_canonical_representation(graph, return_features = False):
         hypergraph.reset_nodes_with_more_labels()
         
         # rule 0.2
-        parallel_edges_groups = hypergraph.parallel_edges_groups
+        parallel_edges_groups_keys = list(hypergraph.parallel_edges_groups.keys())
         
-        if len(parallel_edges_groups) > 0:
+        if len(parallel_edges_groups_keys) > 0:
             modified = True
         
-        for edges_group in parallel_edges_groups:
+        for key in parallel_edges_groups_keys:
+            edges_group = hypergraph.parallel_edges_groups[key]
             endpoints = hypergraph.endpoints(edges_group[0])
             perms = permutations(endpoints)
             possible_labels = []

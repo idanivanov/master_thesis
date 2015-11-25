@@ -7,7 +7,7 @@ Represents a hypergraph with hyperedges of order at most 3.
 '''
 
 from networkx.algorithms import bipartite
-from itertools import permutations
+from itertools import permutations, groupby
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
@@ -57,9 +57,11 @@ class Hypergraph(object):
         nodes_set = set(nodes)
         if len(nodes_set) < 3:
             edge_id = u"e_" + unicode(self.next_edge_index)
+            is_hedge = False
             self.next_edge_index += 1
         else:
             edge_id = u"he_" + unicode(self.next_hedge_index)
+            is_hedge = True
             self.next_hedge_index += 1
             self.hedges_count += 1
         
@@ -71,15 +73,21 @@ class Hypergraph(object):
         
         for node in nodes:
             self.bipartite_graph.add_edge(edge_id, node)
+        
+        if is_hedge:
+            self.update_parallel_hedges_groups([edge_id])
+        else:
+            self.update_parallel_edges_groups([edge_id])
     
     def remove_node(self, node):
         assert node.startswith(u"n_")
         
         connected_edges = self.bipartite_graph.neighbors(node)
+        self.remove_edges_from(connected_edges)
         self.bipartite_graph.remove_node(node)
         self.nodes_count -= 1
-        self.bipartite_graph.remove_nodes_from(connected_edges)
-        self.edges_count -= len(connected_edges)
+        if node in self.nodes_with_more_labels: 
+            self.nodes_with_more_labels.remove(node)
     
     def remove_nodes_from(self, nodes):
         for node in nodes:
@@ -89,10 +97,14 @@ class Hypergraph(object):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
         self.bipartite_graph.remove_node(edge_id)
         self.edges_count -= 1
+        if edge_id.startswith(u"e_"):
+            self.try_remove_from_parallel_edges_groups(edge_id)
+        else:
+            self.try_remove_from_parallel_hedges_groups(edge_id)
     
     def remove_edges_from(self, edge_ids):
-        self.bipartite_graph.remove_nodes_from(edge_ids)
-        self.edges_count -= len(edge_ids)
+        for edge_id in edge_ids:
+            self.remove_edge(edge_id)
     
     def edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
@@ -237,10 +249,35 @@ class Hypergraph(object):
         self.nodes_with_more_labels = set()
     
     def init_parallel_edges_groups(self):
-        pass
+        self.reset_parallel_edges_groups()
+        self.update_parallel_edges_groups(self.edges_2_iter())
+    
+    def try_remove_from_parallel_edges_groups(self, edge_id):
+        key = u",".join(sorted(self.endpoints(edge_id)))
+        if key in self.parallel_edges_groups:
+            edges = self.parallel_edges_groups[key]
+            if edge_id in edges:
+                if len(edges) < 2:
+                    del self.parallel_edges_groups[key]
+                else:
+                    edges.remove(edge_id)
+    
+    def update_parallel_edges_groups(self, new_edges):
+        new_keys = []
+        for edge in new_edges:
+            assert edge.startswith(u"e_")
+            key = u",".join(sorted(self.endpoints(edge)))
+            if self.parallel_edges_groups.has_key(key):
+                self.parallel_edges_groups[key].append(edge)
+            else:
+                self.parallel_edges_groups[key] = [edge]
+            new_keys.append(key)
+        for key in new_keys:
+            if len(self.parallel_edges_groups[key]) < 2:
+                del self.parallel_edges_groups[key]
     
     def reset_parallel_edges_groups(self):
-        pass
+        self.parallel_edges_groups = {}
     
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
@@ -257,15 +294,6 @@ class Hypergraph(object):
         self.nodes_count = 0
         self.edges_count = 0
         self.hedges_count = 0
-        
-        # ready sets
-        self.reset_nodes_with_more_labels()
-        self.init_parallel_edges_groups() 
-        self.parallel_hedges_groups = set() # TODO: 
-        self.self_loops = set() # TODO: 
-        self.nodes_with_1_neighbor = set() # TODO: 
-        self.nodes_with_2_neighbors = set() # TODO: 
-        self.nodes_with_3_neighbors = set() # TODO: 
         
         # add nodes
         for node in nx_graph.nodes_iter():
@@ -303,4 +331,13 @@ class Hypergraph(object):
                 else:
                     edge_label = nx_graph.edge[edge_endpoints[0]][edge_endpoints[1]]["label"]
                     self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
+        
+        # ready sets
+        self.reset_nodes_with_more_labels()
+        self.init_parallel_edges_groups() 
+        self.parallel_hedges_groups = set() # TODO: 
+        self.self_loops = set() # TODO: 
+        self.nodes_with_1_neighbor = set() # TODO: 
+        self.nodes_with_2_neighbors = set() # TODO: 
+        self.nodes_with_3_neighbors = set() # TODO: 
         
