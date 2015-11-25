@@ -50,6 +50,8 @@ def get_canonical_representation(graph, return_features = False):
             new_label = u"(0.1;{0})".format(u",".join(labels))
             hypergraph.set_node_labels(node, [new_label])
         
+        hypergraph.reset_nodes_with_more_labels()
+        
         # rule 0.2
         parallel_edges_groups = hypergraph.parallel_edges_groups
         
