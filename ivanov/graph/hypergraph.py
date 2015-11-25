@@ -236,6 +236,12 @@ class Hypergraph(object):
     def reset_nodes_with_more_labels(self):
         self.nodes_with_more_labels = set()
     
+    def init_parallel_edges_groups(self):
+        pass
+    
+    def reset_parallel_edges_groups(self):
+        pass
+    
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
     
@@ -253,8 +259,8 @@ class Hypergraph(object):
         self.hedges_count = 0
         
         # ready sets
-        self.nodes_with_more_labels = set()
-        self.parallel_edges_groups = set() # TODO: 
+        self.reset_nodes_with_more_labels()
+        self.init_parallel_edges_groups() 
         self.parallel_hedges_groups = set() # TODO: 
         self.self_loops = set() # TODO: 
         self.nodes_with_1_neighbor = set() # TODO: 

@@ -11,10 +11,11 @@ from graph import rdf
 from ivanov.graph.hypergraph import Hypergraph
 import codecs
 from ivanov.statistics import treewidth
+from ivanov import graph
 
 def compute_rballs_tw(in_file):
-    graph = rdf.convert_rdf_to_nx_graph(in_file)
-    nodes_in_graph = graph.number_of_nodes()
+    nx_graph = rdf.convert_rdf_to_nx_graph(in_file)
+    nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
     for r in [2, 3, 4]:
@@ -25,15 +26,15 @@ def compute_rballs_tw(in_file):
             out_file = codecs.open("../output/tw_r{0}_{1}".format(r, d), "w", "utf8")
              
             i = 0
-            for node in graph.nodes_iter():
+            for node in nx_graph.nodes_iter():
                 print "-------------------------------------"
                 print "Node {0}/{1} ({2})".format(i, nodes_in_graph, node)
                 print "r = {0}, d = {1}".format(r, d)
-                rball = algorithms.r_ball(graph, node, r, -1 if d == "in" else 1 if d == "out" else 0)
+                rball = algorithms.r_ball(nx_graph, node, r, -1 if d == "in" else 1 if d == "out" else 0)
                 print "r-ball nodes:", rball.number_of_nodes()
                 ap_result = arnborg_proskurowski.get_canonical_representation(rball, False)
                 print "Treewidth: ", ap_result[0]
-                line = u"{0},{1}\n".format(graph.node[node]["labels"][0].replace(u",", u"[comma]"), ap_result[0])
+                line = u"{0},{1}\n".format(nx_graph.node[node]["labels"][0].replace(u",", u"[comma]"), ap_result[0])
                 out_file.write(line)
 #                 nxext.visualize_graph(rball, node_labels=True, edge_labels=False)
                 i += 1
@@ -66,8 +67,13 @@ def aggregate_results(percent=False):
     
     out_file.close()
 
+def test_graph(path_to_graph_file):
+    nx_graph = graph.load_graph(path_to_graph_file)
+    return arnborg_proskurowski.get_canonical_representation(nx_graph)
+
 if __name__ == '__main__':
-    compute_rballs_tw("../data/peel.rdf")
+#     compute_rballs_tw("../data/peel.rdf")
 #     aggregate_results()
 #     aggregate_results(True)
+    test_graph("../output/rball")
     
