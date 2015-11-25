@@ -45,6 +45,13 @@ class Hypergraph(object):
     def number_of_hedges(self):
         return self.hedges_count
     
+    def add_node(self, node, attr_dict):
+        node_id = u"n_{0}".format(node)
+        self.bipartite_graph.add_node(node_id, attr_dict=attr_dict, bipartite=0)
+        if len(attr_dict["labels"]) > 1:
+            self.nodes_with_more_labels.append(node_id)
+        self.nodes_count += 1
+    
     def nodes_iter(self):
         return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 0, self.bipartite_graph.nodes_iter())
         
@@ -236,10 +243,6 @@ class Hypergraph(object):
         
         return subgraph
     
-    # TODO: 
-#     def self_loops(self):
-#         return filter(lambda edge_id: self.bipartite_graph.degree(edge_id) == 1, self.edges_iter())
-    
     def add_node_label(self, node_id, label):
         assert node_id.startswith(u"n_")
         
@@ -346,12 +349,7 @@ class Hypergraph(object):
         
         # add nodes
         for node in nx_graph.nodes_iter():
-            node_id = u"n_{0}".format(node)
-            node_attr = copy.deepcopy(nx_graph.node[node])
-            self.bipartite_graph.add_node(node_id, attr_dict=node_attr, bipartite=0)
-            if len(node_attr["labels"]) > 1:
-                self.nodes_with_more_labels.append(node_id)
-            self.nodes_count += 1
+            self.add_node(node, attr_dict=copy.deepcopy(nx_graph.node[node]))
         
         # add edges of order 2
         if nx_graph.is_directed():
