@@ -263,7 +263,7 @@ class Hypergraph(object):
     
     def set_node_labels(self, node_id, labels):
         assert node_id.startswith(u"n_")
-        assert labels is list
+        assert type(labels) is list
         
         self.bipartite_graph.node[node_id]["labels"] = labels
         if len(labels) > 1:
@@ -345,7 +345,7 @@ class Hypergraph(object):
         self.update_nodes_with_n_neighbors(self.nodes_iter())
     
     def update_nodes_with_n_neighbors(self, candidate_nodes):
-        assert candidate_nodes is set
+        assert type(candidate_nodes) is set
         
         new_nodes_with_1_neighbor = set()
         new_nodes_with_2_neighbors = set()
@@ -369,7 +369,7 @@ class Hypergraph(object):
         self.nodes_with_3_neighbors -= candidate_nodes - new_nodes_with_3_neighbors
     
     def remove_from_nodes_with_n_neighbors(self, nodes):
-        assert nodes is set
+        assert type(nodes) is set
         
         self.nodes_with_1_neighbor -= nodes
         self.nodes_with_2_neighbors -= nodes
@@ -399,6 +399,9 @@ class Hypergraph(object):
         # ready sets
         self.reset_nodes_with_more_labels()
         self.reset_self_loops()
+        self.reset_parallel_edges_groups() 
+        self.reset_parallel_hedges_groups()
+        self.reset_nodes_with_n_neighbors()
         
         # add nodes
         for node in nx_graph.nodes_iter():
@@ -431,11 +434,3 @@ class Hypergraph(object):
                 else:
                     edge_label = nx_graph.edge[edge_endpoints[0]][edge_endpoints[1]]["label"]
                     self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
-        
-        # ready sets
-        self.init_parallel_edges_groups() 
-        self.init_parallel_hedges_groups()
-        self.init_nodes_with_1_neighbor() 
-        self.init_nodes_with_2_neighbors() 
-        self.init_nodes_with_3_neighbors() 
-        
