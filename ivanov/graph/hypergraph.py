@@ -37,17 +37,13 @@ class Hypergraph(object):
         return u"({0},{1})".format(hedge_label, hedge_dir_str)
     
     def number_of_nodes(self):
-        _, nodes = bipartite.sets(self.bipartite_graph)
-        return len(nodes)
+        return self.nodes_count
     
     def number_of_edges(self):
-        edges, _ = bipartite.sets(self.bipartite_graph)
-        return len(edges)
+        return self.edges_count
     
     def number_of_hedges(self):
-        edges, _ = bipartite.sets(self.bipartite_graph)
-        hedges = filter(lambda edge_id: edge_id.startwith(u"he_"), edges)
-        return len(hedges)
+        return self.hedges_count
     
     def nodes_iter(self):
         return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 0, self.bipartite_graph.nodes_iter())
@@ -65,11 +61,14 @@ class Hypergraph(object):
         else:
             edge_id = u"he_" + unicode(self.next_hedge_index)
             self.next_hedge_index += 1
+            self.hedges_count += 1
         
         if not direction:
             direction = set(permutations(nodes_set))
         
         self.bipartite_graph.add_node(edge_id, direction=direction, labels=[label], bipartite=1)
+        self.edges_count += 1
+        
         for node in nodes:
             self.bipartite_graph.add_edge(edge_id, node)
     
@@ -78,7 +77,9 @@ class Hypergraph(object):
         
         connected_edges = self.bipartite_graph.neighbors(node)
         self.bipartite_graph.remove_node(node)
+        self.nodes_count -= 1
         self.bipartite_graph.remove_nodes_from(connected_edges)
+        self.edges_count -= len(connected_edges)
     
     def remove_nodes_from(self, nodes):
         for node in nodes:
@@ -87,9 +88,11 @@ class Hypergraph(object):
     def remove_edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
         self.bipartite_graph.remove_node(edge_id)
+        self.edges_count -= 1
     
     def remove_edges_from(self, edge_ids):
         self.bipartite_graph.remove_nodes_from(edge_ids)
+        self.edges_count -= len(edge_ids)
     
     def edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
@@ -225,9 +228,14 @@ class Hypergraph(object):
         self.next_edge_index = 0
         self.next_hedge_index = 0
         
+        self.nodes_count = 0
+        self.edges_count = 0
+        self.hedges_count = 0
+        
         # add nodes
         for node in nx_graph.nodes_iter():
             self.bipartite_graph.add_node(u"n_{0}".format(node), attr_dict=copy.deepcopy(nx_graph.node[node]), bipartite=0)
+            self.nodes_count += 1
         
         # add edges of order 2
         if nx_graph.is_directed():
