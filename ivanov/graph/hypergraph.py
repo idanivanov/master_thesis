@@ -279,6 +279,37 @@ class Hypergraph(object):
     def reset_parallel_edges_groups(self):
         self.parallel_edges_groups = {}
     
+    def init_parallel_hedges_groups(self):
+        self.reset_parallel_hedges_groups()
+        self.update_parallel_hedges_groups(self.hedges_iter())
+    
+    def try_remove_from_parallel_hedges_groups(self, hedge_id):
+        key = u",".join(sorted(self.endpoints(hedge_id)))
+        if key in self.parallel_hedges_groups:
+            hedges = self.parallel_hedges_groups[key]
+            if hedge_id in hedges:
+                if len(hedges) < 2:
+                    del self.parallel_hedges_groups[key]
+                else:
+                    hedges.remove(hedge_id)
+    
+    def update_parallel_hedges_groups(self, new_hedges):
+        new_keys = []
+        for hedge in new_hedges:
+            assert hedge.startswith(u"e_")
+            key = u",".join(sorted(self.endpoints(hedge)))
+            if self.parallel_hedges_groups.has_key(key):
+                self.parallel_hedges_groups[key].append(hedge)
+            else:
+                self.parallel_hedges_groups[key] = [hedge]
+            new_keys.append(key)
+        for key in new_keys:
+            if len(self.parallel_hedges_groups[key]) < 2:
+                del self.parallel_hedges_groups[key]
+    
+    def reset_parallel_hedges_groups(self):
+        self.parallel_hedges_groups = {}
+    
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
     

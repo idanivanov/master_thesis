@@ -115,12 +115,13 @@ def get_canonical_representation(graph, return_features = False):
     def rule_3(hypergraph):
         modified = False
         
-        parallel_hedges_groups = hypergraph.parallel_hedges_groups
+        parallel_hedges_groups_keys = list(hypergraph.parallel_hedges_groups.keys())
         
-        if len(parallel_hedges_groups) > 0:
+        if len(parallel_hedges_groups_keys) > 0:
             modified = True
         
-        for hedges_group in parallel_hedges_groups:
+        for key in parallel_hedges_groups_keys:
+            hedges_group = hypergraph.parallel_hedges_groups[key]
             endpoints = hypergraph.endpoints(hedges_group[0])
             perms = permutations(endpoints)
             possible_labels = []
