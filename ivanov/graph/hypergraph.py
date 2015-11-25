@@ -327,6 +327,42 @@ class Hypergraph(object):
     def reset_self_loops(self):
         self.self_loops = set()
     
+    def init_nodes_with_1_neighbor(self):
+        self.nodes_with_1_neighbor = set(filter(lambda node: len(self.neighbors(node)) == 1, self.nodes_iter()))
+    
+    def update_nodes_with_1_neighbor(self, candidate_nodes):
+        new_nodes_with_1_neighbor = set(filter(lambda node: len(self.neighbors(node)) == 1, candidate_nodes))
+        other_nodes = set(candidate_nodes) - new_nodes_with_1_neighbor
+        self.nodes_with_1_neighbor |= new_nodes_with_1_neighbor
+        self.nodes_with_1_neighbor -= other_nodes
+    
+    def reset_nodes_with_1_neighbor(self):
+        self.nodes_with_1_neighbor = set()
+    
+    def init_nodes_with_2_neighbors(self):
+        self.nodes_with_2_neighbors = set(filter(lambda node: len(self.neighbors(node)) == 2, self.nodes_iter()))
+    
+    def update_nodes_with_2_neighbors(self, candidate_nodes):
+        new_nodes_with_2_neighbors = set(filter(lambda node: len(self.neighbors(node)) == 2, candidate_nodes))
+        other_nodes = set(candidate_nodes) - new_nodes_with_2_neighbors
+        self.nodes_with_2_neighbors |= new_nodes_with_2_neighbors
+        self.nodes_with_2_neighbors -= other_nodes
+    
+    def reset_nodes_with_2_neighbors(self):
+        self.nodes_with_2_neighbors = set()
+    
+    def init_nodes_with_3_neighbors(self):
+        self.nodes_with_3_neighbors = set(filter(lambda node: len(self.neighbors(node)) == 3, self.nodes_iter()))
+    
+    def update_nodes_with_3_neighbors(self, candidate_nodes):
+        new_nodes_with_3_neighbors = set(filter(lambda node: len(self.neighbors(node)) == 3, candidate_nodes))
+        other_nodes = set(candidate_nodes) - new_nodes_with_3_neighbors
+        self.nodes_with_3_neighbors |= new_nodes_with_3_neighbors
+        self.nodes_with_3_neighbors -= other_nodes
+    
+    def reset_nodes_with_3_neighbors(self):
+        self.nodes_with_3_neighbors = set()
+    
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
     
@@ -382,7 +418,7 @@ class Hypergraph(object):
         # ready sets
         self.init_parallel_edges_groups() 
         self.init_parallel_hedges_groups()
-        self.nodes_with_1_neighbor = set() # TODO: 
-        self.nodes_with_2_neighbors = set() # TODO: 
-        self.nodes_with_3_neighbors = set() # TODO: 
+        self.init_nodes_with_1_neighbor() 
+        self.init_nodes_with_2_neighbors() 
+        self.init_nodes_with_3_neighbors() 
         
