@@ -416,11 +416,11 @@ class ReducibleFeature(object):
             if len(separator) > 1:
                 hypergraph.add_edge(separator, direction, label_template.format(minimal_label))
             else:
-                hypergraph.node[list(separator)[0]]["labels"].append(label_template.format(minimal_label))
+                hypergraph.add_node_label(list(separator)[0], label_template.format(minimal_label))
         else:
             not_reduced = list(reducibles)[0]
             hypergraph.remove_nodes_from(reducibles - set([not_reduced]))
-            hypergraph.node[not_reduced]["labels"] = [label_template.format(minimal_label)]
+            hypergraph.set_node_labels(not_reduced, [label_template.format(minimal_label)])
     
     # public methods
     
@@ -481,7 +481,7 @@ class ReducibleFeature(object):
                 else:
                     label = label_2              
                                 
-                hypergraph.node[neighbor]["labels"] = [label]
+                hypergraph.set_node_labels(neighbor, [label])
                 hypergraph.remove_node(node)
             # remove degree 1 leaves (pendant)
             elif self.subrule == 2:                
@@ -489,7 +489,7 @@ class ReducibleFeature(object):
                 edge_label = Hypergraph.edge_to_string(hypergraph, edge_id, (neighbor, node))
                 
                 label = u"(1.2;{0},{1})".format(edge_label, hypergraph.node[node]["labels"][0])
-                hypergraph.node[neighbor]["labels"].append(label)
+                hypergraph.add_node_label(neighbor, label)
                 hypergraph.remove_node(node)
             else:
                 sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 1." % self.subrule)
@@ -585,7 +585,7 @@ class ReducibleFeature(object):
                     possible_labels.append(label_template.format(u",".join(label_components)))
             
             possible_labels.sort()
-            hypergraph.node[self.peripheral_nodes[0]]["labels"] = [possible_labels[0]]
+            hypergraph.set_node_labels(self.peripheral_nodes[0], [possible_labels[0]])
             hypergraph.remove_nodes_from(self.reducible_nodes)
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 2." % self.subrule)
