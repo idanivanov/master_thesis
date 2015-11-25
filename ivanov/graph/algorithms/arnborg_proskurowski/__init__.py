@@ -40,7 +40,7 @@ def get_canonical_representation(graph, return_features = False):
         modified = False
         
         # rule 0.1
-        nodes_with_more_labels = hypergraph.nodes_with_more_labels
+        nodes_with_more_labels = list(hypergraph.nodes_with_more_labels)
         if len(nodes_with_more_labels) > 0:
             modified = True
             
@@ -49,8 +49,6 @@ def get_canonical_representation(graph, return_features = False):
             labels.sort()
             new_label = u"(0.1;{0})".format(u",".join(labels))
             hypergraph.set_node_labels(node, [new_label])
-        
-        hypergraph.reset_nodes_with_more_labels()
         
         # rule 0.2
         parallel_edges_groups_keys = list(hypergraph.parallel_edges_groups.keys())

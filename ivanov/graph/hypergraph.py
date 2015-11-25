@@ -88,8 +88,11 @@ class Hypergraph(object):
             self.update_parallel_edges_groups([edge_id])
         
         # update self loops
-        if len(set(nodes)) == 1:
+        if len(nodes_set) == 1:
             self.self_loops.add(edge_id)
+        
+        # update nodes with n neighbors sets
+        self.update_nodes_with_n_neighbors(nodes_set)
     
     def remove_node(self, node):
         assert node.startswith(u"n_")
@@ -100,6 +103,7 @@ class Hypergraph(object):
         self.nodes_count -= 1
         if node in self.nodes_with_more_labels: 
             self.nodes_with_more_labels.remove(node)
+        self.remove_from_nodes_with_n_neighbors(set([node]))
     
     def remove_nodes_from(self, nodes):
         for node in nodes:
@@ -107,6 +111,9 @@ class Hypergraph(object):
     
     def remove_edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
+        
+        endpoints = set(self.endpoints(edge_id))
+        
         self.bipartite_graph.remove_node(edge_id)
         self.edges_count -= 1
         
@@ -119,6 +126,9 @@ class Hypergraph(object):
         # update self loops
         if edge_id in self.self_loops:
             self.self_loops.remove(edge_id)
+        
+        # update nodes with n neighbors sets
+        self.update_nodes_with_n_neighbors(endpoints)
     
     def remove_edges_from(self, edge_ids):
         for edge_id in edge_ids:
@@ -258,6 +268,9 @@ class Hypergraph(object):
         self.bipartite_graph.node[node_id]["labels"] = labels
         if len(labels) > 1:
             self.nodes_with_more_labels.add(node_id)
+        else:
+            if node_id in self.nodes_with_more_labels:
+                self.nodes_with_more_labels.remove(node_id)
     
     def reset_nodes_with_more_labels(self):
         self.nodes_with_more_labels = set()
@@ -354,6 +367,13 @@ class Hypergraph(object):
         
         self.nodes_with_3_neighbors |= new_nodes_with_3_neighbors
         self.nodes_with_3_neighbors -= candidate_nodes - new_nodes_with_3_neighbors
+    
+    def remove_from_nodes_with_n_neighbors(self, nodes):
+        assert nodes is set
+        
+        self.nodes_with_1_neighbor -= nodes
+        self.nodes_with_2_neighbors -= nodes
+        self.nodes_with_3_neighbors -= nodes
     
     def reset_nodes_with_n_neighbors(self):
         self.nodes_with_1_neighbor = set()
