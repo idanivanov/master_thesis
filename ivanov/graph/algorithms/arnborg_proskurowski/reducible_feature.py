@@ -18,8 +18,7 @@ class ReducibleFeature(object):
     
     @staticmethod
     def extract_rule_1_features(hypergraph):        
-        pendant_nodes = filter(lambda node: len(hypergraph.neighbors(node)) == 1, hypergraph.nodes_iter())
-        pendant_nodes_and_dipoles_subgraph = hypergraph.subgraph(pendant_nodes)
+        pendant_nodes_and_dipoles_subgraph = hypergraph.subgraph(hypergraph.nodes_with_1_neighbor)
         cc = nx.connected_components(nx.Graph(pendant_nodes_and_dipoles_subgraph))
         
         for comp in cc:
@@ -38,8 +37,7 @@ class ReducibleFeature(object):
     
     @staticmethod
     def extract_rule_2_features(hypergraph):
-        nodes_with_2_neighbors = filter(lambda node: len(hypergraph.neighbors(node)) == 2, hypergraph.nodes_iter())
-        series_subgraph = hypergraph.subgraph(nodes_with_2_neighbors)
+        series_subgraph = hypergraph.subgraph(hypergraph.nodes_with_2_neighbors)
         cc = nx.connected_components(nx.Graph(series_subgraph))
         
         for comp in cc:
@@ -357,8 +355,7 @@ class ReducibleFeature(object):
                      
             return {"isolates": isolates, "conflicts": conflicts}
         
-        nodes_with_3_neighbors = map(lambda node: (node, hypergraph.neighbors(node)), hypergraph.nodes_iter())
-        nodes_with_3_neighbors = filter(lambda neighborhood: len(neighborhood[1]) == 3, nodes_with_3_neighbors)
+        nodes_with_3_neighbors = map(lambda node: (node, hypergraph.neighbors(node)), hypergraph.nodes_with_3_neighbors)
         
         triangles = get_triangles(nodes_with_3_neighbors)
         triangle_conflicts = get_triangle_conflicts(triangles)

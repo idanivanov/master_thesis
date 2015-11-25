@@ -213,8 +213,9 @@ class Hypergraph(object):
         
         return subgraph
     
-    def self_loops(self):
-        return filter(lambda edge_id: self.bipartite_graph.degree(edge_id) == 1, self.edges_iter())
+    # TODO: 
+#     def self_loops(self):
+#         return filter(lambda edge_id: self.bipartite_graph.degree(edge_id) == 1, self.edges_iter())
     
     def to_graph(self, multidigraph=False):
         return self.subgraph(self.nodes(), multidigraph=multidigraph)
@@ -231,6 +232,15 @@ class Hypergraph(object):
         self.nodes_count = 0
         self.edges_count = 0
         self.hedges_count = 0
+        
+        # ready sets
+        self.nodes_with_more_labels = set() # TODO: 
+        self.parallel_edges_groups = set() # TODO: 
+        self.parallel_hedges_groups = set() # TODO: 
+        self.self_loops = set() # TODO: 
+        self.nodes_with_1_neighbor = set() # TODO: 
+        self.nodes_with_2_neighbors = set() # TODO: 
+        self.nodes_with_3_neighbors = set() # TODO: 
         
         # add nodes
         for node in nx_graph.nodes_iter():

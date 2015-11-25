@@ -40,7 +40,7 @@ def get_canonical_representation(graph, return_features = False):
         modified = False
         
         # rule 0.1
-        nodes_with_more_labels = filter(lambda node: len(hypergraph.node[node]["labels"]) > 1, hypergraph.nodes_iter())
+        nodes_with_more_labels = hypergraph.nodes_with_more_labels
         if len(nodes_with_more_labels) > 0:
             modified = True
             
@@ -51,24 +51,20 @@ def get_canonical_representation(graph, return_features = False):
             hypergraph.node[node]["labels"] = [new_label]
         
         # rule 0.2
-        edges_endpoints = map(lambda edge: (edge, u",".join(sorted(hypergraph.endpoints(edge)))), hypergraph.edges_2_iter())
-        edges_endpoints.sort(key=lambda e: e[1])
-        edges_grouped_by_neighbors = groupby(edges_endpoints, key=lambda e: e[1])
-        edges_groups = map(lambda key_group: [elem[0] for elem in key_group[1]], edges_grouped_by_neighbors)
-        parallel_edge_groups = filter(lambda group: len(group) > 1, edges_groups)
+        parallel_edges_groups = hypergraph.parallel_edges_groups
         
-        if len(parallel_edge_groups) > 0:
+        if len(parallel_edges_groups) > 0:
             modified = True
         
-        for edge_group in parallel_edge_groups:
-            endpoints = hypergraph.endpoints(edge_group[0])
+        for edges_group in parallel_edges_groups:
+            endpoints = hypergraph.endpoints(edges_group[0])
             perms = permutations(endpoints)
             possible_labels = []
             for perm in perms:
                 possible_label = {}
                 possible_label["perm"] = perm
                 possible_label["label"] = []
-                for edge in edge_group:
+                for edge in edges_group:
                     possible_label["label"].append(Hypergraph.edge_to_string(hypergraph, edge, perm))
                 possible_label["label"].sort()
                 possible_label["label"] = u"(0.2;{0})".format(u",".join(possible_label["label"]))
@@ -77,7 +73,7 @@ def get_canonical_representation(graph, return_features = False):
             minimal_label = possible_labels[0]["label"]
             minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
             direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
-            hypergraph.remove_edges_from(edge_group)
+            hypergraph.remove_edges_from(edges_group)
             hypergraph.add_edge(endpoints, direction, minimal_label)
         
         return modified
@@ -92,7 +88,7 @@ def get_canonical_representation(graph, return_features = False):
             feature.reduce(hypergraph)
         
         # 1.3 - remove self-loops
-        self_loops = hypergraph.self_loops()
+        self_loops = hypergraph.self_loops
         for self_loop in self_loops:
             if not modified:
                 modified = True
@@ -116,25 +112,20 @@ def get_canonical_representation(graph, return_features = False):
     def rule_3(hypergraph):
         modified = False
         
-        all_hedges = hypergraph.hedges_iter()
-        hedges_endpoints = map(lambda hedge: (hedge, u",".join(sorted(hypergraph.endpoints(hedge)))), all_hedges)
-        hedges_endpoints.sort(key=lambda h: h[1])
-        hedges_grouped_by_neighbors = groupby(hedges_endpoints, key=lambda h: h[1])
-        hedges_groups = map(lambda key_group: [elem[0] for elem in key_group[1]], hedges_grouped_by_neighbors)
-        parallel_hedge_groups = filter(lambda group: len(group) > 1, hedges_groups)
+        parallel_hedges_groups = hypergraph.parallel_hedges_groups
         
-        if len(parallel_hedge_groups) > 0:
+        if len(parallel_hedges_groups) > 0:
             modified = True
         
-        for hedge_group in parallel_hedge_groups:
-            endpoints = hypergraph.endpoints(hedge_group[0])
+        for hedges_group in parallel_hedges_groups:
+            endpoints = hypergraph.endpoints(hedges_group[0])
             perms = permutations(endpoints)
             possible_labels = []
             for perm in perms:
                 possible_label = {}
                 possible_label["perm"] = perm
                 possible_label["label"] = []
-                for hedge in hedge_group:
+                for hedge in hedges_group:
                     possible_label["label"].append(Hypergraph.hedge_to_string(hypergraph, hedge, perm))
                 possible_label["label"].sort()
                 possible_label["label"] = u",".join(possible_label["label"])
@@ -143,7 +134,7 @@ def get_canonical_representation(graph, return_features = False):
             minimal_label = possible_labels[0]["label"]
             minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
             direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
-            hypergraph.remove_edges_from(hedge_group)
+            hypergraph.remove_edges_from(hedges_group)
             hypergraph.add_edge(endpoints, direction, u"(3;{0})".format(minimal_label))
         
         return modified
@@ -199,7 +190,7 @@ def get_canonical_representation(graph, return_features = False):
         if modified:
             new_features = []
             continue
-         
+
         modified, new_features = rules_4_5_6_7(hypergraph, return_features)
         if modified:
             if treewidth < 3:
