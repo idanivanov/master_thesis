@@ -178,7 +178,7 @@ class Hypergraph(object):
                     hedges = []
                     for hedge in u_hedges:
                         nodes = self.bipartite_graph.neighbors(hedge)
-                        if not set(nodes) ^ set(u, v, w):
+                        if not set(nodes) ^ set([u, v, w]):
                             hedges.append(hedge)
                     return hedges
         else:
