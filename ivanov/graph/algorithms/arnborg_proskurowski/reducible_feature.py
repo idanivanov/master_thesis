@@ -414,34 +414,40 @@ class ReducibleFeature(object):
         if len(separator) > 0:
             hypergraph.remove_nodes_from(reducibles)
             if len(separator) > 1:
-                hypergraph.add_edge(separator, direction, label_template.format(minimal_label))
+                new_edge = hypergraph.add_edge(separator, direction, label_template.format(minimal_label))
+                return set([new_edge])
             else:
                 hypergraph.add_node_label(list(separator)[0], label_template.format(minimal_label))
+                return set()
         else:
             not_reduced = list(reducibles)[0]
             hypergraph.remove_nodes_from(reducibles - set([not_reduced]))
             hypergraph.set_node_labels(not_reduced, [label_template.format(minimal_label)])
+            return set()
     
     # public methods
     
     def reduce(self, hypergraph):
         if self.rule == 1:
+            new_edges = set()
             self._reduce_by_rule_1(hypergraph)
         elif self.rule == 2:
-            self._reduce_by_rule_2(hypergraph)
+            new_edges = self._reduce_by_rule_2(hypergraph)
         elif self.rule == 4:
-            self._reduce_by_rule_4(hypergraph)
+            new_edges = self._reduce_by_rule_4(hypergraph)
         elif self.rule == 5:
-            self._reduce_by_rule_5(hypergraph)
+            new_edges = self._reduce_by_rule_5(hypergraph)
         elif self.rule == 6:
-            self._reduce_by_rule_6(hypergraph)
+            new_edges = self._reduce_by_rule_6(hypergraph)
         elif self.rule == 7:
-            self._reduce_by_rule_7(hypergraph)
+            new_edges = self._reduce_by_rule_7(hypergraph)
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown rule " + str(self.rule) + ".")
-            return
+            return set()
         
         self.reduced = True
+        
+        return new_edges
     
     def as_subgraph(self, hypergraph):
         nodes = self.reducible_nodes + self.peripheral_nodes
@@ -493,6 +499,8 @@ class ReducibleFeature(object):
                 hypergraph.remove_node(node)
             else:
                 sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 1." % self.subrule)
+        
+        return set()
     
     def _reduce_by_rule_2(self, hypergraph):
         # chain
@@ -545,13 +553,15 @@ class ReducibleFeature(object):
             
             comparison = cmp(label_s1_to_s2, label_s2_to_s1)
             if comparison < 0:
-                hypergraph.add_edge(self.peripheral_nodes, direction=[(s1, s2)], label=label_s1_to_s2)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(s1, s2)], label=label_s1_to_s2)
             elif comparison > 0:
-                hypergraph.add_edge(self.peripheral_nodes, direction=[(s2, s1)], label=label_s2_to_s1)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(s2, s1)], label=label_s2_to_s1)
             else:
-                hypergraph.add_edge(self.peripheral_nodes, label=label_s1_to_s2)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, label=label_s1_to_s2)
             
             hypergraph.remove_nodes_from(self.reducible_nodes)
+            
+            return set([new_edge])
         # ring
         elif self.subrule == 2:
             ring_graph = hypergraph.subgraph(set(self.peripheral_nodes + self.reducible_nodes))
@@ -587,23 +597,28 @@ class ReducibleFeature(object):
             possible_labels.sort()
             hypergraph.set_node_labels(self.peripheral_nodes[0], [possible_labels[0]])
             hypergraph.remove_nodes_from(self.reducible_nodes)
+            return set()
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 2." % self.subrule)
+            return set()
     
     def _reduce_by_rule_4(self, hypergraph):
+        new_edges = set()
         if self.subrule == 1:
             # triangle
             label_template = u"(4.1;{0})"
             perms = permutations(self.peripheral_nodes)
             perms = map(lambda perm: perm + tuple([self.reducible_nodes[0]]), perms)
-            ReducibleFeature.basic_degree_3_reduction(hypergraph, self.reducible_nodes[0], self.peripheral_nodes, perms, label_template)
+            _new_edges = ReducibleFeature.basic_degree_3_reduction(hypergraph, self.reducible_nodes[0], self.peripheral_nodes, perms, label_template)
+            new_edges |= _new_edges
         elif self.subrule == 2:
             # buddy
             label_template = u"(4.2;{0})"
             perms = list(permutations(self.peripheral_nodes))
             for reducible in self.reducible_nodes:
                 current_perms = map(lambda perm: perm + tuple([reducible]), perms)
-                ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, self.peripheral_nodes, current_perms, label_template)
+                _new_edges = ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, self.peripheral_nodes, current_perms, label_template)
+                new_edges |= _new_edges
         elif self.subrule == 3:
             # cube
             # TODO: the hub is not reduced in this step but in the next steps as a triangle-reducible vertex (in case it has degree 3)
@@ -612,18 +627,23 @@ class ReducibleFeature(object):
                 separator = hypergraph.neighbors(reducible)
                 perms = permutations(separator)
                 perms = map(lambda perm: perm + tuple([reducible]), perms)
-                ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                _new_edges = ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                new_edges |= _new_edges
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 4." % self.subrule)
+        
+        return new_edges
     
     def _reduce_by_rule_5(self, hypergraph):
+        new_edges = set()
         if self.subrule == 1:
             # diamonds
             if self.subsubrule == 1:
                 # K4
                 label_template = u"(5.1.1;{0})"
                 perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-                ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                new_edges |= _new_edges
             elif self.subsubrule == 2:
                 # K4-
                 label_template = u"(5.1.2;{0})"
@@ -633,7 +653,8 @@ class ReducibleFeature(object):
                          (s1, s2, v2, v1),
                          (s2, s1, v1, v2),
                          (s2, s1, v2, v1)]
-                ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                new_edges |= _new_edges
             else:
                 sys.stderr.write("\n[ReducibleFeature] Error: Unknown subsubrule %d for subrule 5.1." % self.subsubrule)
         elif self.subrule == 2:
@@ -643,7 +664,8 @@ class ReducibleFeature(object):
                 label_template = u"(5.2.1;{0})"
                 # TODO: nothing is mentioned about the permutations?
                 perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-                ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                new_edges |= _new_edges
             elif self.subsubrule == 2:
                 label_template = u"(5.2.2;{0})"
                 reducible_subgraph = hypergraph.subgraph(self.reducible_nodes)
@@ -654,7 +676,8 @@ class ReducibleFeature(object):
                     separator = node_with_neighbors[1]
                     perms = permutations(separator)
                     perms = map(lambda perm: perm + tuple([reducible]), perms)
-                    ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                    _new_edges = ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                    new_edges |= _new_edges
             elif self.subsubrule == 3:
                 if self.subsubsubrule == 1:
                     # wheel
@@ -669,13 +692,15 @@ class ReducibleFeature(object):
                     label_template = u"(5.2.3.1;{0})"
                     # TODO: nothing is mentioned about the permutations?
                     perms = get_wheel_permutations()
-                    ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    new_edges |= _new_edges
                 elif self.subsubsubrule == 2:
                     # TODO: this reduction may not be correct for all cases
                     assert len(self.peripheral_nodes) <= 3
                     label_template = u"(5.2.3.2;{0})"
                     perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-                    ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    new_edges |= _new_edges
                 elif self.subsubsubrule == 3:
                     # square
                     assert len(self.reducible_nodes) == 4
@@ -683,7 +708,8 @@ class ReducibleFeature(object):
                     label_template = u"(5.2.3.3;{0})"
                     # TODO: nothing is mentioned about the permutations?
                     perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-                    ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                    new_edges |= _new_edges
                 else:
                     sys.stderr.write("\n[ReducibleFeature] Error: Unknown subsubsubrule %d for subsubrule 5.2.3." % self.subsubsubrule)
             elif self.subsubrule == 4:
@@ -697,7 +723,8 @@ class ReducibleFeature(object):
                         separator = (set(hypergraph.neighbors(reducibles[0])) | set(hypergraph.neighbors(reducibles[1]))) - comp
                         # TODO: nothing is mentioned about the permutations?
                         perms = permutations(comp | separator)
-                        ReducibleFeature.degree_3_reduction(hypergraph, reducibles, separator, perms, label_template)
+                        _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, reducibles, separator, perms, label_template)
+                        new_edges |= _new_edges
                     else:
                         comp_subgraph = reducible_subgraph.subgraph(comp)
                         degree_1_nodes = filter(lambda node: comp_subgraph.degree(node) <= 1, comp)
@@ -705,26 +732,32 @@ class ReducibleFeature(object):
                             separator = hypergraph.neighbors(reducible)
                             perms = permutations(separator)
                             perms = map(lambda perm: perm + tuple([reducible]), perms)
-                            ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                            _new_edges = ReducibleFeature.basic_degree_3_reduction(hypergraph, reducible, separator, perms, label_template)
+                            new_edges |= _new_edges
             elif self.subsubrule == 5:
                 # prism
                 assert len(self.peripheral_nodes) == 0
                 label_template = u"(5.2.5;{0})"
                 # TODO: nothing is mentioned about the permutations?
                 perms = permutations(self.reducible_nodes)
-                ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+                new_edges |= _new_edges
             else:
                 sys.stderr.write("\n[ReducibleFeature] Error: Unknown subsubrule %d for subrule 5.2." % self.subsubrule)
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 5." % self.subrule)
+        
+        return new_edges
     
     def _reduce_by_rule_6(self, hypergraph):
+        new_edges = set()
         if self.subrule == 1:
             # K(3,3)
             label_template = u"(6.1;{0})"
             # TODO: nothing is mentioned about the permutations?
             perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-            ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            new_edges |= _new_edges
         elif self.subrule == 2:
             # Cat's cradle
             assert len(self.reducible_nodes) == 4
@@ -734,11 +767,15 @@ class ReducibleFeature(object):
             red_perms = list(permutations(self.reducible_nodes))
             perms = map(lambda perm: tuple(self.peripheral_nodes) + perm, red_perms)
             perms += map(lambda perm: tuple(list(self.peripheral_nodes)[::-1]) + perm, red_perms)
-            ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            new_edges |= _new_edges
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 6." % self.subrule)
+        
+        return new_edges
     
     def _reduce_by_rule_7(self, hypergraph):
+        new_edges = set()
         if self.subrule == 1:
             # cube
             assert len(self.reducible_nodes) == 8
@@ -746,7 +783,8 @@ class ReducibleFeature(object):
             label_template = u"(7.1;{0})"
             # TODO: nothing is mentioned about the permutations?
             perms = permutations(self.reducible_nodes)
-            ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            new_edges |= _new_edges
         elif self.subrule == 2:
             # Cat's cradle
             assert len(self.reducible_nodes) == 6
@@ -756,9 +794,12 @@ class ReducibleFeature(object):
             red_perms = list(permutations(self.reducible_nodes))
             perms = map(lambda perm: tuple(self.peripheral_nodes) + perm, red_perms)
             perms += map(lambda perm: tuple(list(self.peripheral_nodes)[::-1]) + perm, red_perms)
-            ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template)
+            new_edges |= _new_edges
         else:
             sys.stderr.write("\n[ReducibleFeature] Error: Unknown subrule %d for rule 7." % self.subrule)
+        
+        return new_edges
     
     '''
     Constructor

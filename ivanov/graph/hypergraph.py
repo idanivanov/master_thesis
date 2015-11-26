@@ -59,17 +59,15 @@ class Hypergraph(object):
     def nodes(self):
         return list(self.nodes_iter())
     
-    def add_edge(self, nodes, direction=None, label=u"0", init_mode=False):
+    def add_edge(self, nodes, direction=None, label=u"0"):
         assert not filter(lambda n: not n.startswith(u"n_"), nodes)
         
         nodes_set = set(nodes)
         if len(nodes_set) < 3:
             edge_id = u"e_" + unicode(self.next_edge_index)
-            is_hedge = False
             self.next_edge_index += 1
         else:
             edge_id = u"he_" + unicode(self.next_hedge_index)
-            is_hedge = True
             self.next_hedge_index += 1
             self.hedges_count += 1
         
@@ -86,17 +84,8 @@ class Hypergraph(object):
         if len(nodes_set) == 1:
             self.self_loops.add(edge_id)
         
-        if not init_mode:
-            # update parallel edges
-            endpoints = list(nodes)
-            if is_hedge:
-                self.check_for_parallel_hedges(endpoints[0], endpoints[1], endpoints[2])
-            else:
-                self.check_for_parallel_edges(endpoints[0], endpoints[1])
-            
-            # update nodes with n neighbors sets
-            self.update_nodes_with_n_neighbors(nodes_set)
-    
+        return edge_id
+        
     def remove_node(self, node):
         assert node.startswith(u"n_")
         
@@ -104,9 +93,6 @@ class Hypergraph(object):
         self.remove_edges_from(connected_edges)
         self.bipartite_graph.remove_node(node)
         self.nodes_count -= 1
-        if node in self.nodes_with_more_labels: 
-            self.nodes_with_more_labels.remove(node)
-        self.remove_from_nodes_with_n_neighbors(set([node]))
     
     def remove_nodes_from(self, nodes):
         for node in nodes:
@@ -114,8 +100,6 @@ class Hypergraph(object):
     
     def remove_edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
-        
-        endpoints = set(self.endpoints(edge_id))
         
         # update parallel edges
         if edge_id.startswith(u"e_"):
@@ -129,9 +113,6 @@ class Hypergraph(object):
         # update self loops
         if edge_id in self.self_loops:
             self.self_loops.remove(edge_id)
-        
-        # update nodes with n neighbors sets
-        self.update_nodes_with_n_neighbors(endpoints)
     
     def remove_edges_from(self, edge_ids):
         for edge_id in list(edge_ids):
@@ -315,7 +296,9 @@ class Hypergraph(object):
     def update_parallel_hedges_groups(self, new_hedges):
         new_keys = []
         for hedge in new_hedges:
-            assert hedge.startswith(u"e_")
+            if not hedge.startswith(u"he_"):
+                pass
+#             assert hedge.startswith(u"he_")
             key = u",".join(sorted(self.endpoints(hedge)))
             if self.parallel_hedges_groups.has_key(key):
                 self.parallel_hedges_groups[key].append(hedge)
@@ -357,13 +340,14 @@ class Hypergraph(object):
         new_nodes_with_2_neighbors = set()
         new_nodes_with_3_neighbors = set()
         for node in candidate_nodes:
-            neighbors_count = len(self.neighbors(node))
-            if neighbors_count == 1:
-                new_nodes_with_1_neighbor.add(node)
-            elif neighbors_count == 2:
-                new_nodes_with_2_neighbors.add(node)
-            elif neighbors_count == 3:
-                new_nodes_with_3_neighbors.add(node)
+            if self.bipartite_graph.has_node(node):
+                neighbors_count = len(self.neighbors(node))
+                if neighbors_count == 1:
+                    new_nodes_with_1_neighbor.add(node)
+                elif neighbors_count == 2:
+                    new_nodes_with_2_neighbors.add(node)
+                elif neighbors_count == 3:
+                    new_nodes_with_3_neighbors.add(node)
         
         self.nodes_with_1_neighbor |= new_nodes_with_1_neighbor
         self.nodes_with_1_neighbor -= candidate_nodes - new_nodes_with_1_neighbor
@@ -432,7 +416,7 @@ class Hypergraph(object):
                         direction = set([(u, v)])
                     else:
                         direction = set([(v, u)])
-                    self.add_edge(set([u, v]), direction=direction, label=copy.deepcopy(edge[0]), init_mode=True)
+                    self.add_edge(set([u, v]), direction=direction, label=copy.deepcopy(edge[0]))
         else:
             for edge_endpoints in nx_graph.edges_iter():
                 u = u"n_{0}".format(edge_endpoints[0])
@@ -443,7 +427,7 @@ class Hypergraph(object):
                         self.add_edge(set([u, v]), label=edges[i]["label"])
                 else:
                     edge_label = nx_graph.edge[edge_endpoints[0]][edge_endpoints[1]]["label"]
-                    self.add_edge(set([u, v]), label=copy.deepcopy(edge_label), init_mode=True)
+                    self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
         end = time.time()
         print "Adding edges took {0} s.".format(end - start)
         

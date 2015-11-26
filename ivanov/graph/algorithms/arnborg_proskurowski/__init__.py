@@ -8,6 +8,7 @@ from reducible_feature import ReducibleFeature
 from ivanov.graph.hypergraph import Hypergraph
 from itertools import groupby, permutations
 import sys
+import time
  
 def get_canonical_representation(graph, return_features = False):
     
@@ -50,6 +51,8 @@ def get_canonical_representation(graph, return_features = False):
             new_label = u"(0.1;{0})".format(u",".join(labels))
             hypergraph.set_node_labels(node, [new_label])
         
+        hypergraph.reset_nodes_with_more_labels()
+        
         # rule 0.2
         parallel_edges_groups_keys = list(hypergraph.parallel_edges_groups.keys())
         
@@ -77,16 +80,23 @@ def get_canonical_representation(graph, return_features = False):
             hypergraph.remove_edges_from(edges_group)
             hypergraph.add_edge(endpoints, direction, minimal_label)
         
+        hypergraph.reset_parallel_edges_groups()
+        
         return modified
         
     def rule_1(hypergraph, return_features = False):
         modified = False
         pendant_features = ReducibleFeature.extract_rule_1_features(hypergraph)
         
+        affected_nodes = set()
+        
         for feature in pendant_features:
             if not modified:
                 modified = True
             feature.reduce(hypergraph)
+            affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
+        
+        hypergraph.update_nodes_with_n_neighbors(affected_nodes)
         
         # 1.3 - remove self-loops
         self_loops = list(hypergraph.self_loops)
@@ -101,12 +111,23 @@ def get_canonical_representation(graph, return_features = False):
     
     def rule_2(hypergraph, return_features = False):
         modified = False
-        series_features = ReducibleFeature.extract_rule_2_features(hypergraph)
+        series_features = list(ReducibleFeature.extract_rule_2_features(hypergraph))
         
+        affected_nodes = set()
+        new_edges = set()
+        
+        i = 0
         for feature in series_features:
+            print len(series_features), "reducing", i, ": nodes", len(feature.reducible_nodes), len(feature.peripheral_nodes)
+            i += 1
             if not modified:
                 modified = True
-            feature.reduce(hypergraph)
+            _new_edges = feature.reduce(hypergraph)
+            affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
+            new_edges |= _new_edges
+        
+        hypergraph.update_parallel_edges_groups(new_edges)
+        hypergraph.update_nodes_with_n_neighbors(affected_nodes)
         
         return modified, series_features if return_features else None
     
@@ -139,20 +160,39 @@ def get_canonical_representation(graph, return_features = False):
             hypergraph.remove_edges_from(hedges_group)
             hypergraph.add_edge(endpoints, direction, u"(3;{0})".format(minimal_label))
         
+        hypergraph.reset_parallel_hedges_groups()
+        
         return modified
     
     def rules_4_5_6_7(hypergraph, return_features = False):
         modified = False
-        degree_3_features = ReducibleFeature.extract_degree_3_features(hypergraph)
+        degree_3_features = list(ReducibleFeature.extract_degree_3_features(hypergraph))
+        print "Number of rule 4,5,6,7 features:", len(degree_3_features)
+        
+        affected_nodes = set()
+        new_edges = set()
         
         for feature in degree_3_features:
             if not modified:
                 modified = True
-            feature.reduce(hypergraph)
+            _new_edges = feature.reduce(hypergraph)
+            affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
+            new_edges |= _new_edges
+        
+        new_hedges = set(filter(lambda edge_id: edge_id.startswith(u"he_"), new_edges))
+        
+        hypergraph.update_parallel_edges_groups(new_edges - new_hedges)
+        hypergraph.update_parallel_hedges_groups(new_hedges)
+        hypergraph.update_nodes_with_n_neighbors(affected_nodes)
         
         return modified, degree_3_features if return_features else None
     
+    print "building hypergraph..."
+    start = time.time()
     hypergraph = Hypergraph(graph)
+    end = time.time()
+    print "building hypergraph took {0} s.".format(end - start)
+    
     features = []
     treewidth = 0
     
@@ -170,30 +210,52 @@ def get_canonical_representation(graph, return_features = False):
         if return_features:
             features.append(get_features_strings(new_features))
         
+        print hypergraph.number_of_nodes()
+        
 #         if hypergraph.number_of_nodes() < 50: 
 #             hypergraph.visualize()
         
+        print "Rule 0"
+        start = time.time()
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph)
+        end = time.time()
+        print "Rule 0 took {0} s.".format(end - start)
         
+        print "Rule 1"
+        start = time.time()
         modified, new_features = rule_1(hypergraph, return_features)
+        end = time.time()
+        print "Rule 1 took {0} s.".format(end - start)
         if modified:
             if treewidth < 1:
                 treewidth = 1
             continue
         
+        print "Rule 2"
+        start = time.time()
         modified, new_features = rule_2(hypergraph, return_features)
+        end = time.time()
+        print "Rule 2 took {0} s.".format(end - start)
         if modified:
             if treewidth < 2:
                 treewidth = 2
             continue
         
+        print "Rule 3"
+        start = time.time()
         modified = rule_3(hypergraph)
+        end = time.time()
+        print "Rule 3 took {0} s.".format(end - start)
         if modified:
             new_features = []
             continue
 
+        print "Rule >3"
+        start = time.time()
         modified, new_features = rules_4_5_6_7(hypergraph, return_features)
+        end = time.time()
+        print "Rules >3 took {0} s.".format(end - start)
         if modified:
             if treewidth < 3:
                 treewidth = 3
