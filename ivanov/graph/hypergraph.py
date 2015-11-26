@@ -117,14 +117,14 @@ class Hypergraph(object):
         
         endpoints = set(self.endpoints(edge_id))
         
-        self.bipartite_graph.remove_node(edge_id)
-        self.edges_count -= 1
-        
         # update parallel edges
         if edge_id.startswith(u"e_"):
             self.try_remove_from_parallel_edges_groups(edge_id)
         else:
             self.try_remove_from_parallel_hedges_groups(edge_id)
+        
+        self.bipartite_graph.remove_node(edge_id)
+        self.edges_count -= 1
         
         # update self loops
         if edge_id in self.self_loops:
@@ -134,7 +134,7 @@ class Hypergraph(object):
         self.update_nodes_with_n_neighbors(endpoints)
     
     def remove_edges_from(self, edge_ids):
-        for edge_id in edge_ids:
+        for edge_id in list(edge_ids):
             self.remove_edge(edge_id)
     
     def edge(self, edge_id):
@@ -219,40 +219,23 @@ class Hypergraph(object):
         
         return self.bipartite_graph.neighbors(edge_id)
     
-    def subgraph(self, nodes, multidigraph=False):
-        if not multidigraph:
-            subgraph = nx.Graph()
-        else:
-            subgraph = nx.MultiDiGraph()
+    def subgraph(self, nodes):
+        assert type(nodes) is set
+
+        subgraph = nx.Graph()
         
         for node in nodes:
             assert node.startswith(u"n_")
             subgraph.add_node(node, attr_dict=self.bipartite_graph.node[node])
         
-        set_nodes = set(nodes)
+        checked = set()
         
-        if not multidigraph:
-            for u in nodes:
-                neighbors = self.neighbors(u)
-                for v in neighbors:
-                    if v in set_nodes:
-                        edge = self.edge(self.edges(u, v)[0])
-                        # TODO: how do we deal with the label of hyperedges?
-                        subgraph.add_edge(u, v, label=edge["labels"][0])
-        else:
-            for u in nodes:
-                neighbors = self.neighbors(u)
-                for v in neighbors:
-                    if v in set_nodes:
-                        edge_ids = self.edges(u, v)
-                        for edge_id in edge_ids:
-                            edge_attr = self.edge(edge_id)
-                            edge_dir = self.edge_dir_code(edge_attr["direction"], u, v)
-                            # TODO: how do we deal with the label of hyperedges?
-                            if edge_dir >= 0:
-                                subgraph.add_edge(u, v, label=edge_attr["labels"][0])
-                            if edge_dir <= 0:
-                                subgraph.add_edge(v, u, label=edge_attr["labels"][0])
+        for u in nodes:
+            neighbors = self.neighbors(u)
+            for v in neighbors:
+                if v in nodes and v not in checked:
+                    subgraph.add_edge(u, v)
+            checked.add(u)
         
         return subgraph
     
@@ -310,7 +293,7 @@ class Hypergraph(object):
         par_edges = self.edges(u, v)
         if len(par_edges) > 1:
             key = u",".join(sorted([u, v]))
-            self.parallel_edges_groups[key] = par_edges
+            self.parallel_edges_groups[key] = set(par_edges)
     
     def reset_parallel_edges_groups(self):
         self.parallel_edges_groups = {}
@@ -422,6 +405,7 @@ class Hypergraph(object):
         # ready sets
         self.reset_nodes_with_more_labels()
         self.reset_self_loops()
+        self.reset_parallel_hedges_groups()
         
         print "Adding nodes..."
         start = time.time()
@@ -468,12 +452,6 @@ class Hypergraph(object):
         print "Init parallel edges..."
         start = time.time()
         self.init_parallel_edges_groups()
-        end = time.time()
-        print "Init parallel hedges took {0} s.".format(end - start)
-        
-        print "Init parallel hedges..."
-        start = time.time() 
-        self.init_parallel_hedges_groups()
         end = time.time()
         print "Init parallel hedges took {0} s.".format(end - start)
         
