@@ -7,7 +7,7 @@ Represents a hypergraph with hyperedges of order at most 3.
 '''
 
 from networkx.algorithms import bipartite
-from itertools import permutations, groupby
+from itertools import permutations, groupby, combinations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
@@ -200,6 +200,23 @@ class Hypergraph(object):
         
         return self.bipartite_graph.neighbors(edge_id)
     
+    def get_adj_nodes(self, nodes):
+        assert type(nodes) is set
+        
+        all_edges = set()
+        for node in nodes:
+            edges = set(self.bipartite_graph.neighbors(node))
+            all_edges |= edges
+        
+        adj_nodes = set()
+        for edge in all_edges:
+            endpoints = self.bipartite_graph.neighbors(edge)
+            for pair in combinations(endpoints, 2):
+                if pair[0] in nodes and pair[1] in nodes:
+                    adj_nodes.add(tuple(sorted(pair)))
+        
+        return adj_nodes
+    
     def subgraph(self, nodes):
         assert type(nodes) is set
 
@@ -207,16 +224,10 @@ class Hypergraph(object):
         
         for node in nodes:
             assert node.startswith(u"n_")
-            subgraph.add_node(node, attr_dict=self.bipartite_graph.node[node])
+            subgraph.add_node(node)
         
-        checked = set()
-        
-        for u in nodes:
-            neighbors = self.neighbors(u)
-            for v in neighbors:
-                if v in nodes and v not in checked:
-                    subgraph.add_edge(u, v)
-            checked.add(u)
+        for pair in self.get_adj_nodes(nodes):
+            subgraph.add_edge(pair[0], pair[1])
         
         return subgraph
     
@@ -391,16 +402,10 @@ class Hypergraph(object):
         self.reset_self_loops()
         self.reset_parallel_hedges_groups()
         
-        print "Adding nodes..."
-        start = time.time()
         # add nodes
         for node in nx_graph.nodes_iter():
             self.add_node(node, attr_dict=copy.deepcopy(nx_graph.node[node]))
-        end = time.time()
-        print "Adding nodes took {0} s.".format(end - start)
         
-        print "Adding edges..."
-        start = time.time()
         # add edges of order 2
         if nx_graph.is_directed():
             adj_nodes = nxext.get_all_adjacent_nodes(nx_graph)
@@ -428,19 +433,7 @@ class Hypergraph(object):
                 else:
                     edge_label = nx_graph.edge[edge_endpoints[0]][edge_endpoints[1]]["label"]
                     self.add_edge(set([u, v]), label=copy.deepcopy(edge_label))
-        end = time.time()
-        print "Adding edges took {0} s.".format(end - start)
-        
         
         # Initialize ready sets
-        print "Init parallel edges..."
-        start = time.time()
         self.init_parallel_edges_groups()
-        end = time.time()
-        print "Init parallel hedges took {0} s.".format(end - start)
-        
-        print "Init nodes with n neighbors..."
-        start = time.time()
         self.init_nodes_with_n_neighbors()
-        end = time.time()
-        print "Init nodes with n neighbors took {0} s.".format(end - start)

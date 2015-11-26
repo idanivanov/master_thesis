@@ -88,7 +88,10 @@ def visualize_graph(graph, node_labels = True, edge_labels = True, bipartite = F
             new_graph.node[node]["labels"] = [new_label]
         # if necessary, convert edge labels too
         return new_graph
-    new_graph = all_labels_to_ascii(graph)
+    if node_labels or edge_labels:
+        new_graph = all_labels_to_ascii(graph)
+    else:
+        new_graph = graph
     pos = nx.graphviz_layout(new_graph)
     fig, ax = plt.subplots()
     if bipartite:

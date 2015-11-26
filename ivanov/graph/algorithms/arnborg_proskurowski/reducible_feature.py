@@ -541,7 +541,7 @@ class ReducibleFeature(object):
                 labels_s2_to_s1 += sorted(new_labels_s2_to_s1)
                 
                 if i < len(path) - 1:
-                    node_label = chain_graph.node[path[i]]["labels"][0]
+                    node_label = hypergraph.node[path[i]]["labels"][0]
                     labels_s1_to_s2.append(node_label)
                     labels_s2_to_s1.append(node_label)
             
@@ -590,7 +590,7 @@ class ReducibleFeature(object):
                             else:
                                 edge_labels.append(Hypergraph.edge_to_string(hypergraph, edge_id, (u, v)))
                         
-                        label_components.append(ring_graph.node[u]["labels"][0])
+                        label_components.append(hypergraph.node[u]["labels"][0])
                         label_components += sorted(edge_labels)
                     possible_labels.append(label_template.format(u",".join(label_components)))
             

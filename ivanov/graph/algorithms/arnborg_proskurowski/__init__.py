@@ -8,7 +8,6 @@ from reducible_feature import ReducibleFeature
 from ivanov.graph.hypergraph import Hypergraph
 from itertools import groupby, permutations
 import sys
-import time
  
 def get_canonical_representation(graph, return_features = False):
     
@@ -111,14 +110,13 @@ def get_canonical_representation(graph, return_features = False):
     
     def rule_2(hypergraph, return_features = False):
         modified = False
-        series_features = list(ReducibleFeature.extract_rule_2_features(hypergraph))
+        series_features = ReducibleFeature.extract_rule_2_features(hypergraph)
         
         affected_nodes = set()
         new_edges = set()
         
         i = 0
         for feature in series_features:
-            print len(series_features), "reducing", i, ": nodes", len(feature.reducible_nodes), len(feature.peripheral_nodes)
             i += 1
             if not modified:
                 modified = True
@@ -166,8 +164,7 @@ def get_canonical_representation(graph, return_features = False):
     
     def rules_4_5_6_7(hypergraph, return_features = False):
         modified = False
-        degree_3_features = list(ReducibleFeature.extract_degree_3_features(hypergraph))
-        print "Number of rule 4,5,6,7 features:", len(degree_3_features)
+        degree_3_features = ReducibleFeature.extract_degree_3_features(hypergraph)
         
         affected_nodes = set()
         new_edges = set()
@@ -187,11 +184,7 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified, degree_3_features if return_features else None
     
-    print "building hypergraph..."
-    start = time.time()
     hypergraph = Hypergraph(graph)
-    end = time.time()
-    print "building hypergraph took {0} s.".format(end - start)
     
     features = []
     treewidth = 0
@@ -210,52 +203,30 @@ def get_canonical_representation(graph, return_features = False):
         if return_features:
             features.append(get_features_strings(new_features))
         
-        print hypergraph.number_of_nodes()
-        
 #         if hypergraph.number_of_nodes() < 50: 
 #             hypergraph.visualize()
         
-        print "Rule 0"
-        start = time.time()
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph)
-        end = time.time()
-        print "Rule 0 took {0} s.".format(end - start)
         
-        print "Rule 1"
-        start = time.time()
         modified, new_features = rule_1(hypergraph, return_features)
-        end = time.time()
-        print "Rule 1 took {0} s.".format(end - start)
         if modified:
             if treewidth < 1:
                 treewidth = 1
             continue
         
-        print "Rule 2"
-        start = time.time()
         modified, new_features = rule_2(hypergraph, return_features)
-        end = time.time()
-        print "Rule 2 took {0} s.".format(end - start)
         if modified:
             if treewidth < 2:
                 treewidth = 2
             continue
         
-        print "Rule 3"
-        start = time.time()
         modified = rule_3(hypergraph)
-        end = time.time()
-        print "Rule 3 took {0} s.".format(end - start)
         if modified:
             new_features = []
             continue
 
-        print "Rule >3"
-        start = time.time()
         modified, new_features = rules_4_5_6_7(hypergraph, return_features)
-        end = time.time()
-        print "Rules >3 took {0} s.".format(end - start)
         if modified:
             if treewidth < 3:
                 treewidth = 3
