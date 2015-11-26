@@ -5,13 +5,13 @@ Created on Nov 21, 2015
 '''
 
 from graph.algorithms import arnborg_proskurowski
+from ivanov.graph.hypergraph import Hypergraph
+from ivanov.statistics import treewidth
 from ivanov.graph import nxext
 from graph import algorithms
-from graph import rdf
-from ivanov.graph.hypergraph import Hypergraph
-import codecs
-from ivanov.statistics import treewidth
 from ivanov import graph
+from graph import rdf
+import codecs
 
 def compute_rballs_tw(in_file):
     nx_graph = rdf.convert_rdf_to_nx_graph(in_file)
@@ -72,8 +72,8 @@ def test_graph(path_to_graph_file):
     return arnborg_proskurowski.get_canonical_representation(nx_graph)
 
 if __name__ == '__main__':
-#     compute_rballs_tw("../data/peel.rdf")
-#     aggregate_results()
-#     aggregate_results(True)
-    test_graph("../output/rball")
+    compute_rballs_tw("../data/peel.rdf")
+    aggregate_results()
+    aggregate_results(True)
+#     test_graph("../output/rball")
     
