@@ -255,7 +255,7 @@ class Hypergraph(object):
     
     def init_parallel_edges_groups(self):
         self.reset_parallel_edges_groups()
-        self.update_parallel_edges_groups(self.edges_2_iter())
+        self.update_parallel_edges_groups(self.edges_2_iter(), init_mode=True)
     
     def try_remove_from_parallel_edges_groups(self, edge_id):
         key = u",".join(sorted(self.endpoints(edge_id)))
@@ -267,19 +267,25 @@ class Hypergraph(object):
                 else:
                     edges.remove(edge_id)
     
-    def update_parallel_edges_groups(self, new_edges):
-        new_keys = []
-        for edge in new_edges:
-            assert edge.startswith(u"e_")
-            key = u",".join(sorted(self.endpoints(edge)))
-            if self.parallel_edges_groups.has_key(key):
-                self.parallel_edges_groups[key].append(edge)
-            else:
-                self.parallel_edges_groups[key] = [edge]
-            new_keys.append(key)
-        for key in new_keys:
-            if len(self.parallel_edges_groups[key]) < 2:
-                del self.parallel_edges_groups[key]
+    def update_parallel_edges_groups(self, new_edges, init_mode=False):
+        if init_mode:
+            new_keys = []
+            for edge in new_edges:
+                assert edge.startswith(u"e_")
+                key = u",".join(sorted(self.endpoints(edge)))
+                if self.parallel_edges_groups.has_key(key):
+                    self.parallel_edges_groups[key].append(edge)
+                else:
+                    self.parallel_edges_groups[key] = [edge]
+                new_keys.append(key)
+            for key in new_keys:
+                if len(self.parallel_edges_groups[key]) < 2:
+                    del self.parallel_edges_groups[key]
+        else:
+            for edge_id in new_edges:
+                if edge_id not in self.self_loops:
+                    endpoints = self.endpoints(edge_id)
+                    self.check_for_parallel_edges(endpoints[0], endpoints[1])
     
     def check_for_parallel_edges(self, u, v):
         par_edges = self.edges(u, v)
@@ -292,7 +298,7 @@ class Hypergraph(object):
     
     def init_parallel_hedges_groups(self):
         self.reset_parallel_hedges_groups()
-        self.update_parallel_hedges_groups(self.hedges_iter())
+        self.update_parallel_hedges_groups(self.hedges_iter(), init_mode=True)
     
     def try_remove_from_parallel_hedges_groups(self, hedge_id):
         key = u",".join(sorted(self.endpoints(hedge_id)))
@@ -304,21 +310,25 @@ class Hypergraph(object):
                 else:
                     hedges.remove(hedge_id)
     
-    def update_parallel_hedges_groups(self, new_hedges):
-        new_keys = []
-        for hedge in new_hedges:
-            if not hedge.startswith(u"he_"):
-                pass
-#             assert hedge.startswith(u"he_")
-            key = u",".join(sorted(self.endpoints(hedge)))
-            if self.parallel_hedges_groups.has_key(key):
-                self.parallel_hedges_groups[key].append(hedge)
-            else:
-                self.parallel_hedges_groups[key] = [hedge]
-            new_keys.append(key)
-        for key in new_keys:
-            if len(self.parallel_hedges_groups[key]) < 2:
-                del self.parallel_hedges_groups[key]
+    def update_parallel_hedges_groups(self, new_hedges, init_mode=False):
+        if init_mode:
+            new_keys = []
+            for hedge in new_hedges:
+                assert hedge.startswith(u"he_")
+                key = u",".join(sorted(self.endpoints(hedge)))
+                if self.parallel_hedges_groups.has_key(key):
+                    self.parallel_hedges_groups[key].append(hedge)
+                else:
+                    self.parallel_hedges_groups[key] = [hedge]
+                new_keys.append(key)
+            for key in new_keys:
+                if len(self.parallel_hedges_groups[key]) < 2:
+                    del self.parallel_hedges_groups[key]
+        else:
+            for hedge_id in new_hedges:
+                if hedge_id not in self.self_loops:
+                    endpoints = self.endpoints(hedge_id)
+                    self.check_for_parallel_hedges(endpoints[0], endpoints[1], endpoints[2])
     
     def check_for_parallel_hedges(self, u, v, w):
         par_hedges = self.hedges(u, v, w)

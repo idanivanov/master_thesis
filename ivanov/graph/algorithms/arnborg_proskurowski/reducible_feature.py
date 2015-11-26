@@ -11,6 +11,7 @@ from ivanov.graph import nxext
 import networkx as nx
 import itertools
 import sys
+from networkx.algorithms.cycles import cycle_basis
 
 class ReducibleFeature(object):
     
@@ -38,34 +39,73 @@ class ReducibleFeature(object):
     @staticmethod
     def extract_rule_2_features(hypergraph):
         series_subgraph = hypergraph.subgraph(hypergraph.nodes_with_2_neighbors)
-        cc = nx.connected_components(nx.Graph(series_subgraph))
         
-        for comp in cc:
-            if len(comp) > 1:
-                series_comp = series_subgraph.subgraph(comp)
-                comp_neighborhoods = map(lambda node: (node, nxext.get_all_neighbors(series_comp, node)), comp)
-                path_end_nodes = list(filter(lambda neighborhood: len(neighborhood[1]) == 1, comp_neighborhoods))
-                path_end_nodes_length = len(path_end_nodes)
-                # chain (with more than 1 node)
-                if path_end_nodes_length == 2:
-                    neighbors_1 = hypergraph.neighbors(path_end_nodes[0][0])
-                    neighbors_2 = hypergraph.neighbors(path_end_nodes[1][0])
-                    
-                    s1 = neighbors_1[0] if neighbors_1[0] not in comp else neighbors_1[1]
-                    s2 = neighbors_2[0] if neighbors_2[0] not in comp else neighbors_2[1]
-                    
-                    yield ReducibleFeature(2, 1, list(comp), [s1, s2])
-                # ring
-                elif path_end_nodes_length == 0:
-                    comp_list = list(comp)
-                    yield ReducibleFeature(2, 2, comp_list[1:], [comp_list[0]])
+        # ring
+        rings = nx.cycle_basis(series_subgraph)
+        for ring in rings:
+            yield ReducibleFeature(2, 2, ring[1:], [ring[0]])
+        
+        nodes_in_rings = itertools.chain(*rings)
+        series_subgraph.remove_nodes_from(nodes_in_rings)
+        
+        # chain
+        def get_distinct_paths(some_simple_paths):
+            def update_targets(target, source):
+                if target in targets:
+                    if targets[target] == target:
+                        targets[target] = source
+                    elif target != source:
+                        targets[target] = source
                 else:
-                    sys.stderr.write("\n[ReducibleFeature] Error: Unexpected number of path end-points " + str(path_end_nodes_length) + ".")
-            # chain (with only one node)
-            else:
-                node = list(comp)[0]
-                neighbors = hypergraph.neighbors(node)
-                yield ReducibleFeature(2, 1, [node], neighbors)
+                    targets[target] = source
+            distinct_paths = {}
+            inner_path_nodes = set()
+            targets = {}
+            for source in some_simple_paths:
+                if source in inner_path_nodes or source in targets:
+                    continue
+                for target in some_simple_paths[source]:
+                    if target in inner_path_nodes:
+                        continue
+                    path = some_simple_paths[source][target]
+                    if source not in distinct_paths:
+                        distinct_paths[source] = {target: path}
+                        update_targets(target, source)
+                        if len(path) > 2:
+                            inner_path_nodes |= set(path[1:-1])
+                    else:
+                        current_target = distinct_paths[source].keys()[0]
+                        current_path = distinct_paths[source][current_target]
+                        if len(current_path) < len(path):
+                            del distinct_paths[source][current_target]
+                            del targets[current_target]
+                            distinct_paths[source][target] = path
+                            update_targets(target, source)
+                            if len(path) > 2:
+                                inner_path_nodes |= set(path[1:-1])
+            for target in targets:
+                if target in distinct_paths and targets[target] != target:
+                    del distinct_paths[target]
+            
+            return distinct_paths
+                            
+        all_simple_paths = nx.all_pairs_shortest_path(series_subgraph)
+        distinct_paths = get_distinct_paths(all_simple_paths)
+        for source in distinct_paths:
+            for target in distinct_paths[source]:
+                if source not in distinct_paths or target not in distinct_paths[source]:
+                    pass
+                path = distinct_paths[source][target]
+                if len(path) < 2:
+                    node = path[0]
+                    neighbors = hypergraph.neighbors(node)
+                    yield ReducibleFeature(2, 1, path, neighbors)
+                else:
+                    source_neighbors = hypergraph.neighbors(source)
+                    target_neighbors = hypergraph.neighbors(target)
+                    s = source_neighbors[0] if source_neighbors[1] == path[1] else source_neighbors[1]
+                    t = target_neighbors[0] if target_neighbors[1] == path[-2] else target_neighbors[1]
+                    yield ReducibleFeature(2, 1, path, [s, t])
     
     @staticmethod
     def extract_degree_3_features(hypergraph):
@@ -505,67 +545,60 @@ class ReducibleFeature(object):
     def _reduce_by_rule_2(self, hypergraph):
         # chain
         if self.subrule == 1:
-            s1 = self.peripheral_nodes[0]
-            s2 = self.peripheral_nodes[1]
-            chain_graph = hypergraph.subgraph(set(self.reducible_nodes + self.peripheral_nodes))
-            if s1 != s2:
-                paths = list(nx.all_simple_paths(nx.Graph(chain_graph), source = s1, target = s2))
-                paths = filter(lambda path: len(path) > 2, paths)
-                path = paths[0]
-            else:
-                path = [s1] + list(nx.cycle_basis(nx.Graph(chain_graph), self.peripheral_nodes[0]))[0]
+            s = self.peripheral_nodes[0]
+            t = self.peripheral_nodes[1]
+            path = [s] + self.reducible_nodes + [t]
             
             checked_hedges = set()
             
-            labels_s1_to_s2 = []
-            labels_s2_to_s1 = []
+            labels_s_to_t = []
+            labels_t_to_s = []
             for i in range(1, len(path)):
                 u = path[i - 1]
                 v = path[i]
                 
                 edges = hypergraph.edges(u, v)
-                new_labels_s1_to_s2 = []
-                new_labels_s2_to_s1 = []
+                new_labels_s_to_t = []
+                new_labels_t_to_s = []
                 for edge_id in edges:
                     if edge_id.startswith(u"he_"):
                         if edge_id in checked_hedges:
                             continue
                         w = path[i + 1]
-                        new_labels_s1_to_s2.append(Hypergraph.edge_to_string(hypergraph, edge_id, (u, v, w)))
-                        new_labels_s2_to_s1.append(Hypergraph.edge_to_string(hypergraph, edge_id, (w, v, u)))
+                        new_labels_s_to_t.append(Hypergraph.edge_to_string(hypergraph, edge_id, (u, v, w)))
+                        new_labels_t_to_s.append(Hypergraph.edge_to_string(hypergraph, edge_id, (w, v, u)))
                         checked_hedges.add(edge_id)
                     else:
-                        new_labels_s1_to_s2.append(Hypergraph.edge_to_string(hypergraph, edge_id, (u, v)))
-                        new_labels_s2_to_s1.append(Hypergraph.edge_to_string(hypergraph, edge_id, (v, u)))
-                labels_s1_to_s2 += sorted(new_labels_s1_to_s2)
-                labels_s2_to_s1 += sorted(new_labels_s2_to_s1)
+                        new_labels_s_to_t.append(Hypergraph.edge_to_string(hypergraph, edge_id, (u, v)))
+                        new_labels_t_to_s.append(Hypergraph.edge_to_string(hypergraph, edge_id, (v, u)))
+                labels_s_to_t += sorted(new_labels_s_to_t)
+                labels_t_to_s += sorted(new_labels_t_to_s)
                 
                 if i < len(path) - 1:
                     node_label = hypergraph.node[path[i]]["labels"][0]
-                    labels_s1_to_s2.append(node_label)
-                    labels_s2_to_s1.append(node_label)
+                    labels_s_to_t.append(node_label)
+                    labels_t_to_s.append(node_label)
             
-            labels_s2_to_s1.reverse()
+            labels_t_to_s.reverse()
             
             label_template = u"(2.1;{0})"
-            label_s1_to_s2 = label_template.format(",".join(labels_s1_to_s2))
-            label_s2_to_s1 = label_template.format(",".join(labels_s2_to_s1))
+            label_s_to_t = label_template.format(",".join(labels_s_to_t))
+            label_t_to_s = label_template.format(",".join(labels_t_to_s))
             
-            comparison = cmp(label_s1_to_s2, label_s2_to_s1)
+            comparison = cmp(label_s_to_t, label_t_to_s)
             if comparison < 0:
-                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(s1, s2)], label=label_s1_to_s2)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(s, t)], label=label_s_to_t)
             elif comparison > 0:
-                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(s2, s1)], label=label_s2_to_s1)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, direction=[(t, s)], label=label_t_to_s)
             else:
-                new_edge = hypergraph.add_edge(self.peripheral_nodes, label=label_s1_to_s2)
+                new_edge = hypergraph.add_edge(self.peripheral_nodes, label=label_s_to_t)
             
             hypergraph.remove_nodes_from(self.reducible_nodes)
             
             return set([new_edge])
         # ring
         elif self.subrule == 2:
-            ring_graph = hypergraph.subgraph(set(self.peripheral_nodes + self.reducible_nodes))
-            cycle = list(nx.cycle_basis(nx.Graph(ring_graph), self.peripheral_nodes[0]))[0]
+            cycle = self.peripheral_nodes + self.reducible_nodes
             m = len(cycle)
             label_template = u"(2.2;{0})"
             possible_labels = []
