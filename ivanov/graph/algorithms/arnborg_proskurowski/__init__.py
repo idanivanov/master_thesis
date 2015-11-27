@@ -59,7 +59,7 @@ def get_canonical_representation(graph, return_features = False):
             modified = True
         
         for key in parallel_edges_groups_keys:
-            edges_group = hypergraph.parallel_edges_groups[key]
+            edges_group = list(hypergraph.parallel_edges_groups[key])
             endpoints = hypergraph.endpoints(edges_group[0])
             perms = permutations(endpoints)
             possible_labels = []
@@ -115,9 +115,7 @@ def get_canonical_representation(graph, return_features = False):
         affected_nodes = set()
         new_edges = set()
         
-        i = 0
         for feature in series_features:
-            i += 1
             if not modified:
                 modified = True
             _new_edges = feature.reduce(hypergraph)
@@ -205,22 +203,22 @@ def get_canonical_representation(graph, return_features = False):
         
 #         if hypergraph.number_of_nodes() < 50: 
 #             hypergraph.visualize()
-        
+
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph)
-        
+
         modified, new_features = rule_1(hypergraph, return_features)
         if modified:
             if treewidth < 1:
                 treewidth = 1
             continue
-        
+
         modified, new_features = rule_2(hypergraph, return_features)
         if modified:
             if treewidth < 2:
                 treewidth = 2
             continue
-        
+
         modified = rule_3(hypergraph)
         if modified:
             new_features = []
