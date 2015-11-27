@@ -11,7 +11,6 @@ from ivanov.graph import nxext
 import networkx as nx
 import itertools
 import sys
-from networkx.algorithms.cycles import cycle_basis
 
 class ReducibleFeature(object):
     
@@ -49,58 +48,23 @@ class ReducibleFeature(object):
         series_subgraph.remove_nodes_from(nodes_in_rings)
         
         # chain
-        def get_distinct_paths(some_simple_paths):
-            def update_targets(target, source):
-                if target in targets:
-                    if targets[target] == target:
-                        targets[target] = source
-                    elif target != source:
-                        targets[target] = source
+        def get_distinct_paths(graph_of_paths):
+            cc = nx.connected_components(graph_of_paths)
+            for comp in cc:
+                if len(comp) > 1:
+                    endpoints = filter(lambda node: len(nxext.get_all_neighbors(graph_of_paths, node)) == 1, comp)
+                    assert len(endpoints) == 2
+                    yield nx.shortest_path(graph_of_paths, endpoints[0], endpoints[1])
                 else:
-                    targets[target] = source
-            distinct_paths = {}
-            inner_path_nodes = set()
-            targets = {}
-            for source in some_simple_paths:
-                if source in inner_path_nodes or source in targets:
-                    continue
-                for target in some_simple_paths[source]:
-                    if target in inner_path_nodes:
-                        continue
-                    path = some_simple_paths[source][target]
-                    if source not in distinct_paths:
-                        distinct_paths[source] = {target: path}
-                        update_targets(target, source)
-                        if len(path) > 2:
-                            inner_path_nodes |= set(path[1:-1])
-                    else:
-                        current_target = distinct_paths[source].keys()[0]
-                        current_path = distinct_paths[source][current_target]
-                        if len(current_path) < len(path):
-                            del distinct_paths[source][current_target]
-                            del targets[current_target]
-                            distinct_paths[source][target] = path
-                            update_targets(target, source)
-                            if len(path) > 2:
-                                inner_path_nodes |= set(path[1:-1])
-            for target in targets:
-                if target in distinct_paths and targets[target] != target:
-                    del distinct_paths[target]
-            
-            return distinct_paths
-                            
-        all_simple_paths = nx.all_pairs_shortest_path(series_subgraph)
-        distinct_paths = get_distinct_paths(all_simple_paths)
-        for source in distinct_paths:
-            for target in distinct_paths[source]:
-                if source not in distinct_paths or target not in distinct_paths[source]:
-                    pass
-                path = distinct_paths[source][target]
+                    yield list(comp)
+        
+        for path in get_distinct_paths(series_subgraph):
                 if len(path) < 2:
-                    node = path[0]
-                    neighbors = hypergraph.neighbors(node)
+                    neighbors = hypergraph.neighbors(path[0])
                     yield ReducibleFeature(2, 1, path, neighbors)
                 else:
+                    source = path[0]
+                    target = path[-1]
                     source_neighbors = hypergraph.neighbors(source)
                     target_neighbors = hypergraph.neighbors(target)
                     s = source_neighbors[0] if source_neighbors[1] == path[1] else source_neighbors[1]
