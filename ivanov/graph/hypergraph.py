@@ -282,13 +282,17 @@ class Hypergraph(object):
                 if len(self.parallel_edges_groups[key]) < 2:
                     del self.parallel_edges_groups[key]
         else:
+            checked_endpoints = set()
             for edge_id in new_edges:
+                assert edge_id.startswith(u"e_")
                 if edge_id not in self.self_loops:
-                    endpoints = self.endpoints(edge_id)
-                    self.check_for_parallel_edges(endpoints[0], endpoints[1])
+                    endpoints = tuple(sorted(self.endpoints(edge_id)))
+                    if endpoints not in checked_endpoints:
+                        checked_endpoints.add(endpoints)
+                        self.check_for_parallel_edges(endpoints[0], endpoints[1])
     
     def check_for_parallel_edges(self, u, v):
-        par_edges = self.edges(u, v)
+        par_edges = filter(lambda edge_id: edge_id.startswith(u"e_"), self.edges(u, v))
         if len(par_edges) > 1:
             key = u",".join(sorted([u, v]))
             self.parallel_edges_groups[key] = set(par_edges)
@@ -325,10 +329,14 @@ class Hypergraph(object):
                 if len(self.parallel_hedges_groups[key]) < 2:
                     del self.parallel_hedges_groups[key]
         else:
+            checked_endpoints = set()
             for hedge_id in new_hedges:
+                assert hedge_id.startswith(u"he_")
                 if hedge_id not in self.self_loops:
-                    endpoints = self.endpoints(hedge_id)
-                    self.check_for_parallel_hedges(endpoints[0], endpoints[1], endpoints[2])
+                    endpoints = tuple(sorted(self.endpoints(hedge_id)))
+                    if endpoints not in checked_endpoints:
+                        checked_endpoints.add(endpoints)
+                        self.check_for_parallel_hedges(endpoints[0], endpoints[1], endpoints[2])
     
     def check_for_parallel_hedges(self, u, v, w):
         par_hedges = self.hedges(u, v, w)
