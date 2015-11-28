@@ -18,10 +18,10 @@ def compute_rballs_tw(in_file):
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
-    for r in [2, 3, 4]:
-        for d in ["in"]:
-            if d == "all" and r > 2 or d == "out" and r > 3:
-                break
+    for d in ["out", "in"]:
+        for r in [4, 5]:
+#             if d == "all" and r > 2 or d == "out" and r > 3:
+#                 break
             print r, d
             out_file = codecs.open("../output/tw_r{0}_{1}".format(r, d), "w", "utf8")
              
@@ -46,8 +46,8 @@ def aggregate_results(percent=False):
     
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
-    for d in ["in", "out", "all"]:
-        for r in [2, 3, 4, 5]:
+    for d in ["in", "out"]:
+        for r in [2, 3]:
             if d == "all" and r > 3:
                 break
             agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
@@ -73,7 +73,6 @@ def test_graph(path_to_graph_file):
 
 if __name__ == '__main__':
     compute_rballs_tw("../data/peel.rdf")
-    aggregate_results()
-    aggregate_results(True)
-#     test_graph("../output/rball")
-    
+#     aggregate_results()
+#     aggregate_results(True)
+#     print test_graph("../output/rball")
