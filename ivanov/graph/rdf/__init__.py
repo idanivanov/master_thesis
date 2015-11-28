@@ -8,11 +8,12 @@ from rdflib import Graph as RDFGraph
 import networkx as nx
 import rdflib
 
-def convert_rdf_to_nx_graph(in_file):
+def convert_rdf_to_nx_graph(in_files):
     rdf_graph = RDFGraph()
-    rdf_graph.parse(in_file, format=rdflib.util.guess_format(in_file))
-    
     nx_graph = nx.MultiDiGraph()
+    
+    for in_file in in_files:
+        rdf_graph.parse(in_file, format=rdflib.util.guess_format(in_file))
     
     nodes = rdf_graph.all_nodes()
     triples = rdf_graph.triples((None, None, None))

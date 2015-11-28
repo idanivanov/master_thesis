@@ -13,13 +13,13 @@ from ivanov import graph
 from graph import rdf
 import codecs
 
-def compute_rballs_tw(in_file):
-    nx_graph = rdf.convert_rdf_to_nx_graph(in_file)
+def compute_rballs_tw(in_files):
+    nx_graph = rdf.convert_rdf_to_nx_graph(in_files)
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
-    for d in ["out", "in"]:
-        for r in [4, 5]:
+    for d in ["in"]:
+        for r in [2]:
 #             if d == "all" and r > 2 or d == "out" and r > 3:
 #                 break
             print r, d
@@ -72,7 +72,38 @@ def test_graph(path_to_graph_file):
     return arnborg_proskurowski.get_canonical_representation(nx_graph)
 
 if __name__ == '__main__':
-    compute_rballs_tw("../data/peel.rdf")
+    path = "../data/eurostat_fish_ld/"
+    in_files = [
+        path + "eurostatdictionaries.rdf",
+        path + "fish_ld07.ttl",
+        path + "fish_ld_be.ttl",
+        path + "fish_ld_bg.ttl",
+        path + "fish_ld_cy.ttl",
+        path + "fish_ld_de.ttl",
+        path + "fish_ld_dk.ttl",
+        path + "fish_ld_ee.ttl",
+        path + "fish_ld_el.ttl",
+        path + "fish_ld_es.ttl",
+        path + "fish_ld_fi.ttl",
+        path + "fish_ld_fr.ttl",
+        path + "fish_ld_hr.ttl",
+        path + "fish_ld_ie.ttl",
+        path + "fish_ld_is.ttl",
+        path + "fish_ld_it.ttl",
+        path + "fish_ld_lt.ttl",
+        path + "fish_ld_lv.ttl",
+        path + "fish_ld_mt.ttl",
+        path + "fish_ld_nl.ttl",
+        path + "fish_ld_no.ttl",
+        path + "fish_ld_pl.ttl",
+        path + "fish_ld_pt.ttl",
+        path + "fish_ld_ro.ttl",
+        path + "fish_ld_se.ttl",
+        path + "fish_ld_si.ttl",
+        path + "fish_ld_uk.ttl"
+    ]
+    
+    compute_rballs_tw(in_files)
 #     aggregate_results()
 #     aggregate_results(True)
 #     print test_graph("../output/rball")
