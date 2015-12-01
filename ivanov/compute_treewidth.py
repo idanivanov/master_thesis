@@ -46,10 +46,10 @@ def aggregate_results(percent=False):
     
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
-    for d in ["in", "out"]:
-        for r in [2]:
-            if d == "all" and r > 3:
-                break
+    for r in [2, 3, 4, 5]:
+        for d in ["in", "out"]:
+#             if d == "all" and r > 3:
+#                 break
             agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
             out_file.write("[{0};{1}]".format(r, d))
             for tw in ["0", "1", "2", "3", "-1"]:
@@ -72,38 +72,12 @@ def test_graph(path_to_graph_file):
     return arnborg_proskurowski.get_canonical_representation(nx_graph)
 
 if __name__ == '__main__':
-    path = "../data/eurostat_fish_ld/"
+    path = "../data/"
     in_files = [
-        path + "eurostatdictionaries.rdf",
-        path + "fish_ld07.ttl",
-        path + "fish_ld_be.ttl",
-        path + "fish_ld_bg.ttl",
-        path + "fish_ld_cy.ttl",
-        path + "fish_ld_de.ttl",
-        path + "fish_ld_dk.ttl",
-        path + "fish_ld_ee.ttl",
-        path + "fish_ld_el.ttl",
-        path + "fish_ld_es.ttl",
-        path + "fish_ld_fi.ttl",
-        path + "fish_ld_fr.ttl",
-        path + "fish_ld_hr.ttl",
-        path + "fish_ld_ie.ttl",
-        path + "fish_ld_is.ttl",
-        path + "fish_ld_it.ttl",
-        path + "fish_ld_lt.ttl",
-        path + "fish_ld_lv.ttl",
-        path + "fish_ld_mt.ttl",
-        path + "fish_ld_nl.ttl",
-        path + "fish_ld_no.ttl",
-        path + "fish_ld_pl.ttl",
-        path + "fish_ld_pt.ttl",
-        path + "fish_ld_ro.ttl",
-        path + "fish_ld_se.ttl",
-        path + "fish_ld_si.ttl",
-        path + "fish_ld_uk.ttl"
+        path + "GeoSpecies/geospecies.rdf"
     ]
     
-#     compute_rballs_tw(in_files)
+    compute_rballs_tw(in_files)
 #     aggregate_results()
 #     aggregate_results(True)
-    print test_graph("../output/peel/small_graph")
+#     print test_graph("../output/peel/small_graph")
