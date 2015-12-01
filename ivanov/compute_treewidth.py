@@ -13,7 +13,7 @@ from ivanov import graph
 from ivanov.graph import rdf
 import codecs
 
-def compute_rballs_tw(in_files):
+def compute_rballs_tw(in_files, output_dir):
     nx_graph = rdf.convert_rdf_to_nx_graph(in_files)
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
@@ -23,7 +23,7 @@ def compute_rballs_tw(in_files):
 #             if d == "all" and r > 2 or d == "out" and r > 3:
 #                 break
             print r, d
-            out_file = codecs.open("../output/tw_r{0}_{1}".format(r, d), "w", "utf8")
+            out_file = codecs.open(output_dir + "tw_r{0}_{1}".format(r, d), "w", "utf8")
              
             i = 0
             for node in nx_graph.nodes_iter():
@@ -74,10 +74,10 @@ def test_graph(path_to_graph_file):
 if __name__ == '__main__':
     path = "../data/"
     in_files = [
-        path + "GeoSpecies/geospecies.rdf"
+        path + "family.rdf.owl.rdf"
     ]
     
-    compute_rballs_tw(in_files)
+    compute_rballs_tw(in_files, "../output/fam/")
 #     aggregate_results()
 #     aggregate_results(True)
 #     print test_graph("../output/peel/small_graph")
