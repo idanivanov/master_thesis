@@ -4,13 +4,13 @@ Created on Nov 21, 2015
 @author: Ivan Ivanov
 '''
 
-from graph.algorithms import arnborg_proskurowski
+from ivanov.graph.algorithms import arnborg_proskurowski
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.statistics import treewidth
 from ivanov.graph import nxext
-from graph import algorithms
+from ivanov.graph import algorithms
 from ivanov import graph
-from graph import rdf
+from ivanov.graph import rdf
 import codecs
 
 def compute_rballs_tw(in_files):
@@ -18,7 +18,7 @@ def compute_rballs_tw(in_files):
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
-    for d in ["in"]:
+    for d in ["out"]:
         for r in [2]:
 #             if d == "all" and r > 2 or d == "out" and r > 3:
 #                 break
@@ -47,7 +47,7 @@ def aggregate_results(percent=False):
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
     for d in ["in", "out"]:
-        for r in [2, 3]:
+        for r in [2]:
             if d == "all" and r > 3:
                 break
             agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         path + "fish_ld_uk.ttl"
     ]
     
-    compute_rballs_tw(in_files)
+#     compute_rballs_tw(in_files)
 #     aggregate_results()
 #     aggregate_results(True)
-#     print test_graph("../output/rball")
+    print test_graph("../output/peel/small_graph")
