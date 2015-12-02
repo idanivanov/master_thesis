@@ -18,11 +18,9 @@ def compute_rballs_tw(in_files, output_dir):
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
-    for d in ["out"]:
-        for r in [2]:
-#             if d == "all" and r > 2 or d == "out" and r > 3:
-#                 break
-            print r, d
+    for d in ["in", "out", "all"]:
+        rballs_with_big_tw = set()
+        for r in [2, 3, 4, 5]:
             out_file = codecs.open(output_dir + "tw_r{0}_{1}".format(r, d), "w", "utf8")
              
             i = 0
@@ -30,9 +28,15 @@ def compute_rballs_tw(in_files, output_dir):
                 print "-------------------------------------"
                 print "Node {0}/{1} ({2})".format(i, nodes_in_graph, node)
                 print "r = {0}, d = {1}".format(r, d)
-                rball = algorithms.r_ball(nx_graph, node, r, -1 if d == "in" else 1 if d == "out" else 0)
-                print "r-ball nodes:", rball.number_of_nodes()
-                ap_result = arnborg_proskurowski.get_canonical_representation(rball, False)
+                if node in rballs_with_big_tw:
+                    # don't compute treewidth for r-balls which are known to be big
+                    ap_result = (-1, u"")
+                else:
+                    rball = algorithms.r_ball(nx_graph, node, r, -1 if d == "in" else 1 if d == "out" else 0)
+                    print "r-ball nodes:", rball.number_of_nodes()
+                    ap_result = arnborg_proskurowski.get_canonical_representation(rball, False)
+                    if ap_result[0] == -1:
+                        rballs_with_big_tw.add(node)
                 print "Treewidth: ", ap_result[0]
                 line = u"{0},{1}\n".format(nx_graph.node[node]["labels"][0].replace(u",", u"[comma]"), ap_result[0])
                 out_file.write(line)
@@ -47,9 +51,7 @@ def aggregate_results(percent=False):
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
     for r in [2, 3, 4, 5]:
-        for d in ["in", "out"]:
-#             if d == "all" and r > 3:
-#                 break
+        for d in ["in", "out", "all"]:
             agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
             out_file.write("[{0};{1}]".format(r, d))
             for tw in ["0", "1", "2", "3", "-1"]:
