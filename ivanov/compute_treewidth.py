@@ -45,14 +45,14 @@ def compute_rballs_tw(in_files, output_dir):
              
             out_file.close()
 
-def aggregate_results(percent=False):
-    out_file = codecs.open("../output/agg{0}".format("_percent" if percent else ""), "w", "utf8")
+def aggregate_results(path_to_files, percent=False):
+    out_file = codecs.open(path_to_files + "agg{0}".format("_percent" if percent else ""), "w", "utf8")
     
     out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
-    for r in [2, 3, 4, 5]:
-        for d in ["in", "out", "all"]:
-            agg = treewidth.aggregate("../output/tw_r{0}_{1}".format(r, d))
+    for d in ["in", "out", "all"]:
+        for r in [2, 3, 4, 5]:
+            agg = treewidth.aggregate(path_to_files + "tw_r{0}_{1}".format(r, d))
             out_file.write("[{0};{1}]".format(r, d))
             for tw in ["0", "1", "2", "3", "-1"]:
                 if agg.has_key(tw):
@@ -80,6 +80,6 @@ if __name__ == '__main__':
     ]
     
     compute_rballs_tw(in_files, "../output/fam/")
-#     aggregate_results()
-#     aggregate_results(True)
+#     aggregate_results("../output/fam/")
+#     aggregate_results("../output/fam/", True)
 #     print test_graph("../output/peel/small_graph")
