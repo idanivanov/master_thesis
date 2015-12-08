@@ -38,34 +38,56 @@ def compute_rballs_tw(in_files, output_dir):
                     if ap_result[0] == -1:
                         rballs_with_big_tw.add(node)
                 print "Treewidth: ", ap_result[0]
-                line = u"{0},{1}\n".format(nx_graph.node[node]["labels"][0].replace(u",", u"[comma]"), ap_result[0])
+                line = u"{0},{1}\n".format(nx_graph.node[node]["labels"][0].replace(u",", u"[comma]").replace(u"\n", u"[new_line]"), ap_result[0])
                 out_file.write(line)
 #                 nxext.visualize_graph(rball, node_labels=True, edge_labels=False)
                 i += 1
              
             out_file.close()
 
-def aggregate_results(path_to_files, percent=False):
+def aggregate_results(path_to_files, percent=False, latex=False):
     out_file = codecs.open(path_to_files + "agg{0}".format("_percent" if percent else ""), "w", "utf8")
     
-    out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
+    if not latex:
+        out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
-    for d in ["in", "out", "all"]:
-        for r in [2, 3, 4, 5]:
+    for d in ["in", "out"]:
+        for r in [2]:
+            if d == "all" and r > 2:
+                continue
             agg = treewidth.aggregate(path_to_files + "tw_r{0}_{1}".format(r, d))
-            out_file.write("[{0};{1}]".format(r, d))
+            if latex:
+                out_file.write("$r={0}, e=$ {1}".format(r, d))
+            else:
+                out_file.write("[{0};{1}]".format(r, d))
             for tw in ["0", "1", "2", "3", "-1"]:
                 if agg.has_key(tw):
                     if percent:
-                        value = (100. / float(agg["total"])) * float(agg[tw])
+                        raw_value = (100. / float(agg["total"])) * float(agg[tw])
+                        if latex:
+                            value = str(round(raw_value, 2)) + "\%"
+                        else:
+                            value = raw_value
                     else:
                         value = agg[tw]
-                    out_file.write(",{0}".format(value))
+                    if latex:
+                        out_file.write(" & {0}".format(value))
+                    else:
+                        out_file.write(",{0}".format(value))
                 else:
-                    out_file.write(",0")
+                    if latex:
+                        out_file.write(" & 0\%")
+                    else:
+                        out_file.write(",0")
             if not percent:
-                out_file.write(",{0}".format(agg["total"]))
-            out_file.write("\n")
+                if latex:
+                    out_file.write(" & {0}".format(agg["total"]))
+                else:
+                    out_file.write(",{0}".format(agg["total"]))
+            if latex:
+                out_file.write("\\\\\n")
+            else:
+                out_file.write("\n")
     
     out_file.close()
 
@@ -74,12 +96,12 @@ def test_graph(path_to_graph_file):
     return arnborg_proskurowski.get_canonical_representation(nx_graph)
 
 if __name__ == '__main__':
-    path = "../data/"
+    path = "../data/GeoSpecies/"
     in_files = [
-        path + "family.rdf.owl.rdf"
+        path + "geospecies.rdf"
     ]
-    
-    compute_rballs_tw(in_files, "../output/fam/")
-#     aggregate_results("../output/fam/")
-#     aggregate_results("../output/fam/", True)
+
+#     compute_rballs_tw(in_files, "../output/fam/")
+    aggregate_results("../output/geo/")
+    aggregate_results("../output/geo/", percent=True, latex=True)
 #     print test_graph("../output/peel/small_graph")

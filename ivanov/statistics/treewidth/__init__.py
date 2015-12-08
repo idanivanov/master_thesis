@@ -16,10 +16,11 @@ def aggregate(tw_file_path):
     lines = read_tw_file(tw_file_path)
     res = {}
     for k, g in itertools.groupby(lines, lambda tup: tup[1]):
+        group_count = sum(1 for _ in g)
         if res.has_key(k):
-            res[k] += sum(1 for _ in g)
+            res[k] += group_count
         else:
-            res[k] = sum(1 for _ in g)
+            res[k] = group_count
     res["total"] = sum(res.values())
     return res
     
@@ -29,6 +30,7 @@ def read_tw_file(tw_file_path):
     line = tw_file.readline()
     while line:
         items = line[:-1].split(u",")
-        yield (items[0], items[1])
+        if len(items) == 2:
+            yield (items[0], items[1])
         line = tw_file.readline()
     tw_file.close()
