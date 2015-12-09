@@ -5,15 +5,23 @@ Created on Nov 21, 2015
 '''
 
 from rdflib import Graph as RDFGraph
+from rdflib import RDF, RDFS, OWL
 import networkx as nx
 import rdflib
+from owlready import *
+from rdflib.term import URIRef
 
-def convert_rdf_to_nx_graph(in_files):
+def read_graph(in_files, file_format=None):
     rdf_graph = RDFGraph()
-    nx_graph = nx.MultiDiGraph()
     
     for in_file in in_files:
-        rdf_graph.parse(in_file, format=rdflib.util.guess_format(in_file))
+        rdf_graph.parse(in_file, format=file_format if file_format else rdflib.util.guess_format(in_file))
+    
+    return rdf_graph
+
+def convert_rdf_to_nx_graph(in_files):
+    rdf_graph = read_graph(in_files)
+    nx_graph = nx.MultiDiGraph()
     
     nodes = rdf_graph.all_nodes()
     triples = rdf_graph.triples((None, None, None))
@@ -32,3 +40,21 @@ def convert_rdf_to_nx_graph(in_files):
         nx_graph.add_edge(s_id, o_id, label=unicode(p))
     
     return nx_graph
+
+def iri(prefix, suffix):
+    return unicode(prefix) + unicode(suffix)
+
+def stats(rdf_graph):
+    def get_nodes_of_type(class_type):
+        return set(rdf_graph.subjects(RDF.type, URIRef(class_type)))
+    
+    def get_all_classes():
+        nodes_rdf_class = get_nodes_of_type(RDFS.Class)
+        nodes_owl_class = get_nodes_of_type(OWL.Class)
+        return nodes_rdf_class | nodes_owl_class
+    
+    classes = get_all_classes()
+    nodes_by_class = {cls: get_nodes_of_type(cls) for cls in classes}
+    for cls in nodes_by_class:
+        print cls, len(nodes_by_class[cls])
+    # TODO: get numbers, intersections, blah blah blah...
