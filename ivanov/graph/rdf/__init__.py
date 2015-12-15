@@ -6,10 +6,10 @@ Created on Nov 21, 2015
 
 from rdflib import Graph as RDFGraph
 from rdflib import RDF, RDFS, OWL
+from rdflib.term import URIRef, BNode
 import networkx as nx
 import rdflib
-from owlready import *
-from rdflib.term import URIRef
+import codecs
 
 def read_graph(in_files, file_format=None):
     rdf_graph = RDFGraph()
@@ -41,20 +41,26 @@ def convert_rdf_to_nx_graph(in_files):
     
     return nx_graph
 
-def iri(prefix, suffix):
-    return unicode(prefix) + unicode(suffix)
+def get_nodes_of_type(rdf_graph, class_type):
+    return rdf_graph.subjects(RDF.type, class_type)
 
-def stats(rdf_graph):
-    def get_nodes_of_type(class_type):
-        return set(rdf_graph.subjects(RDF.type, URIRef(class_type)))
+def get_blank_nodes(rdf_graph):
+    subjects = rdf_graph.subjects(None, None)
+    return filter(lambda node: type(node) is BNode, subjects)
+
+def get_all_classes(rdf_graph):
+    return set(rdf_graph.objects(None, RDF.type))
+
+def extract_subjects_by_types(rdf_graph, output_dir):
+    all_classes = get_all_classes(rdf_graph)
+    i = 0
     
-    def get_all_classes():
-        nodes_rdf_class = get_nodes_of_type(RDFS.Class)
-        nodes_owl_class = get_nodes_of_type(OWL.Class)
-        return nodes_rdf_class | nodes_owl_class
-    
-    classes = get_all_classes()
-    nodes_by_class = {cls: get_nodes_of_type(cls) for cls in classes}
-    for cls in nodes_by_class:
-        print cls, len(nodes_by_class[cls])
-    # TODO: get numbers, intersections, blah blah blah...
+    for cls in all_classes:
+        fp = codecs.open(output_dir + str(i), "w", "utf-8")
+        fp.write(unicode(cls) + u"\n")
+        nodes = get_nodes_of_type(rdf_graph, cls)
+        nodes_str = map(lambda node: unicode(node) + u"\n", nodes)
+        fp.writelines(nodes_str)
+        fp.close()
+        print "done for", i, cls
+        i += 1
