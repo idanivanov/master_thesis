@@ -82,9 +82,15 @@ def visualize_graph(graph, node_labels = True, edge_labels = True, bipartite = F
         for node in new_graph.nodes_iter():
             label = graph.node[node]["labels"][0]
             if len(label) > 33:
-                new_label = label[:30] + "..."
+                if type(label) is unicode:
+                    new_label = unidecode(label[:30]) + "..."
+                else:
+                    new_label = label[:30] + "..."
             else:
-                new_label = unidecode(label)
+                if type(label) is unicode:
+                    new_label = unidecode(label)
+                else:
+                    new_label = label
             new_graph.node[node]["labels"] = [new_label]
         # if necessary, convert edge labels too
         return new_graph
