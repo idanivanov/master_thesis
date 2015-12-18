@@ -80,7 +80,7 @@ def visualize_graph(graph, node_labels = True, edge_labels = True, bipartite = F
     def all_labels_to_ascii(graph):
         new_graph = graph.copy()
         for node in new_graph.nodes_iter():
-            label = graph.node[node]["labels"][0]
+            label = ",".join(graph.node[node]["labels"])
             if len(label) > 33:
                 if type(label) is unicode:
                     new_label = unidecode(label[:30]) + "..."

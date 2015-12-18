@@ -12,7 +12,6 @@ from timeit import itertools
 import networkx as nx
 import copy
 import pickle
-from functools import total_ordering
 
 class Hypergraph(object):
         
@@ -50,7 +49,7 @@ class Hypergraph(object):
         node_id = u"n_{0}".format(node)
         self.bipartite_graph.add_node(node_id, attr_dict=attr_dict, bipartite=0)
         if len(attr_dict["labels"]) > 1:
-            self.nodes_with_more_labels.append(node_id)
+            self.nodes_with_more_labels.add(node_id)
         self.nodes_count += 1
     
     def nodes_iter(self):
