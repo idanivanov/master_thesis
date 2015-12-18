@@ -6,13 +6,13 @@ Created on Oct 29, 2015
 Represents a hypergraph with hyperedges of order at most 3.
 '''
 
-from networkx.algorithms import bipartite
-from itertools import permutations, groupby, combinations
+from itertools import permutations, combinations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
 import copy
-import time
+import pickle
+from functools import total_ordering
 
 class Hypergraph(object):
         
@@ -404,6 +404,37 @@ class Hypergraph(object):
     
     def visualize(self):
         nxext.visualize_graph(self.bipartite_graph, bipartite=True, edge_labels=False)
+    
+    def copy(self):
+        return copy.deepcopy(self)
+    
+    def save_to_file(self, out_file):
+        outfl = open(out_file, "wb")
+        pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+        outfl.close()
+    
+    @staticmethod
+    def load_from_file(in_file):
+        infl = open(in_file, "rb")
+        hypergraph = pickle.load(infl)
+        infl.close()
+        assert type(hypergraph) is Hypergraph
+        return hypergraph
+    
+    # NOTE: does not check isomorphism
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            self_dict = dict(self.__dict__)
+            other_dict = dict(other.__dict__)
+            # do not compare networkx graphs
+            del self_dict["bipartite_graph"]
+            del other_dict["bipartite_graph"]
+            return self_dict == other_dict
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __init__(self, nx_graph):
         self.bipartite_graph = nx.Graph()
