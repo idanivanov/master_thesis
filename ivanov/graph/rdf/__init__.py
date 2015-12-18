@@ -4,12 +4,14 @@ Created on Nov 21, 2015
 @author: Ivan Ivanov
 '''
 
-from rdflib import Graph as RDFGraph
-from rdflib import RDF, RDFS, OWL
 from rdflib.term import URIRef, BNode
+from rdflib import Graph as RDFGraph
+from RDFClosure import convert_graph
+from rdflib import RDF, RDFS, OWL
 import networkx as nx
 import rdflib
 import codecs
+from ivanov import helpers
 
 def read_graph(in_files, file_format=None):
     rdf_graph = RDFGraph()
@@ -64,3 +66,31 @@ def extract_subjects_by_types(rdf_graph, output_dir):
         fp.close()
         print "done for", i, cls
         i += 1
+
+def extend_infered_knowledge(in_files, out_file):
+    '''
+    Uses the RDFClosure reasoner to create
+    explicit triples from the inferred knowledge 
+    n in_files and saves the complete extensional
+    dataset in out_file.
+    Note: RDFClosure - http://www.ivan-herman.net/Misc/2008/owlrl/
+    '''
+    assert type(in_files) in [list, set]
+    class Options:
+        sources = None
+        text = None
+        owlClosure = "yes"
+        rdfsClosure = "yes"
+        owlExtras = "no"
+        axioms = False
+        daxioms = False
+        format = "rdfxml"
+        iformat = "auto"
+        trimming = False
+    
+    options = Options()
+    options.sources = in_files
+    
+    outfl = codecs.open(out_file, "w", "utf8")
+    outfl.write(convert_graph(options))
+    outfl.close()
