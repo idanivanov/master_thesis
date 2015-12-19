@@ -22,13 +22,13 @@ def read_graph(in_files, file_format=None):
     return rdf_graph
 
 def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True):
-    '''
-    Converts an RDFLib graph to a Networkx graph.
-    :param in_files - Files containing the RDF data
-    :param labels - Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
+    '''Converts an RDFLib graph to a Networkx graph.
+    
+    :param in_files: Files containing the RDF data.
+    :param labels (optional): Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
     same color if they are of the same type, edges have the same color if they are of the same
     predicate; "uris" - each node/edge has as label the URI that identifies it in the RDF graph.
-    :param discard_classes - If true, will not include any RDF class as a node in the Networkx graph.
+    :param discard_classes (optional): If true, will not include any RDF class as a node in the Networkx graph.
     '''
     rdf_graph = read_graph(in_files)
     nx_graph = nx.MultiDiGraph()
@@ -153,8 +153,7 @@ def extract_subjects_by_types(rdf_graph, output_dir):
         i += 1
 
 def extend_infered_knowledge(in_files, out_file):
-    '''
-    Uses the RDFClosure reasoner to create
+    '''Uses the RDFClosure reasoner to create
     explicit triples from the inferred knowledge 
     n in_files and saves the complete extensional
     dataset in out_file.
