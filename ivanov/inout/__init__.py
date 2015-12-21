@@ -3,6 +3,7 @@ Created on Dec 17, 2015
 
 @author: Ivan Ivanov
 '''
+
 import codecs
 import io
 from unidecode import unidecode

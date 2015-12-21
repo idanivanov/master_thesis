@@ -6,7 +6,7 @@ Created on Oct 29, 2015
 Represents a hypergraph with hyperedges of order at most 3.
 '''
 
-from external_lib import sPickle
+from ivanov.external_lib import sPickle
 from itertools import permutations, combinations
 from ivanov.graph import nxext
 from timeit import itertools
