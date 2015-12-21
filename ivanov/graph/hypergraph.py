@@ -6,12 +6,12 @@ Created on Oct 29, 2015
 Represents a hypergraph with hyperedges of order at most 3.
 '''
 
+from external_lib import sPickle
 from itertools import permutations, combinations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
 import copy
-import pickle
 
 class Hypergraph(object):
         
@@ -409,13 +409,13 @@ class Hypergraph(object):
     
     def save_to_file(self, out_file):
         outfl = open(out_file, "wb")
-        pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+        sPickle.s_dump_elt(self, outfl)
         outfl.close()
     
     @staticmethod
     def load_from_file(in_file):
         infl = open(in_file, "rb")
-        hypergraph = pickle.load(infl)
+        hypergraph = sPickle.s_load(infl)
         infl.close()
         assert type(hypergraph) is Hypergraph
         return hypergraph
