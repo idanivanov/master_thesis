@@ -30,13 +30,11 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
                 rball, new_wl_labels_lists[i] = weisfeiler_lehman.iteration(rball, new_wl_labels_lists[i])
             
             canon_str, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
+            features += map(lambda raw_feature: raw_feature.as_subgraph(rball), new_raw_features)
             if canon_str == u"Tree-width > 3":
                 # TODO: How to handle graphs with larger tree-width?
-                # for now just ignore these graphs
+                # for now collect all possible features
                 sys.stderr.write("\n[feature_extraction] Cannot extract features because the r-ball has tree-width > 3.\n")
-                return new_raw_features, wl_labels_lists
-            
-            features += map(lambda raw_feature: raw_feature.as_subgraph(rball), new_raw_features)
     
     return features, new_wl_labels_lists
 

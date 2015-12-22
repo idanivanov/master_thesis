@@ -84,7 +84,7 @@ class SketchMatrix(object):
         assert type(sketch_matrix) is SketchMatrix
         return sketch_matrix
 
-    def __init__(self, k, L, hypergraph):
+    def __init__(self, k, L, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
         self.k = k
         self.L = L
         self.h_count = k * L
@@ -92,5 +92,5 @@ class SketchMatrix(object):
         self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
         self.cols = {}
         
-        feature_lists = feature_extraction.get_feature_lists(hypergraph)
+        feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)
         self.build_sketch_matrix(feature_lists)

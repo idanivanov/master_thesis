@@ -193,9 +193,6 @@ def get_canonical_representation(graph, return_features = False):
         
         if return_features:
             features.append(new_features)
-        
-#         if hypergraph.number_of_nodes() < 50: 
-#             hypergraph.visualize()
 
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph)
