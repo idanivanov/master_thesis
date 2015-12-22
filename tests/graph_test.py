@@ -70,7 +70,12 @@ class GraphTest(unittest.TestCase):
         dummy_hypergraph.save_to_file(file_name)
         read_hypergraph = Hypergraph.load_from_file(file_name)
         self.assertEqual(dummy_hypergraph, read_hypergraph, "The read hypergraph is different from the saved one.")
-
+    
+    def testHypergraph_edges_iter(self):
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        self.assertEqual(len(list(dummy_hypergraph.edges_iter())), 32)
+        self.assertEqual(set(dummy_hypergraph.edges_iter("n_6")), set(["e_5", "e_9", "e_13", "e_28"]))
+        self.assertEqual(set(dummy_hypergraph.edges_iter("n_5", "n_1")), set(["e_15"]))
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']
