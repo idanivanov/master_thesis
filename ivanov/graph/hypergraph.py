@@ -121,8 +121,8 @@ class Hypergraph(object):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
         return self.bipartite_graph.node[edge_id]
     
-    def edges_iter(self):
-        return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 1, self.bipartite_graph.nodes_iter())
+    def edges(self, u=None, v=None):
+        return list(self.edges_iter(u, v))
     
     def edges_2_iter(self):
         return filter(lambda edge_id: len(self.endpoints(edge_id)) == 2, self.edges_iter())
@@ -130,23 +130,17 @@ class Hypergraph(object):
     def edges_2(self):
         return list(self.edges_2_iter())
     
-    def edges(self, u=None, v=None):
+    def edges_iter(self, u=None, v=None):
         if u:
             assert u.startswith(u"n_")
-            
-            u_edges = self.bipartite_graph.neighbors(u)
+            u_edges = self.bipartite_graph.neighbors_iter(u)
             if not v:
                 return u_edges
             
             assert v.startswith(u"n_")
-            edges = []
-            for edge in u_edges:
-                adj_nodes = self.bipartite_graph.neighbors(edge)
-                if v in adj_nodes:
-                    edges.append(edge)
-            return edges
+            return filter(lambda edge: v in self.endpoints(edge), u_edges)
         else:
-            return list(self.edges_iter())
+            return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 1, self.bipartite_graph.nodes_iter())
     
     def hedges_iter(self):
         return filter(lambda edge: edge.startswith(u"he_"), self.edges_iter())
@@ -227,6 +221,24 @@ class Hypergraph(object):
         
         for pair in self.get_adj_nodes(nodes):
             subgraph.add_edge(pair[0], pair[1])
+        
+        return subgraph
+    
+    # TODO: This method can be optimized
+    # hyperedges are shown as 3 edges
+    def subgraph_with_labels(self, nodes):
+        assert type(nodes) is set
+
+        subgraph = nx.Graph()
+        
+        for node in nodes:
+            assert node.startswith(u"n_")
+            subgraph.add_node(node, labels=self.node[node]["labels"])
+        
+        for pair in self.get_adj_nodes(nodes):
+            edges = self.edges(pair[0], pair[1])
+            for edge in edges:
+                subgraph.add_edge(pair[0], pair[1], label=self.edge(edge)["label"])
         
         return subgraph
     
@@ -435,7 +447,7 @@ class Hypergraph(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, nx_graph):
+    def __init__(self, nx_graph = nx.Graph()):
         self.bipartite_graph = nx.Graph()
         self.node = self.bipartite_graph.node
         self.next_edge_index = 0
