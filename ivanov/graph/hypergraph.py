@@ -46,7 +46,10 @@ class Hypergraph(object):
         return self.hedges_count
     
     def add_node(self, node, attr_dict):
-        node_id = u"n_{0}".format(node)
+        if unicode(node).startswith(u"n_"):
+            node_id = node
+        else:
+            node_id = u"n_{0}".format(node)
         self.bipartite_graph.add_node(node_id, attr_dict=attr_dict, bipartite=0)
         if len(attr_dict["labels"]) > 1:
             self.nodes_with_more_labels.add(node_id)

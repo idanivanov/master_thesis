@@ -43,6 +43,7 @@ def r_ball(graph, center, r, edge_dir=0):
     
     return rball
 
+# TODO: can be optimized
 def r_ball_hyper(hypergraph, center, r, edge_dir=0):
     '''The same as r_ball but for Hypergraph.
     '''
@@ -55,19 +56,20 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
         edges = hypergraph.edges_iter(u)
         for edge in edges:
             endpoints = hypergraph.endpoints(edge)
-            for v in endpoints:
-                if v not in visited_nodes:
-                    rball.add_node(v, attr_dict=copy.deepcopy(hypergraph.node[v]))
+            new_endpoints = set(endpoints) - set([u])
+            if any(map(lambda node: node in visited_nodes, new_endpoints)):
+                continue
             edge_attr = hypergraph.edge(edge)
             direction = edge_attr["direction"]
-            if edge_dir < 0 and any(lambda dir_perm: dir_perm.index(u) > 0, direction) or \
-               edge_dir > 0 and any(lambda dir_perm: dir_perm.index(u) < len(dir_perm) - 1, direction) or \
+            if edge_dir < 0 and any(map(lambda dir_perm: dir_perm.index(u) > 0, direction)) or \
+               edge_dir > 0 and any(map(lambda dir_perm: dir_perm.index(u) < len(dir_perm) - 1, direction)) or \
                edge_dir == 0:
-                rball.add_edge(hypergraph.endpoints(edge), direction=copy.deepcopy(direction), label=copy.deepcopy(edge_attr["labels"]))
+                for v in new_endpoints:
+                    rball.add_node(v, attr_dict=copy.deepcopy(hypergraph.node[v]))
+                rball.add_edge(endpoints, direction=copy.deepcopy(direction), label=u",".join(copy.deepcopy(edge_attr["labels"])))
                 if i < r:
-                    for v in endpoints:
-                        if v not in visited_nodes:
-                            recurse(v, i + 1)
+                    for v in new_endpoints:
+                        recurse(v, i + 1)
     
     rball = Hypergraph()
     rball.add_node(center, attr_dict=copy.deepcopy(hypergraph.node[center]))
