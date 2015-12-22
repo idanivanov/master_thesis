@@ -4,21 +4,13 @@ Created on Dec 21, 2015
 @author: Ivan Ivanov
 '''
 
-import numpy as np
+from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction
+from ivanov.external_lib import sPickle
 # from numbapro import vectorize, uint64
 from numpy import random
-from ivanov.external_lib import sPickle
+import numpy as np
 
 class SketchMatrix(object):
-    @staticmethod
-    def extract_features(hypergraph, node):
-        return set() # TODO: implement feature extraction
-    
-    @staticmethod
-    def get_feature_lists(hypergraph):
-        for node in hypergraph.nodes_iter():
-            yield node, SketchMatrix.extract_features(hypergraph, node)
-    
     @staticmethod
     def generate_hash_functions(h_count):
         def hash_perm(x, a, b, r, prime):
@@ -48,6 +40,7 @@ class SketchMatrix(object):
     def get_minhash_fingerprint_naive(feature, h):
         return 0 # TODO: implement naive version
     
+    # TODO: GPU implementation?
 #     @vectorize(['uint64[:,:](, )'], target='cpu')
     def build_sketch_matrix(self, feature_lists):
         j = -1
@@ -99,5 +92,5 @@ class SketchMatrix(object):
         self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
         self.cols = {}
         
-        feature_lists = SketchMatrix.get_feature_lists(hypergraph)
+        feature_lists = feature_extraction.get_feature_lists(hypergraph)
         self.build_sketch_matrix(feature_lists)
