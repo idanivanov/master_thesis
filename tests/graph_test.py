@@ -59,6 +59,15 @@ class GraphTest(unittest.TestCase):
     dummy_graph.add_edge(13, 14, label = "0")
     dummy_graph.add_edge(13, 15, label = "0")
     
+    dummy_subgraph = nx.MultiDiGraph()
+    dummy_subgraph.add_node(1, labels = ["1"])
+    dummy_subgraph.add_node(6, labels = ["6"])
+    dummy_subgraph.add_node(9, labels = ["9"])
+    dummy_subgraph.add_node(10, labels = ["10"])
+    dummy_subgraph.add_edge(1, 6, label = "0")
+    dummy_subgraph.add_edge(1, 9, label = "0")
+    dummy_subgraph.add_edge(6, 10, label = "0")
+    
     def testHypergraph_Copy(self):
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         dummy_copy = dummy_hypergraph.copy()
@@ -76,6 +85,12 @@ class GraphTest(unittest.TestCase):
         self.assertEqual(len(list(dummy_hypergraph.edges_iter())), 32)
         self.assertEqual(set(dummy_hypergraph.edges_iter("n_6")), set(["e_5", "e_9", "e_13", "e_28"]))
         self.assertEqual(set(dummy_hypergraph.edges_iter("n_5", "n_1")), set(["e_15"]))
+    
+    def testHypergraph_subgraph_with_labels(self):
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        subgraph = dummy_hypergraph.subgraph_with_labels(set(["n_1", "n_6", "n_9", "n_10"]))
+        isomorphic = nx.is_isomorphic(self.dummy_subgraph, subgraph)
+        self.assertTrue(isomorphic, "Incorrect subgraph extraction from hypergraph.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']
