@@ -10,16 +10,6 @@ from itertools import groupby, permutations
 import sys
  
 def get_canonical_representation(graph, return_features = False):
-    
-    def get_features_strings(features):
-        features_strings = []
-        for feature in features:
-            subgraph = feature.as_subgraph(hypergraph)
-            canon_str = get_canonical_representation(subgraph)
-            feature_string = u"{0}.{1}.{2}.{3};{4}".format(feature.rule, feature.subrule, feature.subsubrule, feature.subsubsubrule, canon_str)
-            features_strings.append(feature_string)
-        return features_strings
-    
     def is_done(hypergraph):
         if hypergraph.number_of_edges() == 0:
             return True
@@ -182,7 +172,10 @@ def get_canonical_representation(graph, return_features = False):
         
         return modified, degree_3_features if return_features else None
     
-    hypergraph = Hypergraph(graph)
+    if type(graph) is not Hypergraph:
+        hypergraph = Hypergraph(graph)
+    else:
+        hypergraph = graph.copy()
     
     features = []
     treewidth = 0
@@ -199,7 +192,7 @@ def get_canonical_representation(graph, return_features = False):
         modified = False
         
         if return_features:
-            features.append(get_features_strings(new_features))
+            features.append(new_features)
         
 #         if hypergraph.number_of_nodes() < 50: 
 #             hypergraph.visualize()
@@ -240,13 +233,13 @@ def get_canonical_representation(graph, return_features = False):
                 else:
                     canon_str = collect_labels(hypergraph)
                     if return_features:
-                        features.append(get_features_strings(new_features))
+                        features.append(new_features)
                         return treewidth, canon_str, features
                     else:
                         return treewidth, canon_str
             else:
                 if return_features:
-                    features.append(get_features_strings(new_features))
+                    features.append(new_features)
                     return -1, u"Tree-width > 3", features
                 else:
                     return -1, u"Tree-width > 3"

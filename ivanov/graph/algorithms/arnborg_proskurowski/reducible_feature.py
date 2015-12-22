@@ -455,7 +455,7 @@ class ReducibleFeature(object):
     
     def as_subgraph(self, hypergraph):
         nodes = self.reducible_nodes + self.peripheral_nodes
-        return hypergraph.subgraph(nodes)
+        return hypergraph.subgraph_with_labels(nodes)
     
     def __repr__(self, *args, **kwargs):
         reducible = u", ".join(map(lambda node: unicode(node), self.reducible_nodes))
