@@ -242,7 +242,7 @@ class Hypergraph(object):
     def subgraph_with_labels(self, nodes):
         assert type(nodes) is set
 
-        subgraph = nx.Graph()
+        subgraph = nx.MultiDiGraph()
         
         for node in nodes:
             assert node.startswith(u"n_")
@@ -251,7 +251,17 @@ class Hypergraph(object):
         for pair in self.get_adj_nodes(nodes):
             edges = self.edges(pair[0], pair[1])
             for edge in edges:
-                subgraph.add_edge(pair[0], pair[1], label=self.edge(edge)["label"])
+                edge_attr = self.edge(edge)
+                if not any(map(lambda dir_perm: dir_perm.index(pair[0]) < dir_perm.index(pair[1]), edge_attr["direction"])):
+                    # edge direction = -1
+                    subgraph.add_edge(pair[1], pair[0], label=edge_attr["labels"][0])
+                elif not any(map(lambda dir_perm: dir_perm.index(pair[0]) > dir_perm.index(pair[1]), edge_attr["direction"])):
+                    # edge direction = 1
+                    subgraph.add_edge(pair[0], pair[1], label=edge_attr["labels"][0])
+                else:
+                    # edge direction = 0
+                    subgraph.add_edge(pair[0], pair[1], label=edge_attr["labels"][0])
+                    subgraph.add_edge(pair[1], pair[0], label=edge_attr["labels"][0])
         
         return subgraph
     
