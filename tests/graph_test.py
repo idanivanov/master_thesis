@@ -7,6 +7,7 @@ Created on Dec 18, 2015
 import networkx as nx
 import unittest
 from ivanov.graph.hypergraph import Hypergraph
+from ivanov.graph import algorithms
 
 class GraphTest(unittest.TestCase):
     dummy_graph = nx.MultiDiGraph()
@@ -68,6 +69,54 @@ class GraphTest(unittest.TestCase):
     dummy_subgraph.add_edge(1, 9, label = "0")
     dummy_subgraph.add_edge(6, 10, label = "0")
     
+    # r-ball: center=10, r=2, edge_dir=0
+    dummy_rball_10_r2_all = nx.MultiDiGraph()
+    dummy_rball_10_r2_all.add_node(10, labels = ["10"]) # center
+    dummy_rball_10_r2_all.add_node(1, labels = ["1"])
+    dummy_rball_10_r2_all.add_node(3, labels = ["3"])
+    dummy_rball_10_r2_all.add_node(4, labels = ["4"])
+    dummy_rball_10_r2_all.add_node(5, labels = ["5"])
+    dummy_rball_10_r2_all.add_node(6, labels = ["6"])
+    dummy_rball_10_r2_all.add_node(11, labels = ["11"])
+    dummy_rball_10_r2_all.add_node(12, labels = ["12"])
+    dummy_rball_10_r2_all.add_node(13, labels = ["13"])
+    dummy_rball_10_r2_all.add_node(16, labels = ["16"])
+    dummy_rball_10_r2_all.add_edge(1, 3, label = "0")
+    dummy_rball_10_r2_all.add_edge(1, 6, label = "0")
+    dummy_rball_10_r2_all.add_edge(3, 4, label = "0")
+    dummy_rball_10_r2_all.add_edge(3, 10, label = "0")
+    dummy_rball_10_r2_all.add_edge(3, 11, label = "0")
+    dummy_rball_10_r2_all.add_edge(3, 12, label = "0")
+    dummy_rball_10_r2_all.add_edge(5, 6, label = "0")
+    dummy_rball_10_r2_all.add_edge(6, 10, label = "0")
+    dummy_rball_10_r2_all.add_edge(6, 16, label = "0")
+    dummy_rball_10_r2_all.add_edge(10, 11, label = "0")
+    dummy_rball_10_r2_all.add_edge(11, 12, label = "0")
+    dummy_rball_10_r2_all.add_edge(11, 13, label = "0")
+    
+    # r-ball: center=10, r=2, edge_dir=1
+    dummy_rball_10_r2_out = nx.MultiDiGraph()
+    dummy_rball_10_r2_out.add_node(10, labels = ["10"]) # center
+    dummy_rball_10_r2_out.add_node(11, labels = ["11"])
+    dummy_rball_10_r2_out.add_node(12, labels = ["12"])
+    dummy_rball_10_r2_out.add_node(13, labels = ["13"])
+    dummy_rball_10_r2_out.add_edge(10, 11, label = "0")
+    dummy_rball_10_r2_out.add_edge(11, 12, label = "0")
+    dummy_rball_10_r2_out.add_edge(11, 13, label = "0")
+    
+    # r-ball: center=10, r=2, edge_dir=-1
+    dummy_rball_10_r2_in = nx.MultiDiGraph()
+    dummy_rball_10_r2_in.add_node(10, labels = ["10"]) # center
+    dummy_rball_10_r2_in.add_node(1, labels = ["1"])
+    dummy_rball_10_r2_in.add_node(3, labels = ["3"])
+    dummy_rball_10_r2_in.add_node(5, labels = ["5"])
+    dummy_rball_10_r2_in.add_node(6, labels = ["6"])
+    dummy_rball_10_r2_in.add_edge(1, 3, label = "0")
+    dummy_rball_10_r2_in.add_edge(1, 6, label = "0")
+    dummy_rball_10_r2_in.add_edge(3, 10, label = "0")
+    dummy_rball_10_r2_in.add_edge(5, 6, label = "0")
+    dummy_rball_10_r2_in.add_edge(6, 10, label = "0")
+    
     def testHypergraph_Copy(self):
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         dummy_copy = dummy_hypergraph.copy()
@@ -91,6 +140,23 @@ class GraphTest(unittest.TestCase):
         subgraph = dummy_hypergraph.subgraph_with_labels(set(["n_1", "n_6", "n_9", "n_10"]))
         isomorphic = nx.is_isomorphic(self.dummy_subgraph, subgraph)
         self.assertTrue(isomorphic, "Incorrect subgraph extraction from hypergraph.")
+    
+    def testRBallHyper(self):
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        rball_in = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, -1)
+        rball_out = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, 1)
+        rball_all = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, 0)
+        d_rball_all = Hypergraph(self.dummy_rball_10_r2_all)
+        d_rball_out = Hypergraph(self.dummy_rball_10_r2_out)
+        d_rball_in = Hypergraph(self.dummy_rball_10_r2_in)
+        
+        all_isomorphic = nx.is_isomorphic(d_rball_all.bipartite_graph, rball_all.bipartite_graph)
+        out_isomorphic = nx.is_isomorphic(d_rball_out.bipartite_graph, rball_out.bipartite_graph)
+        in_isomorphic = nx.is_isomorphic(d_rball_in.bipartite_graph, rball_in.bipartite_graph)
+        
+        self.assertTrue(all_isomorphic, "Problem extracting r-ball with edge_dir=0.")
+        self.assertTrue(out_isomorphic, "Problem extracting r-ball with edge_dir=1.")
+        self.assertTrue(in_isomorphic, "Problem extracting r-ball with edge_dir=-1.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']
