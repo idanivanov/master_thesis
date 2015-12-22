@@ -6,11 +6,11 @@ Created on Oct 29, 2015
 Represents a hypergraph with hyperedges of order at most 3.
 '''
 
-from ivanov.external_lib import sPickle
 from itertools import permutations, combinations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
+import pickle
 import copy
 
 class Hypergraph(object):
@@ -125,12 +125,23 @@ class Hypergraph(object):
         return list(self.edges_iter(u, v))
     
     def edges_2_iter(self):
-        return filter(lambda edge_id: len(self.endpoints(edge_id)) == 2, self.edges_iter())
+        for edge in self.edges_iter():
+            if len(self.endpoints(edge)) == 2:
+                yield edge
     
     def edges_2(self):
         return list(self.edges_2_iter())
     
     def edges_iter(self, u=None, v=None):
+        def all_edges():
+            for x in self.bipartite_graph.nodes_iter():
+                if self.bipartite_graph.node[x]["bipartite"] == 1:
+                    yield x
+        def edges_of_u_v(_u_edges, _v):
+            for edge in u_edges:
+                if v in self.endpoints(edge):
+                    yield edge
+        
         if u:
             assert u.startswith(u"n_")
             u_edges = self.bipartite_graph.neighbors_iter(u)
@@ -138,12 +149,14 @@ class Hypergraph(object):
                 return u_edges
             
             assert v.startswith(u"n_")
-            return filter(lambda edge: v in self.endpoints(edge), u_edges)
+            return edges_of_u_v(u_edges, v)
         else:
-            return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 1, self.bipartite_graph.nodes_iter())
+            return all_edges()
     
     def hedges_iter(self):
-        return filter(lambda edge: edge.startswith(u"he_"), self.edges_iter())
+        for edge in self.edges_iter():
+            if edge.startswith(u"he_"):
+                yield edge
     
     def hedges(self, u=None, v=None, w=None):
         if u:
@@ -421,13 +434,13 @@ class Hypergraph(object):
     
     def save_to_file(self, out_file):
         outfl = open(out_file, "wb")
-        sPickle.s_dump_elt(self, outfl)
+        pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
         outfl.close()
     
     @staticmethod
     def load_from_file(in_file):
         infl = open(in_file, "rb")
-        hypergraph = sPickle.s_load(infl)
+        hypergraph = pickle.load(infl)
         infl.close()
         assert type(hypergraph) is Hypergraph
         return hypergraph
