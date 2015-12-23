@@ -4,10 +4,10 @@ Created on Dec 17, 2015
 @author: Ivan Ivanov
 '''
 
-import codecs
-import io
 from unidecode import unidecode
+import codecs
 import ntpath
+import io
 
 def get_file_name(path):
     head, tail = ntpath.split(path)

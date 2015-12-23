@@ -1,4 +1,4 @@
 *.pyc
-output/
+output*/
 data/
 tests/test_files/

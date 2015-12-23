@@ -8,10 +8,10 @@ from rdflib.term import URIRef, BNode, Literal
 from rdflib import Graph as RDFGraph
 from RDFClosure import convert_graph
 from rdflib import RDF, RDFS, OWL
+from ivanov import helpers
 import networkx as nx
 import rdflib
 import codecs
-from ivanov import helpers
 
 def read_graph(in_files, file_format=None):
     rdf_graph = RDFGraph()
@@ -30,6 +30,8 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True)
     predicate; "uris" - each node/edge has as label the URI that identifies it in the RDF graph.
     :param discard_classes (optional): If true, will not include any RDF class as a node in the Networkx graph.
     '''
+    assert type(in_files) in [list, set]
+    
     rdf_graph = read_graph(in_files)
     nx_graph = nx.MultiDiGraph()
     
@@ -174,7 +176,4 @@ def extend_infered_knowledge(in_files, out_file):
     
     options = Options()
     options.sources = in_files
-    
-    outfl = codecs.open(out_file, "w", "utf8")
-    outfl.write(convert_graph(options))
-    outfl.close()
+    convert_graph(options, destination=out_file)

@@ -10,8 +10,10 @@ from itertools import permutations, combinations
 from ivanov.graph import nxext
 from timeit import itertools
 import networkx as nx
+import contextlib
 import pickle
 import copy
+import gzip
 
 class Hypergraph(object):
         
@@ -445,16 +447,24 @@ class Hypergraph(object):
     def copy(self):
         return copy.deepcopy(self)
     
-    def save_to_file(self, out_file):
-        outfl = open(out_file, "wb")
-        pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
-        outfl.close()
+    def save_to_file(self, out_file, compress=True):
+        if compress:
+            with contextlib.closing(gzip.GzipFile(out_file, "wb")) as outfl:
+                pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+        else:
+            outfl = open(out_file, "wb")
+            pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+            outfl.close() 
     
     @staticmethod
-    def load_from_file(in_file):
-        infl = open(in_file, "rb")
-        hypergraph = pickle.load(infl)
-        infl.close()
+    def load_from_file(in_file, compress=True):
+        if compress:
+            with contextlib.closing(gzip.GzipFile(in_file, "rb")) as infl:
+                hypergraph = pickle.load(infl)
+        else:
+            infl = open(in_file, "rb")
+            hypergraph = pickle.load(infl)
+            infl.close()
         assert type(hypergraph) is Hypergraph
         return hypergraph
     

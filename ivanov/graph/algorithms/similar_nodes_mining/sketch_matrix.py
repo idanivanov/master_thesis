@@ -5,10 +5,12 @@ Created on Dec 21, 2015
 '''
 
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction
-from ivanov.external_lib import sPickle
 # from numbapro import vectorize, uint64
+import cPickle as pickle
 from numpy import random
 import numpy as np
+import contextlib
+import gzip
 
 class SketchMatrix(object):
     @staticmethod
@@ -72,15 +74,24 @@ class SketchMatrix(object):
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i
     
-    def save_to_file(self, out_file):
-        outfl = open(out_file, "wb")
-        sPickle.s_dump_elt(self, outfl)
-        outfl.close() 
+    def save_to_file(self, out_file, compress=True):
+        if compress:
+            with contextlib.closing(gzip.GzipFile(out_file, "wb")) as outfl:
+                pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+        else:
+            outfl = open(out_file, "wb")
+            pickle.dump(self, outfl, pickle.HIGHEST_PROTOCOL)
+            outfl.close() 
     
-    def load_from_file(self, in_file):
-        infl = open(in_file, "rb")
-        sketch_matrix = sPickle.s_load(infl)
-        infl.close()
+    @staticmethod
+    def load_from_file(in_file, compress=True):
+        if compress:
+            with contextlib.closing(gzip.GzipFile(in_file, "rb")) as infl:
+                sketch_matrix = pickle.load(infl)
+        else:
+            infl = open(in_file, "rb")
+            sketch_matrix = pickle.load(infl)
+            infl.close()
         assert type(sketch_matrix) is SketchMatrix
         return sketch_matrix
 
