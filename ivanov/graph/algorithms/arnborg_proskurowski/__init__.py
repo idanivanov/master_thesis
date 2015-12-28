@@ -9,7 +9,7 @@ from ivanov.graph.hypergraph import Hypergraph
 from itertools import groupby, permutations
 import sys
  
-def get_canonical_representation(graph, return_features = False):
+def get_canonical_representation(graph, return_features=False):
     def is_done(hypergraph):
         if hypergraph.number_of_edges() == 0:
             return True
@@ -76,6 +76,8 @@ def get_canonical_representation(graph, return_features = False):
     def rule_1(hypergraph, return_features = False):
         modified = False
         pendant_features = ReducibleFeature.extract_rule_1_features(hypergraph)
+        if return_features:
+            pendant_features = list(pendant_features)
         
         affected_nodes = set()
         
@@ -101,6 +103,8 @@ def get_canonical_representation(graph, return_features = False):
     def rule_2(hypergraph, return_features = False):
         modified = False
         series_features = ReducibleFeature.extract_rule_2_features(hypergraph)
+        if return_features:
+            series_features = list(series_features)
         
         affected_nodes = set()
         new_edges = set()
@@ -153,6 +157,8 @@ def get_canonical_representation(graph, return_features = False):
     def rules_4_5_6_7(hypergraph, return_features = False):
         modified = False
         degree_3_features = ReducibleFeature.extract_degree_3_features(hypergraph)
+        if return_features:
+            degree_3_features = list(degree_3_features)
         
         affected_nodes = set()
         new_edges = set()
@@ -192,7 +198,7 @@ def get_canonical_representation(graph, return_features = False):
         modified = False
         
         if return_features:
-            features.append(new_features)
+            features += new_features
 
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph)
@@ -230,13 +236,13 @@ def get_canonical_representation(graph, return_features = False):
                 else:
                     canon_str = collect_labels(hypergraph)
                     if return_features:
-                        features.append(new_features)
+                        features += new_features
                         return treewidth, canon_str, features
                     else:
                         return treewidth, canon_str
             else:
                 if return_features:
-                    features.append(new_features)
+                    features += new_features
                     return -1, u"Tree-width > 3", features
                 else:
                     return -1, u"Tree-width > 3"

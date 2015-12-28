@@ -798,22 +798,34 @@ class ReducibleFeature(object):
         
         return new_edges
     
-    '''
-    Constructor
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            self_dict = dict(self.__dict__)
+            other_dict = dict(self.__dict__)
+            del self_dict["reduced"]
+            del other_dict["reduced"]
+            return self_dict == other_dict
+        else:
+            return False
     
-    Rule meanings
-    -------------
-    rule 0: Multiple vertices and edges (implemented in class ArnborgProskurowski)
-    rule 1: Pendant rule
-        subrule 1: Dipole
-        subrule 2: Pendant vertices
-        subrule 3: Self-loops (implemented in class ArnborgProskurowski)
-    rule 2: Series rule
-        subrule 1: Chain
-        subrule 2: Ring
-    rule 3: TODO
-    '''
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    
     def __init__(self, rule, subrule, reducible_nodes, peripheral_nodes, subsubrule = 0, subsubsubrule = 0):
+        '''Constructor
+        
+        Rule meanings
+        -------------
+        rule 0: Multiple vertices and edges (implemented in class ArnborgProskurowski)
+        rule 1: Pendant rule
+            subrule 1: Dipole
+            subrule 2: Pendant vertices
+            subrule 3: Self-loops (implemented in class ArnborgProskurowski)
+        rule 2: Series rule
+            subrule 1: Chain
+            subrule 2: Ring
+        rule 3: TODO
+        '''
         self.rule = rule
         self.subrule = subrule
         self.subsubrule = subsubrule

@@ -5,7 +5,7 @@ Created on Dec 18, 2015
 '''
 
 from ivanov.graph.hypergraph import Hypergraph
-from ivanov.graph import algorithms, rdf, nxext
+from ivanov.graph import algorithms, rdf
 import networkx as nx
 import unittest
 
