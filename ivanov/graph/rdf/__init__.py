@@ -154,7 +154,7 @@ def extract_subjects_by_types(rdf_graph, output_dir):
         print "done for", i, cls
         i += 1
 
-def extend_infered_knowledge(in_files, out_file):
+def extend_inferred_knowledge(in_files, out_file):
     '''Uses the RDFClosure reasoner to create
     explicit triples from the inferred knowledge 
     n in_files and saves the complete extensional
