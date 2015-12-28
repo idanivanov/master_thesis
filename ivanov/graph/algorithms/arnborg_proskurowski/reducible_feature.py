@@ -235,6 +235,7 @@ class ReducibleFeature(object):
                      
                     elif reducible_degree == 2:
                         # Rule 5.2.3
+                        # TODO: there is a bug here: consider the case of 1 triangle, when each of the vertices are connected to a separate outer vertex.
                         t_edges = []
                         three_cliques = filter(lambda clique: len(clique) == 3, nx.find_cliques_recursive(conflict_subgraph))
                         for clique in three_cliques:
@@ -314,11 +315,9 @@ class ReducibleFeature(object):
                  
                 if nodes_in_subgraph == 6:
                     if len_periphery == 2:
-                        periphery_list = list(raw_conflict[1])
                         # Rule 6.2 - Cat's cradle
-                        if not conflict_subgraph.has_edge(periphery_list[0], periphery_list[1]):
-                            conflicts.append(ReducibleFeature(6, 2, raw_conflict[0], raw_conflict[1]))
-                            continue
+                        conflicts.append(ReducibleFeature(6, 2, raw_conflict[0], raw_conflict[1]))
+                        continue
                     # Rule 6.1 - K(3,3)
                     conflicts.append(ReducibleFeature(6, 1, raw_conflict[0], raw_conflict[1]))
                     continue
@@ -461,6 +460,16 @@ class ReducibleFeature(object):
         reducible = u", ".join(map(lambda node: unicode(node), self.reducible_nodes))
         periphery = u", ".join(map(lambda node: unicode(node), self.peripheral_nodes))
         return u"rule({0}.{1}.{2}.{3}), [{4}]---[{5}]".format(self.rule, self.subrule, self.subsubrule, self.subsubsubrule, reducible, periphery)
+    
+    def to_constructor_str(self):
+        return u"ReducibleFeature({0}, {1}, {2}, {3}, {4}, {5})".format(
+            self.rule,
+            self.subrule,
+            self.reducible_nodes,
+            self.peripheral_nodes,
+            self.subsubrule,
+            self.subsubsubrule
+        )
     
     # private methods
     
