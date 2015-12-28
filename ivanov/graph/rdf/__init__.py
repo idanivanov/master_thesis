@@ -21,7 +21,7 @@ def read_graph(in_files, file_format=None):
     
     return rdf_graph
 
-def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True):
+def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True, test_mode=False):
     '''Converts an RDFLib graph to a Networkx graph.
     
     :param in_files: Files containing the RDF data.
@@ -35,7 +35,10 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True)
     rdf_graph = read_graph(in_files)
     nx_graph = nx.MultiDiGraph()
     
-    nodes = rdf_graph.all_nodes()
+    if test_mode:
+        nodes = sorted(list(rdf_graph.all_nodes()))
+    else:
+        nodes = rdf_graph.all_nodes()
     triples = rdf_graph.triples((None, None, None))
     
     node_id = 0

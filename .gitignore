@@ -1,4 +1,3 @@
 *.pyc
 output*/
 data/
-tests/test_files/

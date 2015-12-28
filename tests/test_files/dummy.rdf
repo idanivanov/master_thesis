@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.dummy-rdf.bg#"
+	xml:base="http://www.dummy-rdf.bg#"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:foaf="http://xmlns.com/foaf/0.1/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:dbpedia2="http://dbpedia.org/property/"
+	xmlns:dbpedia="http://dbpedia.org/"
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#">
+     
+    <owl:Ontology rdf:about="">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Dummy dataset to test reasoner capabilities.</rdfs:comment>
+    </owl:Ontology>
+    
+    <owl:Class rdf:ID="Person" />    
+    <owl:Class rdf:ID="Peasant">
+		<rdfs:subClassOf rdf:resource="#Person" />
+	</owl:Class>
+    <owl:Class rdf:ID="Tractorist">
+		<rdfs:subClassOf rdf:resource="#Peasant" />
+	</owl:Class>
+
+    <owl:Thing rdf:ID="Bai_Ivan" /> 
+	<owl:Thing rdf:about="#Bai_Ivan"> 
+	   <rdf:type rdf:resource="#Tractorist"/> 
+	</owl:Thing>
+</rdf:RDF>

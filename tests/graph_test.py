@@ -4,10 +4,10 @@ Created on Dec 18, 2015
 @author: Ivan Ivanov
 '''
 
+from ivanov.graph.hypergraph import Hypergraph
+from ivanov.graph import algorithms, rdf, nxext
 import networkx as nx
 import unittest
-from ivanov.graph.hypergraph import Hypergraph
-from ivanov.graph import algorithms
 
 class GraphTest(unittest.TestCase):
     dummy_graph = nx.MultiDiGraph()
@@ -117,6 +117,12 @@ class GraphTest(unittest.TestCase):
     dummy_rball_10_r2_in.add_edge(5, 6, label = "0")
     dummy_rball_10_r2_in.add_edge(6, 10, label = "0")
     
+    dummy_colored_expected = nx.MultiDiGraph()
+    dummy_colored_expected.add_node("1", labels=["4"])
+    dummy_colored_expected.add_node("2", labels=["5", "6"])
+    dummy_colored_expected.add_node("3", labels=["2", "3"])
+    dummy_colored_expected.add_edge("2", "3", label="7")
+    
     def testHypergraph_Copy(self):
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         dummy_copy = dummy_hypergraph.copy()
@@ -157,6 +163,11 @@ class GraphTest(unittest.TestCase):
         self.assertTrue(all_isomorphic, "Problem extracting r-ball with edge_dir=0.")
         self.assertTrue(out_isomorphic, "Problem extracting r-ball with edge_dir=1.")
         self.assertTrue(in_isomorphic, "Problem extracting r-ball with edge_dir=-1.")
+    
+    def testRDFToNxGraphConvertionWithColoring(self):
+        dummy_colored, _ = rdf.convert_rdf_to_nx_graph(["test_files/dummy.rdf"], test_mode=True)
+        isomorphic = nx.is_isomorphic(self.dummy_colored_expected, dummy_colored)
+        self.assertTrue(isomorphic, "Problem converting RDF graph to Networkx graph with colors.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']
