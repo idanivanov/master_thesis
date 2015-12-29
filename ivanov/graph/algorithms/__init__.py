@@ -4,6 +4,7 @@ Created on Nov 21, 2015
 @author: Ivan Ivanov
 '''
 
+from ivanov.graph.algorithms import arnborg_proskurowski
 from ivanov.graph.hypergraph import Hypergraph
 import networkx as nx
 import copy
@@ -80,3 +81,13 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
     rball.init_nodes_with_n_neighbors()
     
     return rball
+
+def isomorphic(graph1, graph2):
+    '''Isomorphism test based on Arnborg & Proskurowski. Works only for
+    graphs with tree-width <= 3. If the tree-width is >3 returns False.
+    '''
+    g1_tw, g1_canon_str = arnborg_proskurowski.get_canonical_representation(graph1)
+    g2_tw, g2_canon_str = arnborg_proskurowski.get_canonical_representation(graph2)
+    if g1_tw != -1 and g1_tw == g2_tw and g1_canon_str == g2_canon_str:
+        return True
+    return False
