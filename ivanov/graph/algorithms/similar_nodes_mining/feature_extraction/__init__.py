@@ -15,6 +15,9 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
     
     features = []
     
+    if wl_iterations > 0:
+        new_wl_labels_lists = list(wl_labels_lists)
+    
     for key in rballs:
         rball = rballs[key]
         if rball is None:
@@ -22,26 +25,25 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
         
         for i in range(wl_iterations + 1):
             if i == 1:
-                new_wl_labels_lists = list(wl_labels_lists)
-                rball, new_wl_labels_lists[0] = weisfeiler_lehman.init(rball, wl_labels_lists[0])
+                rball, new_wl_labels_lists[0] = weisfeiler_lehman.init(rball, new_wl_labels_lists[0])
             
-            if i > 1:
-                if len(new_wl_labels_lists) < i:
-                    wl_labels_lists.append([])
+            if i >= 1:
+                if len(new_wl_labels_lists) == i:
+                    new_wl_labels_lists.append([])
                 rball, new_wl_labels_lists[i] = weisfeiler_lehman.iteration(rball, new_wl_labels_lists[i])
             
-            canon_str, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
+            tw, _, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
             features += map(lambda raw_feature: raw_feature.as_subgraph(rball), new_raw_features)
-            if canon_str == u"Tree-width > 3":
+            if tw == -1:
                 # TODO: How to handle graphs with larger tree-width?
                 # for now collect all possible features
-                sys.stderr.write("\n[feature_extraction] Cannot extract features because the r-ball has tree-width > 3.\n")
+                print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
     
     return features, new_wl_labels_lists
 
 def get_feature_lists(hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
     assert type(hypergraph) is Hypergraph
-    wl_labels_lists = []
+    wl_labels_lists = [[]]
     for node in hypergraph.nodes_iter():
         features, wl_labels_lists = extract_features(node, hypergraph, r_in, r_out, r_all, wl_iterations, wl_labels_lists) 
         yield node, features

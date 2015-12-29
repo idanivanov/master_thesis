@@ -75,19 +75,18 @@ def init(graph, labels_list = []):
     new_labels_set = set()
     labels_set = set(labels_list)
     
-    i = -1
     for node in graph.node:
         node_label = new_graph.node[node]["labels"][0]
-        if node_label in labels_set:
-            index = labels_list.index(node_label)
-        elif node_label in new_labels_set:
-            index = new_labels_list.index(node_label)
-        else:
+        if node_label not in labels_set and node_label not in new_labels_set:
             new_labels_list.append(node_label)
             new_labels_set.add(node_label)
-            i += 1
-            index = i
-        new_graph.node[node]["labels"] = [str(index)]
+    
+    new_labels_list.sort()
+    new_labels_list = labels_list + new_labels_list
+    
+    for node in graph.node:
+        old_label = new_graph.node[node]["labels"][0]
+        new_graph.node[node]["labels"] = [str(new_labels_list.index(old_label))]
     
     return new_graph, new_labels_list
     

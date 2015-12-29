@@ -76,4 +76,7 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
     if r > 0:
         recurse(center, 1)
     
+    rball.init_parallel_edges_groups()
+    rball.init_nodes_with_n_neighbors()
+    
     return rball
