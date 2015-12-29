@@ -53,7 +53,7 @@ def iterate(graph, labels_list):
     new_labels_list = labels_list + new_labels_list
     
     for node in graph.node:
-        new_graph.node[node]["labels"] = [str(new_labels_list.index(new_node_labels[node]))]
+        new_graph.node[node]["labels"] = ["wl_" + str(new_labels_list.index(new_node_labels[node]))]
     
     return new_graph, new_labels_list
     
@@ -95,7 +95,7 @@ def init(graph, labels_list = []):
     
     for node in graph.node:
         old_label = new_graph.node[node]["labels"][0]
-        new_graph.node[node]["labels"] = [str(new_labels_list.index(old_label))]
+        new_graph.node[node]["labels"] = ["wl_" + str(new_labels_list.index(old_label))]
     
     return new_graph, new_labels_list
     

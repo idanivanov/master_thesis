@@ -38,6 +38,13 @@ class Hypergraph(object):
         hedge_dir_str = u"({0})".format(u",".join(sorted(dir_encodings)))
         return u"({0},{1})".format(hedge_label, hedge_dir_str)
     
+    @staticmethod
+    def format_node_id(node):
+        if unicode(node).startswith(u"n_"):
+            return node
+        else:
+            return u"n_{0}".format(node)
+    
     def number_of_nodes(self):
         return self.nodes_count
     
@@ -48,10 +55,7 @@ class Hypergraph(object):
         return self.hedges_count
     
     def add_node(self, node, attr_dict):
-        if unicode(node).startswith(u"n_"):
-            node_id = node
-        else:
-            node_id = u"n_{0}".format(node)
+        node_id = Hypergraph.format_node_id(node)
         self.bipartite_graph.add_node(node_id, attr_dict=attr_dict, bipartite=0)
         if len(attr_dict["labels"]) > 1:
             self.nodes_with_more_labels.add(node_id)
@@ -507,8 +511,8 @@ class Hypergraph(object):
             adj_nodes = nxext.get_all_adjacent_nodes(nx_graph)
             for pair in adj_nodes:
                 edges = nxext.get_edge_labels_and_dirs(nx_graph, pair[0], pair[1])
-                u = u"n_{0}".format(pair[0])
-                v = u"n_{0}".format(pair[1])
+                u = Hypergraph.format_node_id(pair[0])
+                v = Hypergraph.format_node_id(pair[1])
                 for edge in edges:
                     dir_code = edge[1]
                     if dir_code == 0:

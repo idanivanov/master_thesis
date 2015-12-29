@@ -22,7 +22,6 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
         rball = rballs[key]
         if rball is None:
             continue
-#         rball.visualize()
         
         for i in range(wl_iterations + 1):
             if i == 1:
@@ -30,6 +29,8 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
             
             if i >= 1:
                 new_rball, new_wl_labels_list = weisfeiler_lehman.iterate(rball, new_wl_labels_list)
+                # TODO: should we skip the stability check for the first iteration?
+#                 if i > 1 and weisfeiler_lehman.is_stable(rball, new_rball, i):
                 if weisfeiler_lehman.is_stable(rball, new_rball, i):
                     break
                 rball = new_rball
