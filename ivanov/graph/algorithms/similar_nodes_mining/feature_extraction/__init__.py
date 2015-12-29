@@ -5,6 +5,7 @@ Created on Dec 22, 2015
 '''
 from ivanov.graph.algorithms import r_ball_hyper, arnborg_proskurowski,\
     weisfeiler_lehman
+from ivanov.graph.hypergraph import Hypergraph
 import sys
 
 def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0, wl_labels_lists = [[]]):
@@ -39,6 +40,7 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
     return features, new_wl_labels_lists
 
 def get_feature_lists(hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
+    assert type(hypergraph) is Hypergraph
     wl_labels_lists = []
     for node in hypergraph.nodes_iter():
         features, wl_labels_lists = extract_features(node, hypergraph, r_in, r_out, r_all, wl_iterations, wl_labels_lists) 
