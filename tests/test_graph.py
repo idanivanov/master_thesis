@@ -4,12 +4,13 @@ Created on Dec 18, 2015
 @author: Ivan Ivanov
 '''
 
+from ivanov.graph.algorithms import weisfeiler_lehman
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import algorithms, rdf
 import networkx as nx
 import unittest
 
-class GraphTest(unittest.TestCase):
+class TestGraph(unittest.TestCase):
     dummy_graph = nx.MultiDiGraph()
     dummy_graph.add_node(1, labels = ["1"])
     dummy_graph.add_node(2, labels = ["2"])
@@ -123,6 +124,18 @@ class GraphTest(unittest.TestCase):
     dummy_colored_expected.add_node("3", labels=["2", "3"])
     dummy_colored_expected.add_edge("2", "3", label="7")
     
+    dummy_wl = nx.MultiDiGraph()
+    dummy_wl.add_node(1, labels=["0"])
+    dummy_wl.add_node(2, labels=["1"])
+    dummy_wl.add_node(3, labels=["0"])
+    dummy_wl.add_node(4, labels=["1"])
+    dummy_wl.add_node(5, labels=["0"])
+    dummy_wl.add_edge(1, 2, label="a")
+    dummy_wl.add_edge(2, 3, label="a")
+    dummy_wl.add_edge(3, 4, label="a")
+    dummy_wl.add_edge(4, 1, label="a")
+    dummy_wl.add_edge(4, 5, label="b")
+    
     def testHypergraph_Copy(self):
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         dummy_copy = dummy_hypergraph.copy()
@@ -168,6 +181,27 @@ class GraphTest(unittest.TestCase):
         dummy_colored, _ = rdf.convert_rdf_to_nx_graph(["test_files/dummy.rdf"], test_mode=True)
         isomorphic = nx.is_isomorphic(self.dummy_colored_expected, dummy_colored)
         self.assertTrue(isomorphic, "Problem converting RDF graph to Networkx graph with colors.")
+    
+    def testWeisfeilerLehman(self):
+        labels_lists_exp = [
+            ['a', 'b', '1', '0'],
+            ['0;2,3', '1;2,3', '2;0,0', '2;0,0,1', '3;0,0', '3;1'],
+            ['0;2,4', '0;3,4', '1;3,5', '2;0,0', '3;0,0,1', '4;0,0', '5;1'],
+            ['0;3,5', '1;4,5', '2;4,6', '3;0,0', '4;1,1,2', '5;0,1', '6;2'],
+        ]
+        hyper_dummy_wl = Hypergraph(self.dummy_wl)
+        labels_lists = []
+        hyper_dummy_wl, labels_list = weisfeiler_lehman.init(hyper_dummy_wl)
+        labels_lists.append(labels_list)
+        i = 1
+        while True:
+            new_hyper_dummy_wl, labels_list = weisfeiler_lehman.iteration(hyper_dummy_wl, [])
+            labels_lists.append(labels_list)
+            if weisfeiler_lehman.is_stable(hyper_dummy_wl, new_hyper_dummy_wl, i):
+                break
+            hyper_dummy_wl = new_hyper_dummy_wl
+            i += 1
+        self.assertEqual(labels_lists_exp, labels_lists, "The multi-sets of labels computed by Weisfeiler-Lehman are not correct.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']

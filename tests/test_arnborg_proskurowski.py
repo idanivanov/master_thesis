@@ -9,7 +9,7 @@ from ivanov.graph.algorithms import arnborg_proskurowski
 import networkx as nx
 import unittest
 
-class Test(unittest.TestCase):
+class TestArnborgProskurowski(unittest.TestCase):
 
     # Arnborg & Proskurowski example graph with tree-width 2
     graph_tw_2 = nx.MultiDiGraph()
