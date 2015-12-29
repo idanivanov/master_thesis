@@ -63,10 +63,16 @@ class TestSimilarNodesMining(unittest.TestCase):
     dummy_graph.add_edge(13, 15, label = "0")
 
     def testFeatureExtraction(self):
+        labels_lists_exp = [
+            '0', '7', '8',
+            '0;1,2', '1;0', '2;0',
+            '1', '4', '5',
+            '0;1,6', '0;1,7', '0;1,8', '1;0,0,0', '6;0', '7;0', '8;0',
+            '10;12,14', '11;12,15', '12;10,11,9', '13;9', '14;10', '15;11', '9;12,13'
+        ]
         dummy_hypergraph = Hypergraph(self.dummy_graph)
-        features, labels_lists = feature_extraction.extract_features("n_3", dummy_hypergraph, r_in=3, r_out=2, r_all=0, wl_iterations=4)
-        print features
-        print labels_lists
+        features, labels_lists = feature_extraction.extract_features("n_7", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+        self.assertEqual(labels_lists_exp, labels_lists, "The wrong labels lists were computed by Weisfeiler-Lehman.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testFeatureExtraction']

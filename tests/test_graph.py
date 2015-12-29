@@ -183,25 +183,22 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(isomorphic, "Problem converting RDF graph to Networkx graph with colors.")
     
     def testWeisfeilerLehman(self):
-        labels_lists_exp = [
-            ['0', '1', 'a', 'b'],
-            ['0;2,2', '0;3', '1;2,2', '1;2,2,3', '2;0,1', '3;0,1'],
-            ['0;4,4', '1;5', '2;4,4', '3;4,4,5', '4;0,2', '4;0,3', '5;1,3'],
-            ['0;4,5', '1;6', '2;4,4', '3;5,5,6', '4;0,2', '5;0,3', '6;1,3']
+        labels_list_exp = [
+            '0', '1', 'a', 'b',
+            '0;2,2', '0;3', '1;2,2', '1;2,2,3', '2;0,1', '3;0,1',
+            '4;8,8', '5;9', '6;8,8', '7;8,8,9', '8;4,6', '8;4,7', '9;5,7',
+            '10;14,15', '11;16', '12;14,14', '13;15,15,16', '14;10,12', '15;10,13', '16;11,13'
         ]
         hyper_dummy_wl = Hypergraph(self.dummy_wl)
-        labels_lists = []
         hyper_dummy_wl, labels_list = weisfeiler_lehman.init(hyper_dummy_wl)
-        labels_lists.append(labels_list)
         i = 1
         while True:
-            new_hyper_dummy_wl, labels_list = weisfeiler_lehman.iteration(hyper_dummy_wl, [])
-            labels_lists.append(labels_list)
+            new_hyper_dummy_wl, labels_list = weisfeiler_lehman.iterate(hyper_dummy_wl, labels_list)
             if weisfeiler_lehman.is_stable(hyper_dummy_wl, new_hyper_dummy_wl, i):
                 break
             hyper_dummy_wl = new_hyper_dummy_wl
             i += 1
-        self.assertEqual(labels_lists_exp, labels_lists, "The multi-sets of labels computed by Weisfeiler-Lehman are not correct.")
+        self.assertEqual(labels_list_exp, labels_list, "The multi-sets of labels computed by Weisfeiler-Lehman are not correct.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']

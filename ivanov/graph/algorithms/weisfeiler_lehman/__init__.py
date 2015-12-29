@@ -8,7 +8,17 @@ import networkx as nx
 from ivanov.graph import nxext
 from ivanov.graph.hypergraph import Hypergraph
 
-def iteration(graph, labels_list):
+def iterate(graph, labels_list):
+    '''Performs one iteration of the Weisfeiler-Lehman algorithm.
+    :param graph: A Networkx graph or a Hypergraph
+    :param labels_list: A list of labels. Each label is uniquely
+    identified by its position index in the list.
+    :param iteration: The current iteration number.
+    :return A tuple of the form (new_graph, new_labels_list), where
+    new_graph is the resulting graph from the iteration, new_labels_list
+    is the new list of labels for the current iteration of the algorithm.
+    '''
+    
     def get_new_label(node, neighbors):
         node_label = graph.node[node]["labels"][0]
         label_extensions = []
@@ -40,9 +50,8 @@ def iteration(graph, labels_list):
         new_node_labels[node] = new_node_label
     
     new_labels_list.sort()
-    
     new_labels_list = labels_list + new_labels_list
-        
+    
     for node in graph.node:
         new_graph.node[node]["labels"] = [str(new_labels_list.index(new_node_labels[node]))]
     

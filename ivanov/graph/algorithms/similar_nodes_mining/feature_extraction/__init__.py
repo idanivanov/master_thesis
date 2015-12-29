@@ -8,7 +8,7 @@ from ivanov.graph.algorithms import r_ball_hyper, arnborg_proskurowski,\
 from ivanov.graph.hypergraph import Hypergraph
 import sys
 
-def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0, wl_labels_lists = [[]]):
+def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0, wl_labels_list = []):
     rballs = {"in": r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
               "out": r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
               "all": r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None}
@@ -16,21 +16,23 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
     features = []
     
     if wl_iterations > 0:
-        new_wl_labels_lists = list(wl_labels_lists)
+        new_wl_labels_list = list(wl_labels_list)
     
     for key in rballs:
         rball = rballs[key]
         if rball is None:
             continue
+#         rball.visualize()
         
         for i in range(wl_iterations + 1):
             if i == 1:
-                rball, new_wl_labels_lists[0] = weisfeiler_lehman.init(rball, new_wl_labels_lists[0])
+                rball, new_wl_labels_list = weisfeiler_lehman.init(rball, new_wl_labels_list)
             
             if i >= 1:
-                if len(new_wl_labels_lists) == i:
-                    new_wl_labels_lists.append([])
-                rball, new_wl_labels_lists[i] = weisfeiler_lehman.iteration(rball, new_wl_labels_lists[i])
+                new_rball, new_wl_labels_list = weisfeiler_lehman.iterate(rball, new_wl_labels_list)
+                if weisfeiler_lehman.is_stable(rball, new_rball, i):
+                    break
+                rball = new_rball
             
             tw, _, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
             features += map(lambda raw_feature: raw_feature.as_subgraph(rball), new_raw_features)
@@ -39,7 +41,7 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
                 # for now collect all possible features
                 print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
     
-    return features, new_wl_labels_lists
+    return features, new_wl_labels_list
 
 def get_feature_lists(hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
     assert type(hypergraph) is Hypergraph
