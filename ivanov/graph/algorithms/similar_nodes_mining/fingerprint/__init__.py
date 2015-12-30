@@ -58,11 +58,12 @@ def get_minhash_fingerprint_naive(feature, h):
     :param h: a hash function defining a permutation of fingerprints.
     :return An integer fingerprint of a shingle.
     '''
-    def process_shingle(shingle):
-        return rabin_fingerprint(string_to_binary_array(shingle))
+    def get_fingerprints(shingles):
+        for shingle in shingles:
+            yield rabin_fingerprint(string_to_binary_array(shingle))
     
     shingles = shingle_extraction.extract_shingles(feature)
-    fingerprints = map(process_shingle, shingles)
+    fingerprints = get_fingerprints(shingles)
     return min(fingerprints, key=lambda x: h(x))
 
 def irreducible_poly_list_to_bin_array(irred_poly_list):

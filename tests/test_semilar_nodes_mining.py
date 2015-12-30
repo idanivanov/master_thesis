@@ -147,7 +147,16 @@ class TestSimilarNodesMining(unittest.TestCase):
         self.assertEqual(shingles_exp, list(shingles), "Wrong shingles were extracted from feature.")
     
     def testGetMinhashFingerprintNaive(self):
-        pass # TODO: implement
+        a = 6638699916324237062
+        b = 13296106891814937365
+        # the first prime after 2^64
+        prime = 18446744073709551629
+        r = 18446744073709551616 # 2^64
+        h = lambda x: (int(int(a * x) + b) % prime) % r
+        
+        fp_exp = 13099543919928786944
+        fp = fingerprint.get_minhash_fingerprint_naive(self.dummy_feature, h)
+        self.assertEqual(fp_exp, fp, "The minhash fingerprint extracted from the feature is not correct.")
 
 #     def testSketchMatrix(self):
 #         dummy_hypergraph = Hypergraph(self.dummy_graph)

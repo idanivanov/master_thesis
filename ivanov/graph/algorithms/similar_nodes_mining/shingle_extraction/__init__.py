@@ -12,6 +12,9 @@ def extract_shingles(feature):
     :return A generator of shingles.
     '''
     def get_all_colorings(nodes_colors):
+        '''Get all possible combinations of the feature graph in which
+        each node has exactly one color (label).
+        '''
         def process_node(nodes, i):
             if i < len(nodes):
                 for color in nodes_colors[nodes[i]]:
@@ -27,6 +30,7 @@ def extract_shingles(feature):
         for node in feature.nodes_iter():
             shingle_graph.node[node]["labels"] = [coloring[i]]
             i += 1
+        # TODO: this shingle representation has very high collision probability in the Rabin's fingerprint
         _, shingle = arnborg_proskurowski.get_canonical_representation(shingle_graph)
         return shingle
     
