@@ -7,7 +7,7 @@ Created on Dec 30, 2015
 def extract_shingles(feature):
     '''Extracts (naively) all shingles contained in a feature.
     :param feature: A Networkx graph.
-    :return A set of shingles.
+    :return A generator of shingles.
     '''
     pass # TODO: implement
 

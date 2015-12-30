@@ -53,7 +53,7 @@ class SketchMatrix(object):
             for feature in feature_list:
                 for l in range(len(self.hash_functions)):
                     h = self.hash_functions[l]
-                    i = SketchMatrix.get_minhash_fingerprint_naive(feature, h) # row i of M
+                    i = fingerprint.get_minhash_fingerprint_naive(feature, h) # row i of matrix M
                     h_of_i = h(i)
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i

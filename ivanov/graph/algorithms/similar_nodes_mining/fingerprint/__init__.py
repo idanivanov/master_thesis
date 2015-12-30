@@ -4,6 +4,7 @@ Created on Dec 30, 2015
 @author: Ivan Ivanov
 '''
 
+from ivanov.graph.algorithms.similar_nodes_mining import shingle_extraction
 import numpy as np
 
 # irred_poly_64_list = [64, 60, 59, 57, 56, 55, 54, 53, 52, 51, 50, 48, 45, 44, 41, 37, 36, 34, 33, 31, 29, 27, 26, 23, 20, 19, 18, 11, 8, 5, 3, 1, 0]
@@ -42,6 +43,13 @@ def rabin_fingerprint(binary_array):
 
     return fingerprint
 
+def string_to_binary_array(string_value):
+    '''Converts a string to a binary array.
+    :param string_value: String to be converted.
+    '''
+    byte_string = np.fromstring(string_value, np.ubyte)
+    return np.unpackbits(byte_string)
+
 def get_minhash_fingerprint_naive(feature, h):
     '''Get naively the fingerprint of the shingle which has minimal
     index (wrt the permutation defined by h) among all shingles
@@ -50,7 +58,12 @@ def get_minhash_fingerprint_naive(feature, h):
     :param h: a hash function defining a permutation of fingerprints.
     :return An integer fingerprint of a shingle.
     '''
-    return 0 # TODO: implement naive version
+    def process_shingle(shingle):
+        return rabin_fingerprint(string_to_binary_array(shingle))
+    
+    shingles = shingle_extraction.extract_shingles(feature)
+    fingerprints = map(process_shingle, shingles)
+    return min(fingerprints, key=lambda x: h(x))
 
 def irreducible_poly_list_to_bin_array(irred_poly_list):
     degree = max(irred_poly_list)
