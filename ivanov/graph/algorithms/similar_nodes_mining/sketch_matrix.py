@@ -4,12 +4,13 @@ Created on Dec 21, 2015
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction
+from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
+    fingerprint
 # from numbapro import vectorize, uint64
 import cPickle as pickle
-from numpy import random
 import numpy as np
 import contextlib
+import random
 import gzip
 
 class SketchMatrix(object):
@@ -25,22 +26,22 @@ class SketchMatrix(object):
             f = lambda x: hash_perm(x, _a, _b, _r, _prime)
             return f
         
-        # the biggest prime that fits in 64 bits
-        prime = 18446744073709551557 # TODO: this prime should be bigger than r!!!
-        r = np.iinfo(np.uint64).max
+        def randombigint(min_val, max_val, bits=65):
+            rand = int(random.getrandbits(65))
+            return (rand % (max_val - min_val + 1)) + min_val
+        
+        # the first prime after 2^64
+        prime = 18446744073709551629
+        r = 18446744073709551616 # 2^64
         hash_funcs = []
         
         for _ in range(h_count):
-            a = random.randint(1, prime - 1)
-            b = random.randint(0, prime - 1)
+            a = randombigint(1, prime - 1)
+            b = randombigint(0, prime - 1)
             
             hash_funcs.append(func_generator(a, b, r, prime))
         
         return hash_funcs
-    
-    @staticmethod
-    def get_minhash_fingerprint_naive(feature, h):
-        return 0 # TODO: implement naive version
     
     # TODO: GPU implementation?
 #     @vectorize(['uint64[:,:](, )'], target='cpu')
@@ -69,7 +70,7 @@ class SketchMatrix(object):
             for feature in feature_list:
                 for l in range(len(self.hash_functions)):
                     h = self.hash_functions[l]
-                    i = SketchMatrix.get_minhash_fingerprint_naive(feature, h) # row i of M
+                    i = fingerprint.get_minhash_fingerprint_naive(feature, h) # row i of matrix M
                     h_of_i = h(i)
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i
@@ -94,12 +95,15 @@ class SketchMatrix(object):
             infl.close()
         assert type(sketch_matrix) is SketchMatrix
         return sketch_matrix
+    
+    def __repr__(self):
+        return str(self.matrix)
 
     def __init__(self, k, L, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
         self.k = k
         self.L = L
         self.h_count = k * L
-        self.matrix = np.full((self.h_count, hypergraph.number_of_nodes(), np.iinfo(np.uint64).max, np.uint64))
+        self.matrix = np.full((self.h_count, hypergraph.number_of_nodes()), np.iinfo(np.uint64).max, np.uint64)
         self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
         self.cols = {}
         

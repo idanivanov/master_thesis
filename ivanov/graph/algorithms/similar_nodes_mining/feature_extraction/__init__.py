@@ -46,7 +46,7 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
 
 def get_feature_lists(hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
     assert type(hypergraph) is Hypergraph
-    wl_labels_lists = [[]]
+    wl_labels_lists = []
     for node in hypergraph.nodes_iter():
         features, wl_labels_lists = extract_features(node, hypergraph, r_in, r_out, r_all, wl_iterations, wl_labels_lists) 
         yield node, features
