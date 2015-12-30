@@ -5,7 +5,7 @@ Created on Dec 29, 2015
 '''
 
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
-    fingerprint
+    fingerprint, shingle_extraction
 from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMatrix
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import algorithms
@@ -108,6 +108,13 @@ class TestSimilarNodesMining(unittest.TestCase):
     dummy_graph_features[-1].add_node("n_1", labels=["wl_13"])
     dummy_graph_features[-1].add_edge("n_1", "n_7", label="wl_9")
     
+    dummy_feature = nx.MultiDiGraph()
+    dummy_feature.add_node("n_1", labels=["1", "2"])
+    dummy_feature.add_node("n_2", labels=["3"])
+    dummy_feature.add_node("n_3", labels=["4", "5", "6"])
+    dummy_feature.add_edge("n_1", "n_2", label="7")
+    dummy_feature.add_edge("n_3", "n_1", label="7")
+    
     def testFeatureExtraction(self):
         labels_lists_exp = [
             '0', '7', '8',
@@ -126,11 +133,26 @@ class TestSimilarNodesMining(unittest.TestCase):
         dummy_binary_array = np.array([1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
         fp = fingerprint.rabin_fingerprint(dummy_binary_array)
         self.assertEqual(9332362780641026048, fp, "The calculated fingerprint is wrong.")
+    
+    def testShingleExtraction(self):
+        shingles_exp = [
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),4),1)",
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),5),1)",
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),6),1)",
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),4),2)",
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),5),2)",
+            "(0.1;(1.2;(7,((0,1))),3),(1.2;(7,((1,0))),6),2)"
+        ]
+        shingles = shingle_extraction.extract_shingles(self.dummy_feature)
+        self.assertEqual(shingles_exp, list(shingles), "Wrong shingles were extracted from feature.")
+    
+    def testGetMinhashFingerprintNaive(self):
+        pass # TODO: implement
 
-    def testSketchMatrix(self):
-        dummy_hypergraph = Hypergraph(self.dummy_graph)
-        sketch = SketchMatrix(10, 10, dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
-        print sketch
+#     def testSketchMatrix(self):
+#         dummy_hypergraph = Hypergraph(self.dummy_graph)
+#         sketch = SketchMatrix(10, 10, dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+#         print sketch
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testFeatureExtraction']
