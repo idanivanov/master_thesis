@@ -105,7 +105,7 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True,
                 # TODO: not properly handled
                 print "Unknown term type."
                 node_colors.add(colors[u"undefined"])
-            nx_graph.add_node(node_id, labels=node_colors)
+            nx_graph.add_node(node_id, labels=list(node_colors))
             node_id_map[unicode(node)] = node_id
             node_id += 1
         
