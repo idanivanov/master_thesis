@@ -4,10 +4,13 @@ Created on Dec 29, 2015
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction
+from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
+    fingerprint
+from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMatrix
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import algorithms
 import networkx as nx
+import numpy as np
 import unittest
 
 
@@ -118,6 +121,16 @@ class TestSimilarNodesMining(unittest.TestCase):
         self.assertEqual(labels_lists_exp, labels_lists, "The wrong labels lists were computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], self.dummy_graph_features[i]) for i in range(len(features))])
         self.assertTrue(isomorphic, "Wrong features extracted.")
+    
+    def testRabinFingerprint(self):
+        dummy_binary_array = np.array([1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+        fp = fingerprint.rabin_fingerprint(dummy_binary_array)
+        self.assertEqual(9332362780641026048, fp, "The calculated fingerprint is wrong.")
+
+    def testSketchMatrix(self):
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        sketch = SketchMatrix(10, 10, dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+        print sketch
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testFeatureExtraction']
