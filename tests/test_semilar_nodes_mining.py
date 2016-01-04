@@ -147,10 +147,9 @@ class TestSimilarNodesMining(unittest.TestCase):
         self.assertEqual(shingles_exp, list(shingles), "Wrong shingles were extracted from feature.")
     
     def testGetMinhashFingerprintNaive(self):
-        a = 6638699916324237062
-        b = 13296106891814937365
-        # the first prime after 2^64
-        prime = 18446744073709551629
+        a = 6638699916324237062 # random number
+        b = 13296106891814937365 # random number
+        prime = 18446744073709551629 # the first prime after 2^64
         r = 18446744073709551616 # 2^64
         h = lambda x: (int(int(a * x) + b) % prime) % r
         
