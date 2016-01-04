@@ -69,9 +69,10 @@ class SketchMatrix(object):
             j += 1
             self.cols["{0}/{1}".format(extension_id, node)] = j
             for feature in feature_list:
+                cached_shingles_dict = {}
                 for l in range(len(self.hash_functions)):
                     h = self.hash_functions[l]
-                    i = fingerprint.get_minhash_fingerprint_naive(feature, h) # row i of matrix M
+                    i = fingerprint.get_minhash_fingerprint_naive(feature, h, cached_shingles_dict) # row i of matrix M
                     h_of_i = h(i)
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i
