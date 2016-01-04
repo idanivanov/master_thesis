@@ -28,11 +28,11 @@ class SketchMatrix(object):
     def generate_hash_functions(h_count):
         def randombigint(min_val, max_val, bits=65):
             rand = int(random.getrandbits(65))
-            return (rand % (max_val - min_val + 1)) + min_val
+            return int((rand % (max_val - min_val + 1)) + min_val)
         
         # the first prime after 2^64
-        prime = 18446744073709551629
-        r = 18446744073709551616 # 2^64
+        prime = int(18446744073709551629)
+        r = int(18446744073709551616) # 2^64
         hash_funcs = []
         
         for _ in range(h_count):
