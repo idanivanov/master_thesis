@@ -153,7 +153,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         r = 18446744073709551616 # 2^64
         h = lambda x: (int(int(a * x) + b) % prime) % r
         
-        fp_exp = 13099543919928786944
+        fp_exp = 13099543911338852352
         fp = fingerprint.get_minhash_fingerprint_naive(self.dummy_feature, h)
         self.assertEqual(fp_exp, fp, "The minhash fingerprint extracted from the feature is not correct.")
 

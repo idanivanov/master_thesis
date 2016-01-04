@@ -5,6 +5,7 @@ Created on Dec 30, 2015
 '''
 
 from ivanov.graph.algorithms.similar_nodes_mining import shingle_extraction
+from ivanov.graph.algorithms import arnborg_proskurowski
 import numpy as np
 
 # irred_poly_64_list = [64, 60, 59, 57, 56, 55, 54, 53, 52, 51, 50, 48, 45, 44, 41, 37, 36, 34, 33, 31, 29, 27, 26, 23, 20, 19, 18, 11, 8, 5, 3, 1, 0]
@@ -39,7 +40,7 @@ def rabin_fingerprint(binary_array):
         remainder = mod(remainder, irred_poly_64_bin)
         remainder = remove_zeroes_left(remainder)
 
-    fingerprint = np.uint64(np.sum(np.multiply(remainder, powers_of_2[64 - len(remainder):])))
+    fingerprint = int(np.sum(np.multiply(remainder, powers_of_2[64 - len(remainder):])))
 
     return fingerprint
 
@@ -50,21 +51,31 @@ def string_to_binary_array(string_value):
     byte_string = np.fromstring(string_value, np.ubyte)
     return np.unpackbits(byte_string)
 
-def get_minhash_fingerprint_naive(feature, h):
+def get_minhash_fingerprint_naive(feature, h, cached_shingles_dict=None):
     '''Get naively the fingerprint of the shingle which has minimal
     index (wrt the permutation defined by h) among all shingles
     contained in the feature.
     :param feature: a Networkx graph.
     :param h: a hash function defining a permutation of fingerprints.
+    :param cached_shingles_dict (optional): A dictionary of the form {feature_id : set_of_fingerprints_of_shingles}
     :return An integer fingerprint of a shingle.
     '''
     def get_fingerprints(shingles):
         for shingle in shingles:
             yield rabin_fingerprint(string_to_binary_array(shingle))
     
-    shingles = shingle_extraction.extract_shingles(feature)
-    fingerprints = get_fingerprints(shingles)
-    return min(fingerprints, key=lambda x: h(x))
+    if type(cached_shingles_dict) is dict:
+        _, feature_id = arnborg_proskurowski.get_canonical_representation(feature)
+        if feature_id in cached_shingles_dict:
+            fingerprints = cached_shingles_dict[feature_id]
+        else:
+            shingles = shingle_extraction.extract_shingles(feature)
+            fingerprints = set(get_fingerprints(shingles))
+            cached_shingles_dict[feature_id] = fingerprints
+    else:
+        shingles = shingle_extraction.extract_shingles(feature)
+        fingerprints = get_fingerprints(shingles)
+    return min(fingerprints, key=h)
 
 def irreducible_poly_list_to_bin_array(irred_poly_list):
     degree = max(irred_poly_list)
