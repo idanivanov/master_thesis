@@ -40,7 +40,7 @@ def rabin_fingerprint(binary_array):
         remainder = mod(remainder, irred_poly_64_bin)
         remainder = remove_zeroes_left(remainder)
 
-    fingerprint = int(np.sum(np.multiply(remainder, powers_of_2[64 - len(remainder):])))
+    fingerprint = np.uint64(np.sum(np.multiply(remainder, powers_of_2[64 - len(remainder):])))
 
     return fingerprint
 

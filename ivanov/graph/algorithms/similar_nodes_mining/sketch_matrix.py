@@ -15,17 +15,17 @@ import gzip
 
 class SketchMatrix(object):
     @staticmethod
-    def generate_hash_functions(h_count):
+    def hash_func_generator(_a, _b, _r, _prime):
         def hash_perm(x, a, b, r, prime):
             assert r < prime
             assert 1 <= a <= prime - 1
             assert 0 <= b <= prime - 1
-            return ((a * x + b) % prime) % r
-        
-        def func_generator(_a, _b, _r, _prime):
-            f = lambda x: hash_perm(x, _a, _b, _r, _prime)
-            return f
-        
+            return np.uint64(int((int(a * int(x)) + b) % prime) % r)
+        f = lambda x: hash_perm(x, _a, _b, _r, _prime)
+        return f
+    
+    @staticmethod
+    def generate_hash_functions(h_count):
         def randombigint(min_val, max_val, bits=65):
             rand = int(random.getrandbits(65))
             return (rand % (max_val - min_val + 1)) + min_val
@@ -39,7 +39,7 @@ class SketchMatrix(object):
             a = randombigint(1, prime - 1)
             b = randombigint(0, prime - 1)
             
-            hash_funcs.append(func_generator(a, b, r, prime))
+            hash_funcs.append(SketchMatrix.hash_func_generator(a, b, r, prime))
         
         return hash_funcs
     
@@ -100,12 +100,16 @@ class SketchMatrix(object):
     def __repr__(self):
         return str(self.matrix)
 
-    def __init__(self, k, L, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
+    def __init__(self, k, L, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0, hash_functions=None):
         self.k = k
         self.L = L
         self.h_count = k * L
         self.matrix = np.full((self.h_count, hypergraph.number_of_nodes()), np.iinfo(np.uint64).max, np.uint64)
-        self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
+        if type(hash_functions) is list:
+            assert len(hash_functions) == k * L
+            self.hash_functions = hash_functions
+        else:
+            self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
         self.cols = {}
         
         feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)
