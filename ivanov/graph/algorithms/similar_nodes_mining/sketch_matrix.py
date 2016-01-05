@@ -101,17 +101,22 @@ class SketchMatrix(object):
     def __repr__(self):
         return str(self.matrix)
 
-    def __init__(self, k, L, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0, hash_functions=None):
+    def __init__(self, k, L, hypergraph=None, r_in=0, r_out=0, r_all=0, wl_iterations=0, hash_functions=None, matrix=None, cols=None):
         self.k = k
         self.L = L
         self.h_count = k * L
-        self.matrix = np.full((self.h_count, hypergraph.number_of_nodes()), np.iinfo(np.uint64).max, np.uint64)
-        if type(hash_functions) is list:
-            assert len(hash_functions) == k * L
-            self.hash_functions = hash_functions
-        else:
-            self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
-        self.cols = {}
         
-        feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)
-        self.build_sketch_matrix(feature_lists)
+        if hypergraph is not None:
+            self.matrix = np.full((self.h_count, hypergraph.number_of_nodes()), np.iinfo(np.uint64).max, np.uint64)
+            if type(hash_functions) is list:
+                assert len(hash_functions) == k * L
+                self.hash_functions = hash_functions
+            else:
+                self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
+            self.cols = {}
+            
+            feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)
+            self.build_sketch_matrix(feature_lists)
+        else:
+            self.matrix = matrix
+            self.cols = cols
