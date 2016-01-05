@@ -453,7 +453,7 @@ class ReducibleFeature(object):
         return new_edges
     
     def as_subgraph(self, hypergraph):
-        nodes = set(self.reducible_nodes + self.peripheral_nodes)
+        nodes = set(self.reducible_nodes) | set(self.peripheral_nodes)
         return hypergraph.subgraph_with_labels(nodes)
     
     def __repr__(self, *args, **kwargs):
