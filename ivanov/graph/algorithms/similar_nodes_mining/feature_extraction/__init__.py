@@ -35,12 +35,12 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
                     break
                 rball = new_rball
             
-            tw, _, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
+            _, _, new_raw_features = arnborg_proskurowski.get_canonical_representation(rball, True)
             features += [raw_feature.as_subgraph(rball) for raw_feature in new_raw_features]
-            if tw == -1:
-                # TODO: How to handle graphs with larger tree-width?
-                # for now collect all possible features
-                print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
+#             if tw == -1:
+#                 # TODO: How to handle graphs with larger tree-width?
+#                 # for now collect all possible features
+#                 print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
     
     return features, new_wl_labels_list
 
