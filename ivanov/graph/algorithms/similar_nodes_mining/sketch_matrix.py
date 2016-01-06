@@ -45,11 +45,9 @@ class SketchMatrix(object):
     def build_sketch_matrix(self, feature_lists):
         def build_characteristic_matrix(feature_lists):
             ch_mat = {}
-            feature_lists_d = dict(feature_lists) # TODO: not efficient
             i = -1
-            for node_id in feature_lists_d:
+            for _, node_features in feature_lists:
                 i += 1
-                node_features = feature_lists_d[node_id]
                 for feature in node_features:
                     shingles = shingle_extraction.extract_shingles(feature)
                     fingerprints = fingerprint.get_fingerprints(shingles)

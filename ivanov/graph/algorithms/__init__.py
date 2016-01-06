@@ -58,7 +58,7 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
         for edge in edges:
             endpoints = hypergraph.endpoints(edge)
             new_endpoints = set(endpoints) - set([u])
-            if any(map(lambda node: node in visited_nodes, new_endpoints)):
+            if visited_nodes & new_endpoints:
                 continue
             edge_attr = hypergraph.edge(edge)
             direction = edge_attr["direction"]
