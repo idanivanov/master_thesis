@@ -51,6 +51,10 @@ def string_to_binary_array(string_value):
     byte_string = np.fromstring(string_value, np.ubyte)
     return np.unpackbits(byte_string)
 
+def get_fingerprints(shingles):
+    for shingle in shingles:
+        yield rabin_fingerprint(string_to_binary_array(shingle))
+
 def get_minhash_fingerprint_naive(feature, h, cached_shingles_dict=None):
     '''Get naively the fingerprint of the shingle which has minimal
     index (wrt the permutation defined by h) among all shingles
@@ -60,10 +64,6 @@ def get_minhash_fingerprint_naive(feature, h, cached_shingles_dict=None):
     :param cached_shingles_dict (optional): A dictionary of the form {feature_id : set_of_fingerprints_of_shingles}
     :return An integer fingerprint of a shingle.
     '''
-    def get_fingerprints(shingles):
-        for shingle in shingles:
-            yield rabin_fingerprint(string_to_binary_array(shingle))
-    
     if type(cached_shingles_dict) is dict:
         _, feature_id = arnborg_proskurowski.get_canonical_representation(feature)
         if feature_id in cached_shingles_dict:

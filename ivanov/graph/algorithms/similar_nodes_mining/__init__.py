@@ -6,6 +6,7 @@ Created on Dec 21, 2015
 
 import numpy as np
 
+# TODO: can be optimized, since now we compute all symmetries
 def get_node_similarity_matrix(sketch_matrix):
     sketch = sketch_matrix.matrix
     nodes_count = np.shape(sketch)[1]

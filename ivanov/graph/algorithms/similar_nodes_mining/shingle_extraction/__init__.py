@@ -34,6 +34,7 @@ def extract_shingles(feature):
         _, shingle = arnborg_proskurowski.get_canonical_representation(shingle_graph)
         return shingle
     
+    # TODO: how to handle exponential growth of shingles?
     nodes_colors = {node: feature.node[node]["labels"] for node in feature.nodes_iter()}
     colorings = get_all_colorings(nodes_colors)
     for coloring in colorings:

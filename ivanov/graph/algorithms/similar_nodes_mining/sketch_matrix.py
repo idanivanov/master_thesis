@@ -5,8 +5,7 @@ Created on Dec 21, 2015
 '''
 
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
-    fingerprint
-# from numbapro import vectorize, uint64
+    fingerprint, shingle_extraction
 import cPickle as pickle
 import numpy as np
 import contextlib
@@ -43,39 +42,51 @@ class SketchMatrix(object):
         
         return hash_funcs
     
-    # TODO: GPU implementation?
-#     @vectorize(['uint64[:,:](, )'], target='cpu')
     def build_sketch_matrix(self, feature_lists):
-        j = -1
-        for node, feature_list in feature_lists:
-            j += 1
-            self.cols[node] = j
-            for feature in feature_list:
-                cached_shingles_dict = {}
+        def build_characteristic_matrix(feature_lists):
+            ch_mat = {}
+            feature_lists_d = dict(feature_lists) # TODO: not efficient
+            i = -1
+            for node_id in feature_lists_d:
+                i += 1
+                node_features = feature_lists_d[node_id]
+                for feature in node_features:
+                    shingles = shingle_extraction.extract_shingles(feature)
+                    fingerprints = fingerprint.get_fingerprints(shingles)
+                    for fp in fingerprints:
+                        if not ch_mat.has_key(fp):
+                            ch_mat[fp] = []
+                        ch_mat[fp].append(i)
+            return ch_mat
+        
+        ch_mat = build_characteristic_matrix(feature_lists)
+        for i in ch_mat.keys(): # row i of M
+            ch_mat_row_i = ch_mat[i]
+            for j in ch_mat_row_i: # column j of M
+                # we consider only (i, j) pairs for which M(i, j) = 1
                 for l in range(len(self.hash_functions)):
                     h = self.hash_functions[l]
-                    i = fingerprint.get_minhash_fingerprint_naive(feature, h, cached_shingles_dict) # row i of matrix M
                     h_of_i = h(i)
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i
     
-    def extend_sketch_matrix(self, feature_lists, new_cols_count, extension_id):
-        new_matrix = np.full((self.h_count, len(self.cols) + new_cols_count), np.iinfo(np.uint64).max, np.uint64)
-        new_matrix[:, :, -new_cols_count] = self.matrix
-        self.matrix = new_matrix
-        
-        j = len(self.cols) - 1
-        for node, feature_list in feature_lists:
-            j += 1
-            self.cols["{0}/{1}".format(extension_id, node)] = j
-            for feature in feature_list:
-                cached_shingles_dict = {}
-                for l in range(len(self.hash_functions)):
-                    h = self.hash_functions[l]
-                    i = fingerprint.get_minhash_fingerprint_naive(feature, h, cached_shingles_dict) # row i of matrix M
-                    h_of_i = h(i)
-                    if h_of_i < self.matrix[l, j]:
-                        self.matrix[l, j] = h_of_i
+#     def extend_sketch_matrix(self, feature_lists, new_cols_count, extension_id):
+#         new_matrix = np.full((self.h_count, len(self.cols) + new_cols_count), np.iinfo(np.uint64).max, np.uint64)
+#         new_matrix[:, :, -new_cols_count] = self.matrix
+#         self.matrix = new_matrix
+#         
+#         j = len(self.cols) - 1
+#         for node, feature_list in feature_lists:
+#             j += 1
+#             self.cols["{0}/{1}".format(extension_id, node)] = j
+#             for feature in feature_list:
+#                 cached_shingles_dict = {}
+#                 for l in range(len(self.hash_functions)):
+#                     h = self.hash_functions[l]
+#                     i = fingerprint.get_minhash_fingerprint_naive(feature, h, cached_shingles_dict) # row i of matrix M
+#                     h_of_i = h(i)
+#                     if h_of_i < self.matrix[l, j]:
+#                         self.matrix[l, j] = h_of_i
     
     def save_to_file(self, out_file, compress=True):
         if compress:
