@@ -14,9 +14,7 @@ import networkx as nx
 import numpy as np
 import unittest
 
-
 class TestSimilarNodesMining(unittest.TestCase):
-    
     dummy_graph = nx.MultiDiGraph()
     dummy_graph.add_node(1, labels = ["1"])
     dummy_graph.add_node(2, labels = ["2"])
@@ -274,7 +272,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         sketch = SketchMatrix(5, 20, dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4, hash_functions=hash_functions)
         equality = (self.sketch_exp == sketch.matrix).all()
         self.assertTrue(equality, "The computed sketch matrix is wrong.")
-     
+    
     def testSimilarityMatrix(self):
         cols = {u'n_8': 0, u'n_9': 1, u'n_4': 2, u'n_5': 3, u'n_6': 4, u'n_7': 5, u'n_1': 6, u'n_2': 7, u'n_3': 8, u'n_16': 9, u'n_14': 10, u'n_15': 11, u'n_12': 12, u'n_13': 13, u'n_10': 14, u'n_11': 15}
         similarity_matrix_exp = np.zeros((16, 16))
