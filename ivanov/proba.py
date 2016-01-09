@@ -30,6 +30,10 @@ sketch_matrix = SketchMatrix(5, 20, hypergraph, r_in=2, r_out=2, r_all=0, wl_ite
 print "Building sketch matrix took", time.time() - start, "s"
 
 start = time.time()
+sketch_matrix.save_to_file("../output_2/famont/famont_ext_sketch")
+print "Saving sketch matrix took", time.time() - start, "s"
+
+start = time.time()
 sim_mat, cols_nodes_map = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
 print "Building simiarity matrix took", time.time() - start, "s"
 
