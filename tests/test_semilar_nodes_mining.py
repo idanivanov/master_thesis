@@ -272,6 +272,15 @@ class TestSimilarNodesMining(unittest.TestCase):
         equality = (self.sketch_exp == sketch.matrix).all()
         self.assertTrue(equality, "The computed sketch matrix is wrong.")
     
+    def testSketchMatrix_ReadWrite(self):
+        file_name = "test_files/sketch_matrix"
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        sketch_matrix = SketchMatrix(5, 20, dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        sketch_matrix.save_to_file(file_name)
+        read_sketch_matrix = SketchMatrix.load_from_file(file_name)
+        equality = (read_sketch_matrix.matrix == sketch_matrix.matrix).all()
+        self.assertTrue(equality, "The read sketch matrix is different from the saved one.")
+    
     def testSimilarityMatrix(self):
         cols = {u'n_8': 0, u'n_9': 1, u'n_4': 2, u'n_5': 3, u'n_6': 4, u'n_7': 5, u'n_1': 6, u'n_2': 7, u'n_3': 8, u'n_16': 9, u'n_14': 10, u'n_15': 11, u'n_12': 12, u'n_13': 13, u'n_10': 14, u'n_11': 15}
         similarity_matrix_exp = np.zeros((16, 16))
