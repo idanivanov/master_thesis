@@ -17,8 +17,9 @@ class SketchMatrix(object):
         def build_characteristic_matrix(feature_lists):
             ch_mat = {}
             i = -1
-            for _, node_features in feature_lists:
+            for node, node_features in feature_lists:
                 i += 1
+                self.cols[node] = i # build node:column mapping
                 for feature in node_features:
                     shingles = shingle_extraction.extract_shingles(feature)
                     fingerprints = fingerprint.get_fingerprints(shingles)
