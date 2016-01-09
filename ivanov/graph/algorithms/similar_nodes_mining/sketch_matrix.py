@@ -6,42 +6,13 @@ Created on Dec 21, 2015
 
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
     fingerprint, shingle_extraction
+from ivanov.graph.algorithms.similar_nodes_mining.min_hash_function import MinHashFunction
 import cPickle as pickle
 import numpy as np
 import contextlib
-import random
 import gzip
 
 class SketchMatrix(object):
-    @staticmethod
-    def hash_func_generator(_a, _b, _r, _prime):
-        def hash_perm(x, a, b, r, prime):
-            assert r < prime
-            assert 1 <= a <= prime - 1
-            assert 0 <= b <= prime - 1
-            return np.uint64(int((int(a * int(x)) + b) % prime) % r)
-        f = lambda x: hash_perm(x, _a, _b, _r, _prime)
-        return f
-    
-    @staticmethod
-    def generate_hash_functions(h_count):
-        def randombigint(min_val, max_val, bits=65):
-            rand = int(random.getrandbits(65))
-            return int((rand % (max_val - min_val + 1)) + min_val)
-        
-        # the first prime after 2^64
-        prime = int(18446744073709551629)
-        r = int(18446744073709551616) # 2^64
-        hash_funcs = []
-        
-        for _ in range(h_count):
-            a = randombigint(1, prime - 1)
-            b = randombigint(0, prime - 1)
-            
-            hash_funcs.append(SketchMatrix.hash_func_generator(a, b, r, prime))
-        
-        return hash_funcs
-    
     def build_sketch_matrix(self, feature_lists):
         def build_characteristic_matrix(feature_lists):
             ch_mat = {}
@@ -121,7 +92,7 @@ class SketchMatrix(object):
                 assert len(hash_functions) == k * L
                 self.hash_functions = hash_functions
             else:
-                self.hash_functions = SketchMatrix.generate_hash_functions(self.h_count)
+                self.hash_functions = MinHashFunction.generate_functions(self.h_count)
             self.cols = {}
             
             feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)

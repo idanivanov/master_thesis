@@ -12,6 +12,8 @@ import numpy as np
 irred_poly_64_bin = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1]
 powers_of_2 = np.power(np.uint64(2), np.arange(np.uint64(64))[::-1])
 
+max_fingerprint = int(18446744073709551616) # 2^64
+
 def rabin_fingerprint(binary_array):
     '''Calculates Rabin's fingerprint of a binary array.
     :param binary_array: A list of binary values.
