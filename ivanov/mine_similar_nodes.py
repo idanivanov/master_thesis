@@ -30,9 +30,10 @@ if __name__ == '__main__':
 #     start = time.time()
 #     hypergraph = Hypergraph.load_from_file("../output_2/{0}_hgraph".format(dataset))
 #     print "Reading hypergraph took", time.time() - start, "s"
-     
+    
+    print "Building sketch matrix may take", SketchMatrix.overestimate_time_for_building(hypergraph.number_of_nodes()), "s"
     start = time.time()
-    sketch_matrix = SketchMatrix(5, 20, hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+    sketch_matrix = SketchMatrix(10, 9, hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
     print "Building sketch matrix took", time.time() - start, "s"
      
     start = time.time()

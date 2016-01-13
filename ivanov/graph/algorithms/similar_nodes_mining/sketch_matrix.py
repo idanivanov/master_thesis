@@ -13,6 +13,23 @@ import contextlib
 import gzip
 
 class SketchMatrix(object):
+    @staticmethod
+    def get_L(k, inflection_point):
+        '''Calculate which value of L leads to inflection_point given k.
+        '''
+        return int(round(pow((1. / (1. - inflection_point)), k)))
+    
+    @staticmethod
+    def overestimate_time_for_building(nodes_count):
+        '''Get the estimated time to build the sketch matrix in seconds.
+        '''
+        ch_mat_per_node = 0.04
+        sketch_per_shingle = 0.02
+        shingle_per_node = 2
+        time_for_ch_mat = nodes_count * ch_mat_per_node
+        time_for_sketch = (nodes_count * shingle_per_node) * sketch_per_shingle
+        return time_for_ch_mat + time_for_sketch
+    
     def build_sketch_matrix(self, feature_lists):
         def build_characteristic_matrix(feature_lists):
             ch_mat = {}
@@ -88,6 +105,7 @@ class SketchMatrix(object):
         self.h_count = k * L
         
         if hypergraph is not None:
+            self.nodes_count = hypergraph.number_of_nodes()
             self.matrix = np.full((self.h_count, hypergraph.number_of_nodes()), np.iinfo(np.uint64).max, np.uint64)
             if type(hash_functions) is list:
                 assert len(hash_functions) == k * L
@@ -101,3 +119,4 @@ class SketchMatrix(object):
         else:
             self.matrix = matrix
             self.cols = cols
+            self.nodes_count = len(cols)
