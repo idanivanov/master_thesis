@@ -1,4 +1,4 @@
-# master_thesis
+# Ivan's Master Thesis
 
 External libraries used:
 ------------------------
