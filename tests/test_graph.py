@@ -142,7 +142,7 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(dummy_hypergraph, dummy_copy, "The copy was not correct.")
 
     def testHypergraph_ReadWrite(self):
-        file_name = "test_files/dummy_hypergraph"
+        file_name = "test_files/dummy_hypergraph.tmp"
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         dummy_hypergraph.save_to_file(file_name)
         read_hypergraph = Hypergraph.load_from_file(file_name)

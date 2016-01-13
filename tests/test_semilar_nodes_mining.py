@@ -276,7 +276,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         self.assertTrue(equality, "The computed sketch matrix is wrong.")
     
     def testSketchMatrix_ReadWrite(self):
-        file_name = "test_files/sketch_matrix"
+        file_name = "test_files/sketch_matrix.tmp"
         dummy_hypergraph = Hypergraph(self.dummy_graph)
         sketch_matrix = SketchMatrix(5, 20, dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
         sketch_matrix.save_to_file(file_name)
