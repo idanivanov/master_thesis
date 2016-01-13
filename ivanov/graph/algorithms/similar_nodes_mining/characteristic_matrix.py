@@ -36,6 +36,15 @@ class CharacteristicMatrix(Serializable):
     
     def __getitem__(self, key):
         return self.sparse_matrix[key]
+    
+    def __eq__(self, other):
+        if isinstance(other, CharacteristicMatrix):
+            return self.sparse_matrix == other.sparse_matrix and  self.cols == other.cols
+        else:
+            return False
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __init__(self, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
         self.cols_count = hypergraph.number_of_nodes()
