@@ -10,12 +10,10 @@ from ivanov.inout.serializable import Serializable
 class CharacteristicMatrix(Serializable):
     
     @staticmethod
-    def overestimate_time_to_build(nodes_count):
+    def estimate_time_to_build(nodes_count, ch_mat_per_node=0.057):
         '''Get the estimated time to build the characteristic matrix in seconds.
         '''
-        ch_mat_per_node = 0.04
-        time_for_ch_mat = nodes_count * ch_mat_per_node
-        return time_for_ch_mat
+        return nodes_count * ch_mat_per_node
     
     def build(self, feature_lists):
         self.sparse_matrix = {}

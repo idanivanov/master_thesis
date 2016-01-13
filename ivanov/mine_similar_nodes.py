@@ -10,9 +10,17 @@ from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf
 import helpers
 import time
+from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
 
 if __name__ == '__main__':
     dataset = "dummy"
+    r_in = 3
+    r_out = 2
+    r_all = 0
+    wl_iterations = 4
+    k = 10
+    L = 9
+    
     in_files = helpers.datasets[dataset]["files"]
     
     start = time.time()
@@ -31,9 +39,18 @@ if __name__ == '__main__':
 #     hypergraph = Hypergraph.load_from_file("../output_2/{0}_hgraph".format(dataset))
 #     print "Reading hypergraph took", time.time() - start, "s"
     
-    print "Building sketch matrix may take", SketchMatrix.overestimate_time_for_building(hypergraph.number_of_nodes()), "s"
+    print "Building characteristic matrix may take", CharacteristicMatrix.estimate_time_to_build(hypergraph.number_of_nodes()), "s"
     start = time.time()
-    sketch_matrix = SketchMatrix(10, 9, hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+    ch_matrix = CharacteristicMatrix(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all, wl_iterations=wl_iterations)
+    print "Building characteristic matrix took", time.time() - start, "s"
+    
+    start = time.time()
+    ch_matrix.save_to_file("../output_2/{0}_ch_matrix".format(dataset))
+    print "Saving characteristic matrix took", time.time() - start, "s"
+    
+    print "Building sketch matrix may take", SketchMatrix.estimate_time_to_build(hypergraph.number_of_nodes()), "s"
+    start = time.time()
+    sketch_matrix = SketchMatrix(k, L, ch_matrix)
     print "Building sketch matrix took", time.time() - start, "s"
      
     start = time.time()

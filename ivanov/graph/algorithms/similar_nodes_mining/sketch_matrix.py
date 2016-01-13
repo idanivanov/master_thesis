@@ -17,13 +17,10 @@ class SketchMatrix(Serializable):
         return int(round(pow((1. / (1. - inflection_point)), k)))
     
     @staticmethod
-    def overestimate_time_to_build(nodes_count):
+    def estimate_time_to_build(nodes_count, sketch_per_shingle=0.02, shingle_per_node=2):
         '''Get the estimated time to build the sketch matrix in seconds.
         '''
-        sketch_per_shingle = 0.02
-        shingle_per_node = 2
-        time_for_sketch = (nodes_count * shingle_per_node) * sketch_per_shingle
-        return time_for_sketch
+        return (nodes_count * shingle_per_node) * sketch_per_shingle
     
     def build(self, ch_matrix):
         for i in ch_matrix.non_empty_rows(): # row i of M
