@@ -14,6 +14,7 @@ from ivanov.graph import algorithms
 import networkx as nx
 import numpy as np
 import unittest
+from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
 
 class TestSimilarNodesMining(unittest.TestCase):
     dummy_graph = nx.MultiDiGraph()
@@ -269,7 +270,8 @@ class TestSimilarNodesMining(unittest.TestCase):
             return hash_functions
         hash_functions = build_hash_functions(self.hash_functions_params)
         dummy_hypergraph = Hypergraph(self.dummy_graph)
-        sketch = SketchMatrix(5, 20, dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4, hash_functions=hash_functions)
+        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        sketch = SketchMatrix(5, 20, ch_matrix, hash_functions=hash_functions)
 #         np.set_printoptions(threshold="nan")
 #         print sketch.matrix
         equality = (self.sketch_exp == sketch.matrix).all()
@@ -278,7 +280,8 @@ class TestSimilarNodesMining(unittest.TestCase):
     def testSketchMatrix_ReadWrite(self):
         file_name = "test_files/sketch_matrix.tmp"
         dummy_hypergraph = Hypergraph(self.dummy_graph)
-        sketch_matrix = SketchMatrix(5, 20, dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        sketch_matrix = SketchMatrix(5, 20, ch_matrix)
         sketch_matrix.save_to_file(file_name)
         read_sketch_matrix = SketchMatrix.load_from_file(file_name)
         equality = (read_sketch_matrix.matrix == sketch_matrix.matrix).all()
@@ -288,7 +291,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         cols = {u'n_8': 0, u'n_9': 1, u'n_4': 2, u'n_5': 3, u'n_6': 4, u'n_7': 5, u'n_1': 6, u'n_2': 7, u'n_3': 8, u'n_16': 9, u'n_14': 10, u'n_15': 11, u'n_12': 12, u'n_13': 13, u'n_10': 14, u'n_11': 15}
         similarity_matrix_exp = np.zeros((16, 16))
         similarity_matrix_exp[0, 5] = 1.
-        sketch_matrix = SketchMatrix(5, 20, matrix=self.sketch_exp, cols=cols)
+        sketch_matrix = SketchMatrix(5, 20, raw_sketch_matrix=self.sketch_exp, cols=cols)
         similarity_matrix, _ = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
         equality = (similarity_matrix_exp == similarity_matrix).all()
         self.assertTrue(equality, "The computed similarity matrix is not correct")
