@@ -6,56 +6,50 @@ Created on Dec 30, 2015
 
 from ivanov.graph.algorithms.similar_nodes_mining import shingle_extraction
 from ivanov.graph.algorithms import arnborg_proskurowski
+from external.ffield import FField
 import numpy as np
+import time
 
 # irred_poly_64_list = [64, 60, 59, 57, 56, 55, 54, 53, 52, 51, 50, 48, 45, 44, 41, 37, 36, 34, 33, 31, 29, 27, 26, 23, 20, 19, 18, 11, 8, 5, 3, 1, 0]
-irred_poly_64_bin = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1]
-powers_of_2 = np.power(np.uint64(2), np.arange(np.uint64(64))[::-1])
+# irred_poly_64_bin = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1]
+irred_poly_64_int = int(30633610468600151985)
 
 max_fingerprint = int(18446744073709551616) # 2^64
 
-def rabin_fingerprint(binary_array):
+def rabin_fingerprint(shingle_binary):
     '''Calculates Rabin's fingerprint of a binary array.
     :param binary_array: A list of binary values.
     :return Rabin's fingerprint of the shingle as integer.
     '''
-    def remove_zeroes_left(_binary_array):
-        '''Removes zeroes from the left part of a binary representation.
-        :param _binary_shingle: A binary matrix.
-        '''
-        if np.sum(_binary_array) > 0:
-            start = np.argwhere(_binary_array)[0]
-            return _binary_array[start:]
-        return _binary_array[-1:]
-    
-    def mod(a, b):
-        '''Modulo division of two binary arrays (polynomials).
-        :param a: poly dividend
-        :param b: poly divisor
-        '''
-        b = np.pad(b, (0, len(a) - len(b)), 'constant', constant_values=(0, 0))
-        return a ^ b
-    
-    remainder = remove_zeroes_left(binary_array)
-    
-    while len(remainder) >= len(irred_poly_64_bin):
-        remainder = mod(remainder, irred_poly_64_bin)
-        remainder = remove_zeroes_left(remainder)
+    galois_field = FField(64)
+    divident_degree = galois_field.FindDegree(shingle_binary)
+    _, fingerprint = galois_field.FullDivision(shingle_binary, irred_poly_64_int, divident_degree, 64)
+    return np.uint64(fingerprint)
 
-    fingerprint = np.uint64(np.sum(np.multiply(remainder, powers_of_2[64 - len(remainder):])))
-
-    return fingerprint
-
-def string_to_binary_array(string_value):
-    '''Converts a string to a binary array.
+# TODO: is little- or big-endian better?
+def string_bytes_to_int(string_value, big_endian=True):
+    '''Converts a string to an integer using each symbol as its byte value.
     :param string_value: String to be converted.
+    :param big_endian: (default True) Interpret the bytes in big-endian or little-endian order.
     '''
-    byte_string = np.fromstring(string_value, np.ubyte)
-    return np.unpackbits(byte_string)
+    enc = "utf8" if type(string_value) is unicode else None
+    byte_arr = bytearray(string_value, enc)
+    int_value = 0
+    
+    if big_endian:
+        for b in byte_arr:
+            int_value = int_value << 8
+            int_value += b
+    else:
+        for i, b in enumerate(byte_arr):
+            int_value += (b << (i * 8))
+    
+    return int_value
 
 def get_fingerprints(shingles):
     for shingle in shingles:
-        yield rabin_fingerprint(string_to_binary_array(shingle))
+        shingle_binary = string_bytes_to_int(shingle)
+        yield rabin_fingerprint(shingle_binary)
 
 def get_minhash_fingerprint_naive(feature, h, cached_shingles_dict=None):
     '''Get naively the fingerprint of the shingle which has minimal
