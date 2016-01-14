@@ -17,6 +17,8 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
     
     if wl_iterations > 0:
         new_wl_labels_list = list(wl_labels_list)
+    else:
+        new_wl_labels_list = []
     
     for key in rballs:
         rball = rballs[key]

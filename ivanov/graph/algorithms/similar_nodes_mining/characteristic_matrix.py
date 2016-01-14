@@ -6,6 +6,8 @@ Created on Jan 13, 2016
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
     shingle_extraction, fingerprint
 from ivanov.inout.serializable import Serializable
+import numpy as np
+import itertools
 
 class CharacteristicMatrix(Serializable):
     
@@ -26,8 +28,33 @@ class CharacteristicMatrix(Serializable):
                 fingerprints = fingerprint.get_fingerprints(shingles)
                 for fp in fingerprints:
                     if not self.sparse_matrix.has_key(fp):
-                        self.sparse_matrix[fp] = []
-                    self.sparse_matrix[fp].append(i)
+                        self.sparse_matrix[fp] = set()
+                    self.sparse_matrix[fp].add(i)
+    
+    def compute_jaccard_similarity_matrix(self):
+        cols_cache = {}
+        def get_shingles_fp_set(col):
+            if col in cols_cache:
+                return cols_cache[col]
+            else:
+                shingles_fp = set()
+                for row in self.sparse_matrix:
+                    if col in self.sparse_matrix[row]:
+                        shingles_fp.add(row)
+                cols_cache[col] = shingles_fp
+                return shingles_fp
+        
+        def jaccard_sim(u, v):
+            return float(len(u.intersection(v))) / float(len(u.union(v)))
+        
+        jaccard_sim_mat = np.zeros((self.cols_count, self.cols_count), dtype=np.float32)
+        
+        for col_1, col_2 in itertools.combinations(range(self.cols_count), 2):
+            shingles_col_1 = get_shingles_fp_set(col_1)
+            shingles_col_2 = get_shingles_fp_set(col_2)
+            jaccard_sim_mat[col_1, col_2] = jaccard_sim(shingles_col_1, shingles_col_2)
+        
+        return jaccard_sim_mat
     
     def non_empty_rows(self):
         return self.sparse_matrix.keys()
