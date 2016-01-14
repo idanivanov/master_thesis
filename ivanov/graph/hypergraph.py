@@ -59,6 +59,10 @@ class Hypergraph(Serializable):
             self.nodes_with_more_labels.add(node_id)
         self.nodes_count += 1
     
+    def has_node(self, node):
+        assert node.startswith(u"n_")
+        return self.bipartite_graph.has_node(node)
+    
     def nodes_iter(self):
         return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 0, self.bipartite_graph.nodes_iter())
         
@@ -124,6 +128,13 @@ class Hypergraph(Serializable):
         for edge_id in list(edge_ids):
             self.remove_edge(edge_id)
     
+    def has_edge(self, u, v, dir_code=0):
+        assert u.startswith(u"n_") and v.startswith(u"n_")
+        if next(self.edges_iter_dir(u, v, dir_code), None):
+            return True
+        else:
+            return False
+    
     def edge(self, edge_id):
         assert edge_id.startswith(u"e_") or edge_id.startswith(u"he_")
         return self.bipartite_graph.node[edge_id]
@@ -159,6 +170,30 @@ class Hypergraph(Serializable):
             return edges_of_u_v(u_edges, v)
         else:
             return all_edges()
+    
+    def edges_iter_dir(self, u, v=None, dir_code=0):
+        '''Get edges incident to node u filtered by direction.
+        :param u: node id.
+        :param dir_code: Direction code - If 0 all edges are
+        returned, if 1 only outgoing edges are returned,
+        if -1 only incoming edges are returned.
+        '''
+        def filter_edges():
+            if dir_code < 0:
+                for edge in self.edges_iter(u, v):
+                    edge_dir = self.edge(edge)["direction"]
+                    if any(map(lambda dir_perm: dir_perm.index(u) > 0, edge_dir)):
+                        yield edge
+            elif dir_code > 0:
+                for edge in self.edges_iter(u, v):
+                    edge_dir = self.edge(edge)["direction"]
+                    if any(map(lambda dir_perm: dir_perm.index(u) < len(dir_perm) - 1, edge_dir)):
+                        yield edge
+        
+        if dir_code == 0:
+            return self.edges_iter(u, v)
+        else:
+            return filter_edges()
     
     def hedges_iter(self):
         for edge in self.edges_iter():

@@ -54,22 +54,21 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
     
     def recurse(u, i):
         visited_nodes.add(u)
-        edges = hypergraph.edges_iter(u)
+        edges = hypergraph.edges_iter_dir(u, dir_code=edge_dir)
         for edge in edges:
             endpoints = hypergraph.endpoints(edge)
             new_endpoints = set(endpoints) - set([u])
-            if visited_nodes & new_endpoints:
-                continue
             edge_attr = hypergraph.edge(edge)
             direction = edge_attr["direction"]
-            if edge_dir < 0 and any(map(lambda dir_perm: dir_perm.index(u) > 0, direction)) or \
-               edge_dir > 0 and any(map(lambda dir_perm: dir_perm.index(u) < len(dir_perm) - 1, direction)) or \
-               edge_dir == 0:
-                for v in new_endpoints:
+            for v in new_endpoints:
+                if not rball.has_node(v):
                     rball.add_node(v, attr_dict=copy.deepcopy(hypergraph.node[v]))
+            # TODO: this condition may be tricky if the graph has hyperedges
+            if not rball.has_edge(u, next(iter(new_endpoints)), edge_dir):
                 rball.add_edge(endpoints, direction=copy.deepcopy(direction), label=u",".join(copy.deepcopy(edge_attr["labels"])))
-                if i < r:
-                    for v in new_endpoints:
+            if i < r:
+                for v in new_endpoints:
+                    if v not in visited_nodes:
                         recurse(v, i + 1)
     
     rball = Hypergraph()
