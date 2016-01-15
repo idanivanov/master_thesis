@@ -5,8 +5,11 @@ Created on Dec 17, 2015
 '''
 
 from unidecode import unidecode
+import cPickle as pickle
+import contextlib
 import codecs
 import ntpath
+import gzip
 import io
 
 def get_file_name(path):
@@ -27,3 +30,22 @@ def files_unicode_to_ascii(in_files, out_dir):
     for in_file in in_files:
         out_file = out_dir + get_file_name(in_file)
         file_unicode_to_ascii(in_file, out_file)
+
+def save_to_file(obj, out_file, compress=True):
+    if compress:
+        with contextlib.closing(gzip.GzipFile(out_file, "wb")) as outfl:
+            pickle.dump(obj, outfl, pickle.HIGHEST_PROTOCOL)
+    else:
+        outfl = open(out_file, "wb")
+        pickle.dump(obj, outfl, pickle.HIGHEST_PROTOCOL)
+        outfl.close()
+
+def load_from_file(in_file, compressed=True):
+    if compressed:
+        with contextlib.closing(gzip.GzipFile(in_file, "rb")) as infl:
+            obj = pickle.load(infl)
+    else:
+        infl = open(in_file, "rb")
+        obj = pickle.load(infl)
+        infl.close()
+    return obj
