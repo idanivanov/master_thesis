@@ -47,44 +47,34 @@ class TestSimilarNodesMining(unittest.TestCase):
     dummy_graph_features = []
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["7"])
-    dummy_graph_features[-1].add_node("n_8", labels=["8"])
-    dummy_graph_features[-1].add_edge("n_7", "n_8", label="0")
-    
-#     dummy_graph_features.append(nx.MultiDiGraph())
-#     dummy_graph_features[-1].add_node("n_7", labels=["1"])
-#     dummy_graph_features[-1].add_node("n_8", labels=["2"])
-#     dummy_graph_features[-1].add_edge("n_7", "n_8", label="0")
+    dummy_graph_features[-1].add_node("n_2", labels=["r"])
+    dummy_graph_features[-1].add_node("n_1", labels=["r"])
+    dummy_graph_features[-1].add_edge("n_2", "n_1", label="n")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["7"])
-    dummy_graph_features[-1].add_node("n_4", labels=["4"])
-    dummy_graph_features[-1].add_edge("n_4", "n_7", label="0")
+    dummy_graph_features[-1].add_node("n_2", labels=["r"])
+    dummy_graph_features[-1].add_node("n_3", labels=["r"])
+    dummy_graph_features[-1].add_edge("n_2", "n_3", label="g")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["7"])
-    dummy_graph_features[-1].add_node("n_5", labels=["5"])
-    dummy_graph_features[-1].add_edge("n_5", "n_7", label="0")
+    dummy_graph_features[-1].add_node("n_2", labels=["wl_6"])
+    dummy_graph_features[-1].add_node("n_1", labels=["wl_7"])
+    dummy_graph_features[-1].add_edge("n_2", "n_1", label="wl_4")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["7"])
-    dummy_graph_features[-1].add_node("n_1", labels=["1"])
-    dummy_graph_features[-1].add_edge("n_1", "n_7", label="0")
+    dummy_graph_features[-1].add_node("n_2", labels=["wl_6"])
+    dummy_graph_features[-1].add_node("n_3", labels=["wl_5"])
+    dummy_graph_features[-1].add_edge("n_2", "n_3", label="wl_3")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["wl_12"])
-    dummy_graph_features[-1].add_node("n_4", labels=["wl_14"])
-    dummy_graph_features[-1].add_edge("n_4", "n_7", label="wl_10")
+    dummy_graph_features[-1].add_node("n_2", labels=["r"])
+    dummy_graph_features[-1].add_node("n_6", labels=["b"])
+    dummy_graph_features[-1].add_edge("n_6", "n_2", label="n")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["wl_12"])
-    dummy_graph_features[-1].add_node("n_5", labels=["wl_15"])
-    dummy_graph_features[-1].add_edge("n_5", "n_7", label="wl_11")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_7", labels=["wl_12"])
-    dummy_graph_features[-1].add_node("n_1", labels=["wl_13"])
-    dummy_graph_features[-1].add_edge("n_1", "n_7", label="wl_9")
+    dummy_graph_features[-1].add_node("n_2", labels=["r"])
+    dummy_graph_features[-1].add_node("n_7", labels=["b"])
+    dummy_graph_features[-1].add_edge("n_7", "n_2", label="n")
     
     dummy_feature = nx.MultiDiGraph()
     dummy_feature.add_node("n_1", labels=["1", "2"])
@@ -109,20 +99,19 @@ class TestSimilarNodesMining(unittest.TestCase):
         [0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.5],
         [0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]], dtype=np.float32)
     
-    # TODO: check which are the correct labels
-#     def testFeatureExtraction(self):
-#         labels_lists_exp = [
-#             '0', '7', '8',
-#             'wl_0;wl_1,wl_2', 'wl_1;wl_0', 'wl_2;wl_0',
-#             '1', '4', '5',
-#             'wl_0;wl_1,wl_6', 'wl_0;wl_1,wl_7', 'wl_0;wl_1,wl_8', 'wl_1;wl_0,wl_0,wl_0', 'wl_6;wl_0', 'wl_7;wl_0', 'wl_8;wl_0',
-#             'wl_10;wl_12,wl_14', 'wl_11;wl_12,wl_15', 'wl_12;wl_10,wl_11,wl_9', 'wl_13;wl_9', 'wl_14;wl_10', 'wl_15;wl_11', 'wl_9;wl_12,wl_13'
-#         ]
-#         dummy_hypergraph = Hypergraph(self.dummy_graph)
-#         features, labels_lists = feature_extraction.extract_features("n_7", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
-#         self.assertEqual(labels_lists_exp, labels_lists, "The wrong labels lists were computed by Weisfeiler-Lehman.")
-#         isomorphic = all([algorithms.isomorphic(features[i], self.dummy_graph_features[i]) for i in range(len(features))])
-#         self.assertTrue(isomorphic, "Wrong features extracted.")
+    def testFeatureExtraction(self):
+        labels_lists_exp = [
+            "g", "n", "r",
+            "wl_0;wl_2,wl_2", "wl_1;wl_2,wl_2", "wl_2;wl_0", "wl_2;wl_0,wl_1", "wl_2;wl_1",
+            "wl_3;wl_5,wl_6", "wl_4;wl_6,wl_7", "wl_5;wl_3", "wl_6;wl_3,wl_4", "wl_7;wl_4",
+            "b",
+            "wl_13;wl_1", "wl_1;wl_13,wl_2", "wl_2;wl_1,wl_1"
+        ]
+        dummy_hypergraph = Hypergraph(self.dummy_graph)
+        features, labels_lists = feature_extraction.extract_features("n_2", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+        self.assertEqual(labels_lists_exp, labels_lists, "The wrong labels lists were computed by Weisfeiler-Lehman.")
+        isomorphic = all([algorithms.isomorphic(features[i], self.dummy_graph_features[i]) for i in range(len(features))])
+        self.assertTrue(isomorphic, "Wrong features extracted.")
     
     def testRabinFingerprint(self):
         dummy_binary_value = int(216904387105353984940539780098)
