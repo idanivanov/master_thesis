@@ -12,10 +12,11 @@ import itertools
 class CharacteristicMatrix(Serializable):
     
     @staticmethod
-    def estimate_time_to_build(nodes_count, ch_mat_per_node=0.057):
+    def estimate_time_to_build(nodes_count, features_per_node = 100):
         '''Get the estimated time to build the characteristic matrix in seconds.
         '''
-        return nodes_count * ch_mat_per_node
+        time_per_feature = 0.001
+        return nodes_count * features_per_node * time_per_feature
     
     def build(self, feature_lists):
         self.sparse_matrix = {}
@@ -58,6 +59,9 @@ class CharacteristicMatrix(Serializable):
     
     def non_empty_rows(self):
         return self.sparse_matrix.keys()
+    
+    def non_empty_rows_count(self):
+        return len(self.sparse_matrix.keys())
     
     def __getitem__(self, key):
         return self.sparse_matrix[key]
