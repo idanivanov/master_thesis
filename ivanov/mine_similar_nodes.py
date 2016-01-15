@@ -9,25 +9,35 @@ from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMat
 from ivanov.graph.algorithms import similar_nodes_mining
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf
+from ivanov import inout
 import helpers
 import time
 
-if __name__ == '__main__':
-    dataset = "dummy"
-    r_in = 3
-    r_out = 2
-    r_all = 0
-    wl_iterations = 4
-    k = 10
-    L = 9
-    
+dataset = "famont"
+r_in = 3
+r_out = 2
+r_all = 0
+wl_iterations = 4
+k = 10
+L = 9
+
+time_format = "%H:%M:%S, %d.%m.%Y"
+
+path = "../output_2/"
+
+def calculate_ch_matrix():
     in_files = helpers.datasets[dataset]["files"]
-    time_format = "%H:%M:%S, %d.%m.%Y"
     
     print "Converting RDF to NetworkX graph started at", time.strftime(time_format)
     start = time.time()
     graph, node_id_map = rdf.convert_rdf_to_nx_graph(in_files, discard_classes=False)
     print "Converting RDF to NetworkX graph took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    print "Saving NodeID map started at", time.strftime(time_format)
+    start = time.time()
+    inout.save_to_file(node_id_map, path + "{0}_node_id_map".format(dataset))
+    print "Saving NodeID map took", time.time() - start, "s"
     print "-----------------------------------------"
     
     print "Building hypergraph started at", time.strftime(time_format)
@@ -38,15 +48,9 @@ if __name__ == '__main__':
     
     print "Saving hypergraph started at", time.strftime(time_format)
     start = time.time()
-    hypergraph.save_to_file("../output_2/{0}_hgraph".format(dataset))
+    hypergraph.save_to_file(path + "{0}_hgraph".format(dataset))
     print "Saving hypergraph took", time.time() - start, "s"
     print "-----------------------------------------"
-    
-#     print "Reading hypergraph started at", time.strftime(time_format)
-#     start = time.time()
-#     hypergraph = Hypergraph.load_from_file("../output_2/{0}_hgraph".format(dataset))
-#     print "Reading hypergraph took", time.time() - start, "s"
-#     print "-----------------------------------------"
     
     print "Building characteristic matrix started at", time.strftime(time_format)
     print "This may take", CharacteristicMatrix.estimate_time_to_build(hypergraph.number_of_nodes()), "s"
@@ -57,12 +61,37 @@ if __name__ == '__main__':
     
     print "Saving characteristic matrix started at", time.strftime(time_format)
     start = time.time()
-    ch_matrix.save_to_file("../output_2/{0}_ch_matrix".format(dataset))
+    ch_matrix.save_to_file(path + "{0}_ch_matrix".format(dataset))
     print "Saving characteristic matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
+    return ch_matrix, hypergraph, node_id_map
+
+def load_ch_matrix():
+    print "Reading NodeID map started at", time.strftime(time_format)
+    start = time.time()
+    node_id_map = inout.load_from_file(path + "{0}_node_id_map".format(dataset))
+    print "Reading NodeID map took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    print "Reading hypergraph started at", time.strftime(time_format)
+    start = time.time()
+    hypergraph = Hypergraph.load_from_file(path + "{0}_hgraph".format(dataset))
+    print "Reading hypergraph took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    print "Reading characteristic matrix started at", time.strftime(time_format)
+    start = time.time()
+    ch_matrix = CharacteristicMatrix.load_from_file(path + "{0}_ch_matrix".format(dataset))
+    print "Reading characteristic matrix took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    return ch_matrix, hypergraph, node_id_map
+
+def calculate_sketch_matrix(ch_matrix, hypergraph):
     print "Building sketch matrix started at", time.strftime(time_format)
-    print "This may take", SketchMatrix.estimate_time_to_build(hypergraph.number_of_nodes()), "s"
+    print "This may take", SketchMatrix.estimate_time_to_build(hypergraph.number_of_nodes(),
+        ch_matrix.non_empty_rows_count(), k, L), "s"
     start = time.time()
     sketch_matrix = SketchMatrix(k, L, ch_matrix)
     print "Building sketch matrix took", time.time() - start, "s"
@@ -70,9 +99,27 @@ if __name__ == '__main__':
     
     print "Saving sketch matrix started at", time.strftime(time_format)
     start = time.time()
-    sketch_matrix.save_to_file("../output_2/{0}_sketch".format(dataset))
+    sketch_matrix.save_to_file(path + "{0}_sketch".format(dataset))
     print "Saving sketch matrix took", time.time() - start, "s"
     print "-----------------------------------------"
+    
+    return sketch_matrix
+
+def load_sketch_matrix():
+    print "Reading sketch matrix started at", time.strftime(time_format)
+    start = time.time()
+    sketch_matrix = SketchMatrix.load_from_file(path + "{0}_sketch".format(dataset))
+    print "Reading sketch matrix took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    return sketch_matrix
+
+if __name__ == '__main__':
+    ch_matrix, hypergraph, node_id_map = calculate_ch_matrix()
+#     ch_matrix, hypergraph, node_id_map = load_ch_matrix()
+    
+    sketch_matrix = calculate_sketch_matrix(ch_matrix, hypergraph)
+#     sketch_matrix = load_sketch_matrix()
     
     print "Building similarity matrix started at", time.strftime(time_format)
     start = time.time()
@@ -86,4 +133,10 @@ if __name__ == '__main__':
     print "Extracting similar nodes took", time.time() - start, "s"
     print "-----------------------------------------"
     
-    print similar_nodes
+    print "Saving similar nodes started at", time.strftime(time_format)
+    start = time.time()
+    inout.save_to_file(similar_nodes, path + "{0}_similar_nodes".format(dataset))
+    print "Saving similar nodes took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    print "DONE!"
