@@ -8,8 +8,29 @@ from reducible_feature import ReducibleFeature
 from ivanov.graph.hypergraph import Hypergraph
 from itertools import groupby, permutations
 import sys
+
+def get_treewidth(graph):
+    result = run_algorithm(graph, return_features=False, compute_string=False)
+    return result[0]
+
+def get_canonical_representation(graph):
+    result = run_algorithm(graph)
+    return result[1]
+
+def get_reduced_features(graph):
+    result = run_algorithm(graph, return_features=True, compute_string=False)
+    return result[2]
  
-def get_canonical_representation(graph, return_features=False):
+def run_algorithm(graph, return_features=False, compute_string=True):
+    '''Performs the algorithm proposed by Arnborg & Proskurowski on a graph with tree-width at most 3.
+    :param graph: A NetworkX graph or a Hypergraph.
+    :param return_features: (default False) If true, returns the features, which
+    were reduced by the algorithm.
+    :param compute_string: (default True) If True returns the canonical string
+    representation of the graph. False means to perform the reduction rules
+    without computing the canonical string.
+    :return A tuple of the form (tree_width, canonical_string[, reduced_features]).
+    '''
     def is_done(hypergraph):
         if hypergraph.number_of_edges() == 0:
             return True
@@ -73,7 +94,7 @@ def get_canonical_representation(graph, return_features=False):
         
         return modified
         
-    def rule_1(hypergraph, return_features = False):
+    def rule_1(hypergraph, return_features=False, compute_string=True):
         modified = False
         pendant_features = ReducibleFeature.extract_rule_1_features(hypergraph)
         if return_features:
@@ -84,7 +105,7 @@ def get_canonical_representation(graph, return_features=False):
         for feature in pendant_features:
             if not modified:
                 modified = True
-            feature.reduce(hypergraph)
+            feature.reduce(hypergraph, compute_string)
             affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
         
         hypergraph.update_nodes_with_n_neighbors(affected_nodes)
@@ -100,7 +121,7 @@ def get_canonical_representation(graph, return_features=False):
         
         return modified, pendant_features if return_features else None
     
-    def rule_2(hypergraph, return_features = False):
+    def rule_2(hypergraph, return_features=False, compute_string=True):
         modified = False
         series_features = ReducibleFeature.extract_rule_2_features(hypergraph)
         if return_features:
@@ -112,7 +133,7 @@ def get_canonical_representation(graph, return_features=False):
         for feature in series_features:
             if not modified:
                 modified = True
-            _new_edges = feature.reduce(hypergraph)
+            _new_edges = feature.reduce(hypergraph, compute_string)
             affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
             new_edges |= _new_edges
         
@@ -154,7 +175,7 @@ def get_canonical_representation(graph, return_features=False):
         
         return modified
     
-    def rules_4_5_6_7(hypergraph, return_features = False):
+    def rules_4_5_6_7(hypergraph, return_features=False, compute_string=True):
         modified = False
         degree_3_features = ReducibleFeature.extract_degree_3_features(hypergraph)
         if return_features:
@@ -166,7 +187,7 @@ def get_canonical_representation(graph, return_features=False):
         for feature in degree_3_features:
             if not modified:
                 modified = True
-            _new_edges = feature.reduce(hypergraph)
+            _new_edges = feature.reduce(hypergraph, compute_string)
             affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
             new_edges |= _new_edges
         
@@ -199,9 +220,10 @@ def get_canonical_representation(graph, return_features=False):
         
         if return_features:
             features += new_features
-
-        # no need to check if modified here to continue, just go to the next rule after
-        rule_0(hypergraph)
+        
+        if compute_string:
+            # no need to check if modified here to continue, just go to the next rule after
+            rule_0(hypergraph)
 
         modified, new_features = rule_1(hypergraph, return_features)
         if modified:
@@ -214,11 +236,12 @@ def get_canonical_representation(graph, return_features=False):
             if treewidth < 2:
                 treewidth = 2
             continue
-
-        modified = rule_3(hypergraph)
-        if modified:
-            new_features = []
-            continue
+        
+        if compute_string:
+            modified = rule_3(hypergraph)
+            if modified:
+                new_features = []
+                continue
 
         modified, new_features = rules_4_5_6_7(hypergraph, return_features)
         if modified:
@@ -234,7 +257,7 @@ def get_canonical_representation(graph, return_features=False):
                     else:
                         return treewidth, u""
                 else:
-                    canon_str = collect_labels(hypergraph)
+                    canon_str = collect_labels(hypergraph) if compute_string else u""
                     if return_features:
                         features += new_features
                         return treewidth, canon_str, features

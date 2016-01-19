@@ -35,7 +35,7 @@ def extract_shingles(feature):
             shingle_graph.node[node]["labels"] = [coloring[i]]
             i += 1
         # TODO: this shingle representation has very high collision probability in the Rabin's fingerprint
-        _, shingle = arnborg_proskurowski.get_canonical_representation(shingle_graph)
+        shingle = arnborg_proskurowski.get_canonical_representation(shingle_graph)
         return shingle
     
     nodes_colors = {node: feature.node[node]["labels"] for node in feature.nodes_iter()}

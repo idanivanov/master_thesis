@@ -47,7 +47,7 @@ def iterate(graph, labels_list):
                 dir_perm_0 = next(iter(dir_perms))
                 if len(dir_perm_0) > 2:
                     raise Exception("Weisfeiler-Lehman is not implemented for hypergraphs with edges of order > 2.")
-                if len(dir_perms) > 1:
+                if len(dir_perms) != 1:
                     res = 0
                 elif dir_perm_0.index(n) == 0:
                     res = k

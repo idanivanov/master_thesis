@@ -389,16 +389,24 @@ class TestArnborgProskurowski(unittest.TestCase):
             ReducibleFeature(1, 1, ["n_15"], ["n_13"])
         ]
         canon_str_exp = "(1.1;(0.1;(0),(1.2;(0,((0,1),(1,0))),(0))),((0.2;((2.1;((0.2;((2.1;(0,((0,1),(1,0))),(0),(0,((0,1),(1,0)))),((0,1),(1,0))),(0,((0,1),(1,0)))),((0,1),(1,0))),(0.1;(0),(1.2;(0,((0,1),(1,0))),(0))),(0,((0,1),(1,0)))),((0,1))),((2.1;(0,((0,1),(1,0))),(0.1;(0.1;(0),(1.2;(0,((0,1),(1,0))),(0))),(2.1;(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))))),(0,((0,1),(1,0)))),((0,1),(1,0))),(0,((0,1),(1,0)))),((0,1))),(0.1;(0.1;(0),(1.2;(0,((0,1),(1,0))),(0))),(2.1;(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))),(0),(0,((0,1),(1,0))))))"
-        tw, canon_str, features = arnborg_proskurowski.get_canonical_representation(self.graph_tw_2, return_features=True)
+        tw, canon_str, features = arnborg_proskurowski.run_algorithm(self.graph_tw_2, return_features=True)
         self.common_asserts(tw, 2, canon_str, canon_str_exp, features, features_exp)
+        tw_1 = arnborg_proskurowski.get_treewidth(self.graph_tw_2)
+        canon_str_1 = arnborg_proskurowski.get_canonical_representation(self.graph_tw_2)
+        features_1 = arnborg_proskurowski.get_reduced_features(self.graph_tw_2)
+        self.common_asserts(tw_1, 2, canon_str_1, canon_str_exp, features_1, features_exp)
      
     def testTW_2_ring(self):
         features_exp = [
             ReducibleFeature(2, 2, ["n_1"], ["n_2", "n_3", "n_4", "n_5"]),
         ]
         canon_str_exp = "(2.2;1,(a,((0,1))),2,(b,((0,1))),3,(c,((0,1))),4,(d,((0,1))),5,(e,((0,1))))"
-        tw, canon_str, features = arnborg_proskurowski.get_canonical_representation(self.ring_graph, return_features=True)
+        tw, canon_str, features = arnborg_proskurowski.run_algorithm(self.ring_graph, return_features=True)
         self.common_asserts(tw, 2, canon_str, canon_str_exp, features, features_exp)
+        tw_1 = arnborg_proskurowski.get_treewidth(self.ring_graph)
+        canon_str_1 = arnborg_proskurowski.get_canonical_representation(self.ring_graph)
+        features_1 = arnborg_proskurowski.get_reduced_features(self.ring_graph)
+        self.common_asserts(tw_1, 2, canon_str_1, canon_str_exp, features_1, features_exp)
     
     def testTW_3(self):
         features_exp = [
@@ -423,8 +431,12 @@ class TestArnborgProskurowski(unittest.TestCase):
             ReducibleFeature(7, 1, set([u'n_172', u'n_173', u'n_171', u'n_176', u'n_177', u'n_175', u'n_202', u'n_203']), set([]), 0, 0)
         ]
         canon_str_exp = "(0.1;(5.2.3.1;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((0,4))),(0,((0,5))),(0,((1,2))),(0,((2,3))),(0,((3,4))),(0,((4,5))),(0,((5,1))),1 (5.2.3.1),2 (5.2.3.1),3 (5.2.3.1),4 (5.2.3.1),5 (5.2.3.1)),0 (5.2.3.1)),(5.1.1;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,2))),(0,((1,3))),(0,((2,3))),1 (5.1.1),2 (5.1.1),3 (5.1.1),4 (5.1.1)),(5.2.5;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,2))),(0,((1,4))),(0,((2,5))),(0,((3,4))),(0,((3,5))),(0,((4,5))),1 (5.2.5),2 (5.2.5),3 (5.2.5),4 (5.2.5),5 (5.2.5),6 (5.2.5)),(6.1;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,4))),(0,((1,5))),(0,((2,4))),(0,((4,3))),(0,((5,2))),(0,((5,3))),1 (6.1),2 (6.1),3 (6.1),4 (6.1),5 (6.1),6 (6.1)),(7.1;((0.2;((2.1;((5.2.1;((3;((4.2;(0,((3,0))),(0,((3,1))),(0,((3,2))),1 (4.2)),((0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0))),((4.2;(0,((3,0))),(0,((3,1))),(0,((3,2))),2 (4.2)),((0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0)))),((0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0))),(0,((0,3))),(0,((1,4))),4 (4.2),5 (4.2)),((1,0,2),(1,2,0))),((5.2.2;((0.2;((0.2;((5.2.3.3;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,2))),(0,((1,4))),(0,((3,4))),(0,((3,5))),(0,((4,5))),1 (5.2.3.3),2 (5.2.3.3),3 (5.2.3.3),4 (5.2.3.3)),((0,1))),(0,((0,1)))),((0,1))),((5.1.1;((5.1.2;(0,((2,0))),(0,((2,1))),(0,((2,3))),(0,((3,0))),(0,((3,1))),1 (5.1.2),2 (5.1.2)),((0,1),(1,0))),(0,((0,2))),(0,((0,3))),(0,((1,2))),(0,((1,3))),3 (5.1.2),4 (5.1.2)),((0,1),(1,0)))),((3,0))),((4.1;((0.2;((6.2;(0,((0,2))),(0,((2,3))),(0,((3,1))),(0,((4,0))),(0,((4,3))),(0,((5,1))),(0,((5,2))),(0,((5,4))),1 (6.2),2 (6.2),4 (6.2),5 (6.2)),((0,1))),(0,((0,1)))),((0,3))),((3;((3;((4.1;(0,((3,0))),(0,((3,1))),(0,((3,2))),1 (4.1)),((0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0))),((5.2.1;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,2))),(0,((1,4))),1 (5.2.1 - 1),2 (5.2.1 - 1)),((0,1,2)))),((0,1,2))),((5.2.1;((5.2.2;(0,((0,3))),(0,((3,1))),(0,((3,2))),3 (5.2.2)),((0,1,2),(0,2,1))),((5.2.2;(0,((0,3))),(0,((3,1))),(0,((3,2))),4 (5.2.2)),((3,1,4),(3,4,1))),(0,((0,1))),(0,((0,3))),(0,((3,1))),1 (5.2.2),2 (5.2.2)),((2,0,1)))),((1,0,3))),(0,((1,3))),(0,((2,3))),base_4),((1,0,3))),(0,((2,3))),(0,((3,1))),base_1),((0,2,1))),3 (4.2)),((0,1))),(0,((0,1)))),((0,1))),(0,((2,0))),(0,((2,3))),(0,((3,1))),(0,((4,0))),(0,((4,5))),(0,((5,1))),(0,((6,2))),(0,((6,4))),(0,((6,7))),(0,((7,3))),(0,((7,5))),1 (7.2),2 (7.2),3 (7.2),5 (7.2),6 (7.2),7 (7.2),base_2,base_3),(7.1;(0,((0,1))),(0,((0,2))),(0,((0,3))),(0,((1,4))),(0,((1,5))),(0,((2,4))),(0,((2,6))),(0,((3,5))),(0,((3,6))),(0,((4,7))),(0,((5,7))),(0,((6,7))),1 (7.1),2 (7.1),3 (7.1),4 (7.1),5 (7.1),6 (7.1),7 (7.1),8 (7.1))"
-        tw, canon_str, features = arnborg_proskurowski.get_canonical_representation(self.graph_tw_3, return_features=True)
+        tw, canon_str, features = arnborg_proskurowski.run_algorithm(self.graph_tw_3, return_features=True)
         self.common_asserts(tw, 3, canon_str, canon_str_exp, features, features_exp)
+        tw_1 = arnborg_proskurowski.get_treewidth(self.graph_tw_3)
+        canon_str_1 = arnborg_proskurowski.get_canonical_representation(self.graph_tw_3)
+        features_1 = arnborg_proskurowski.get_reduced_features(self.graph_tw_3)
+        self.common_asserts(tw_1, 3, canon_str_1, canon_str_exp, features_1, features_exp)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
