@@ -57,12 +57,12 @@ class TestSimilarNodesMining(unittest.TestCase):
     dummy_graph_features[-1].add_edge("n_2", "n_3", label="g")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["wl_6"])
-    dummy_graph_features[-1].add_node("n_1", labels=["wl_7"])
+    dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
+    dummy_graph_features[-1].add_node("n_1", labels=["wl_6"])
     dummy_graph_features[-1].add_edge("n_2", "n_1", label="wl_4")
     
     dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["wl_6"])
+    dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
     dummy_graph_features[-1].add_node("n_3", labels=["wl_5"])
     dummy_graph_features[-1].add_edge("n_2", "n_3", label="wl_3")
     
@@ -100,16 +100,16 @@ class TestSimilarNodesMining(unittest.TestCase):
         [0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]], dtype=np.float32)
     
     def testFeatureExtraction(self):
-        labels_lists_exp = [
+        labels_list_exp = [
             "g", "n", "r",
-            "wl_0;wl_2,wl_2", "wl_1;wl_2,wl_2", "wl_2;wl_0", "wl_2;wl_0,wl_1", "wl_2;wl_1",
-            "wl_3;wl_5,wl_6", "wl_4;wl_6,wl_7", "wl_5;wl_3", "wl_6;wl_3,wl_4", "wl_7;wl_4",
+            "wl_0;in(wl_2),out(wl_2)", "wl_1;in(wl_2),out(wl_2)", "wl_2;in(wl_0)", "wl_2;in(wl_1)", "wl_2;out(wl_0,wl_1)",
+            "wl_3;in(wl_7),out(wl_5)", "wl_4;in(wl_7),out(wl_6)", "wl_5;in(wl_3)", "wl_6;in(wl_4)", "wl_7;out(wl_3,wl_4)",
             "b",
-            "wl_13;wl_1", "wl_1;wl_13,wl_2", "wl_2;wl_1,wl_1"
+            "wl_13;out(wl_1)", "wl_1;in(wl_13),out(wl_2)", "wl_2;in(wl_1,wl_1)"
         ]
         dummy_hypergraph = Hypergraph(self.dummy_graph)
-        features, labels_lists = feature_extraction.extract_features("n_2", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
-        self.assertEqual(labels_lists_exp, labels_lists, "The wrong labels lists were computed by Weisfeiler-Lehman.")
+        features, labels_list = feature_extraction.extract_features("n_2", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+        self.assertEqual(labels_list_exp, labels_list, "The wrong labels lists were computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], self.dummy_graph_features[i]) for i in range(len(features))])
         self.assertTrue(isomorphic, "Wrong features extracted.")
     

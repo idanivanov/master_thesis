@@ -18,18 +18,61 @@ def iterate(graph, labels_list):
     new_graph is the resulting graph from the iteration, new_labels_list
     is the new list of labels for the current iteration of the algorithm.
     '''
-    
     def get_new_label(node, neighbors):
+        def get_direction(u, v):
+            '''Get the direction of the edge between nodes u and v
+            '''
+            res = 0
+            if type(graph) is not Hypergraph:
+                if graph.has_edge(u, v) and graph.has_edge(v, u):
+                    res = 0
+                elif graph.has_edge(u, v):
+                    res = 1
+                elif graph.has_edge(v, u):
+                    res = -1
+                else:
+                    raise Exception("There is no edge between {0} and {1}.".format(u, v))
+            else:
+                if u.startswith(u"e_"):
+                    # u represents an edge -> all the neighbors are nodes
+                    n = v
+                    e = u
+                    k = -1
+                else:
+                    # u represents a node -> all the neighbors are edges
+                    n = u
+                    e = v
+                    k = 1
+                dir_perms = graph.node[e]["direction"]
+                dir_perm_0 = next(iter(dir_perms))
+                if len(dir_perm_0) > 2:
+                    raise Exception("Weisfeiler-Lehman is not implemented for hypergraphs with edges of order > 2.")
+                if len(dir_perms) > 1:
+                    res = 0
+                elif dir_perm_0.index(n) == 0:
+                    res = k
+                elif dir_perm_0.index(n) == 1:
+                    res = -k
+                else:
+                    raise Exception("Strange direction encoding of an edge. Are {0} and {1} connected?".format(u, v))
+            return "out" if res > 0 else "in" if res < 0 else "any"
+        
         node_label = graph.node[node]["labels"][0]
-        label_extensions = []
+        label_extensions = {"any" : [], "in" : [], "out" : []}
         
         for neighbor in neighbors:
             neighbor_label = graph.node[neighbor]["labels"][0]
-            label_extensions.append(neighbor_label)
+            direction = get_direction(node, neighbor)
+            label_extensions[direction].append(neighbor_label)
         
-        label_extensions.sort()
+        label_extension = []
+        for direction in ["any", "in", "out"]:
+            if label_extensions[direction]:
+                label_extensions[direction].sort()
+                label_extension.append("{0}({1})".format(direction, ",".join(label_extensions[direction])))
+        label_extension = ",".join(label_extension)
         
-        return "{0};{1}".format(node_label, ",".join(label_extensions))
+        return "{0};{1}".format(node_label, label_extension)
     
     new_graph = graph.copy()
     new_labels_list = []

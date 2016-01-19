@@ -4,7 +4,6 @@ Created on Nov 21, 2015
 @author: Ivan Ivanov
 
 Extensions to the networkx package
-
 '''
 
 import networkx as nx

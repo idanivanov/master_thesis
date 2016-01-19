@@ -131,9 +131,11 @@ class TestGraph(unittest.TestCase):
     dummy_wl.add_node(4, labels=["1"])
     dummy_wl.add_node(5, labels=["0"])
     dummy_wl.add_edge(1, 2, label="a")
+    dummy_wl.add_edge(2, 1, label="a")
     dummy_wl.add_edge(2, 3, label="a")
     dummy_wl.add_edge(3, 4, label="a")
     dummy_wl.add_edge(4, 1, label="a")
+    dummy_wl.add_edge(4, 3, label="a")
     dummy_wl.add_edge(4, 5, label="b")
     
     def testHypergraph_Copy(self):
@@ -185,9 +187,10 @@ class TestGraph(unittest.TestCase):
     def testWeisfeilerLehman(self):
         labels_list_exp = [
             '0', '1', 'a', 'b',
-            'wl_0;wl_2,wl_2', 'wl_0;wl_3', 'wl_1;wl_2,wl_2', 'wl_1;wl_2,wl_2,wl_3', 'wl_2;wl_0,wl_1', 'wl_3;wl_0,wl_1',
-            'wl_4;wl_8,wl_8', 'wl_5;wl_9', 'wl_6;wl_8,wl_8', 'wl_7;wl_8,wl_8,wl_9', 'wl_8;wl_4,wl_6', 'wl_8;wl_4,wl_7', 'wl_9;wl_5,wl_7',
-            'wl_10;wl_14,wl_15', 'wl_11;wl_16', 'wl_12;wl_14,wl_14', 'wl_13;wl_15,wl_15,wl_16', 'wl_14;wl_10,wl_12', 'wl_15;wl_10,wl_13', 'wl_16;wl_11,wl_13'
+            'wl_0;any(wl_2),in(wl_2)', 'wl_0;in(wl_3)', 'wl_1;any(wl_2),out(wl_2)', 'wl_1;any(wl_2),out(wl_2,wl_3)', 'wl_2;any(wl_0,wl_1)', 'wl_2;in(wl_1),out(wl_0)', 'wl_3;in(wl_1),out(wl_0)',
+            'wl_10;in(wl_7),out(wl_5)', 'wl_4;any(wl_8),in(wl_9)', 'wl_5;in(wl_10)', 'wl_6;any(wl_8),out(wl_9)', 'wl_7;any(wl_8),out(wl_10,wl_9)', 'wl_8;any(wl_4,wl_6)', 'wl_8;any(wl_4,wl_7)', 'wl_9;in(wl_6),out(wl_4)', 'wl_9;in(wl_7),out(wl_4)',
+            'wl_11;in(wl_15),out(wl_13)', 'wl_12;any(wl_16),in(wl_19)', 'wl_12;any(wl_17),in(wl_18)', 'wl_13;in(wl_11)', 'wl_14;any(wl_16),out(wl_18)', 'wl_15;any(wl_17),out(wl_11,wl_19)', 'wl_16;any(wl_12,wl_14)', 'wl_17;any(wl_12,wl_15)', 'wl_18;in(wl_14),out(wl_12)', 'wl_19;in(wl_15),out(wl_12)',
+            'wl_20;in(wl_25),out(wl_23)', 'wl_21;any(wl_26),in(wl_29)', 'wl_22;any(wl_27),in(wl_28)', 'wl_23;in(wl_20)', 'wl_24;any(wl_26),out(wl_28)', 'wl_25;any(wl_27),out(wl_20,wl_29)', 'wl_26;any(wl_21,wl_24)', 'wl_27;any(wl_22,wl_25)', 'wl_28;in(wl_24),out(wl_22)', 'wl_29;in(wl_25),out(wl_21)'
         ]
         hyper_dummy_wl = Hypergraph(self.dummy_wl)
         hyper_dummy_wl, labels_list = weisfeiler_lehman.init(hyper_dummy_wl)
