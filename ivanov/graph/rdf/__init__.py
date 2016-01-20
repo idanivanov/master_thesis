@@ -21,14 +21,14 @@ def read_graph(in_files, file_format=None):
     
     return rdf_graph
 
-def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True, test_mode=False):
+def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False):
     '''Converts an RDFLib graph to a Networkx graph.
-    
     :param in_files: Files containing the RDF data.
     :param labels (optional): Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
     same color if they are of the same type, edges have the same color if they are of the same
-    predicate; "uris" - each node/edge has as label the URI that identifies it in the RDF graph.
+    predicate (all rdf:type edges will be removed); "uris" - each node/edge has as label the URI that identifies it in the RDF graph.
     :param discard_classes (optional): If true, will not include any RDF class as a node in the Networkx graph.
+    :param test_mode: Used for unit testing. If True sorts the nodes in the graph by URIs.
     '''
     assert type(in_files) in [list, set]
     
@@ -42,17 +42,17 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True,
     triples = rdf_graph.triples((None, None, None))
     
     node_id = 0
-    node_id_map = {}
+    uri_node_map = {}
     if labels == "uris":
         for node in nodes:
             # TODO: how to deal with literals?
             nx_graph.add_node(node_id, labels=[unicode(node)])
-            node_id_map[unicode(node)] = node_id
+            uri_node_map[unicode(node)] = node_id
             node_id += 1
         
         for s, p, o in triples:
-            s_id = node_id_map[unicode(s)]
-            o_id = node_id_map[unicode(o)]
+            s_id = uri_node_map[unicode(s)]
+            o_id = uri_node_map[unicode(o)]
             nx_graph.add_edge(s_id, o_id, label=unicode(p))
     else:
         colors = {
@@ -106,7 +106,7 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True,
                 print "Unknown term type."
                 node_colors.add(colors[u"undefined"])
             nx_graph.add_node(node_id, labels=list(node_colors))
-            node_id_map[unicode(node)] = node_id
+            uri_node_map[unicode(node)] = node_id
             node_id += 1
         
         for s, p, o in triples:
@@ -117,15 +117,15 @@ def convert_rdf_to_nx_graph(in_files, labels = "colors", discard_classes = True,
                 if s in all_classes or o in all_classes:
                     # skip edges from/to classes
                     continue
-            s_id = node_id_map[unicode(s)]
-            o_id = node_id_map[unicode(o)]
+            s_id = uri_node_map[unicode(s)]
+            o_id = uri_node_map[unicode(o)]
             p_raw = unicode(p)
             if p_raw not in colors:
                     colors[p_raw] = str(color_id)
                     color_id += 1
             nx_graph.add_edge(s_id, o_id, label=colors[p_raw])
     
-    return nx_graph, node_id_map
+    return nx_graph, uri_node_map
 
 def get_node_types(rdf_graph, node):
     return rdf_graph.objects(node, RDF.type)

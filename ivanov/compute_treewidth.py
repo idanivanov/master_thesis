@@ -9,12 +9,13 @@ from ivanov.graph.hypergraph import Hypergraph
 from ivanov.statistics import treewidth
 from ivanov.graph import nxext
 from ivanov.graph import algorithms
-from ivanov import graph
+from ivanov import graph, helpers
 from ivanov.graph import rdf
 import codecs
 
 def compute_rballs_tw(in_files, output_dir):
-    nx_graph = rdf.convert_rdf_to_nx_graph(in_files)
+    nx_graph, uri_node_map = rdf.convert_rdf_to_nx_graph(in_files, labels="uris", discard_classes=False)
+    node_uri_map = {node: uri for uri, node in uri_node_map.items()}
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
@@ -30,15 +31,15 @@ def compute_rballs_tw(in_files, output_dir):
                 print "r = {0}, d = {1}".format(r, d)
                 if node in rballs_with_big_tw:
                     # don't compute treewidth for r-balls which are known to be big
-                    ap_result = (-1, u"")
+                    tw = -1
                 else:
                     rball = algorithms.r_ball(nx_graph, node, r, -1 if d == "in" else 1 if d == "out" else 0)
                     print "r-ball nodes:", rball.number_of_nodes()
-                    ap_result = arnborg_proskurowski.get_canonical_representation(rball, False)
-                    if ap_result[0] == -1:
+                    tw = arnborg_proskurowski.get_treewidth(rball)
+                    if tw == -1:
                         rballs_with_big_tw.add(node)
-                print "Treewidth: ", ap_result[0]
-                line = u"{0},{1}\n".format(nx_graph.node[node]["labels"][0].replace(u",", u"[comma]").replace(u"\n", u"[new_line]"), ap_result[0])
+                print "Treewidth: ", tw
+                line = u"{0},{1}\n".format(node_uri_map[node].replace(u",", u"[comma]").replace(u"\n", u"[new_line]"), tw)
                 out_file.write(line)
 #                 nxext.visualize_graph(rball, node_labels=True, edge_labels=False)
                 i += 1
@@ -51,10 +52,10 @@ def aggregate_results(path_to_files, percent=False, latex=False):
     if not latex:
         out_file.write(",".join(["params", "0", "1", "2", "3", ">=4"] + ([] if percent else ["total"])) + "\n")
     
-    for d in ["in", "out"]:
-        for r in [2]:
-            if d == "all" and r > 2:
-                continue
+    for d in ["in", "out", "all"]:
+        for r in [2, 3, 4, 5]:
+#             if d == "all" and r > 2:
+#                 continue
             agg = treewidth.aggregate(path_to_files + "tw_r{0}_{1}".format(r, d))
             if latex:
                 out_file.write("$r={0}, e=$ {1}".format(r, d))
@@ -93,15 +94,10 @@ def aggregate_results(path_to_files, percent=False, latex=False):
 
 def test_graph(path_to_graph_file):
     nx_graph = graph.load_graph(path_to_graph_file)
-    return arnborg_proskurowski.get_canonical_representation(nx_graph)
+    return arnborg_proskurowski.get_treewidth(nx_graph)
 
 if __name__ == '__main__':
-    path = "../data/GeoSpecies/"
-    in_files = [
-        path + "geospecies.rdf"
-    ]
-
-#     compute_rballs_tw(in_files, "../output/fam/")
-    aggregate_results("../output/geo/")
-    aggregate_results("../output/geo/", percent=True, latex=True)
+#     compute_rballs_tw(helpers.datasets["famont"]["files"], "../output/fam_test/")
+    aggregate_results("../output/fam_test/")
+    aggregate_results("../output/fam_test/", percent=True, latex=True)
 #     print test_graph("../output/peel/small_graph")
