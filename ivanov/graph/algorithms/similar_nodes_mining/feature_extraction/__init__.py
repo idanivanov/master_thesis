@@ -25,6 +25,12 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
         if rball is None:
             continue
         
+        raw_features = arnborg_proskurowski.get_reduced_features(rball)
+#         if tw == -1:
+#             # TODO: How to handle graphs with larger tree-width?
+#             # for now collect all possible features
+#             print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
+
         for i in range(wl_iterations + 1):
             if i == 1:
                 rball, new_wl_labels_list = weisfeiler_lehman.init(rball, new_wl_labels_list)
@@ -37,12 +43,7 @@ def extract_features(node, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0
                     break
                 rball = new_rball
             
-            new_raw_features = arnborg_proskurowski.get_reduced_features(rball)
-            features += [raw_feature.as_subgraph(rball) for raw_feature in new_raw_features]
-#             if tw == -1:
-#                 # TODO: How to handle graphs with larger tree-width?
-#                 # for now collect all possible features
-#                 print "The {0}-rball of node {1} has tree-width > 3.".format(key, node)
+            features += [raw_feature.as_subgraph(rball) for raw_feature in raw_features]
     
     return features, new_wl_labels_list
 
