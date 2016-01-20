@@ -467,10 +467,16 @@ class ReducibleFeature(object):
         nodes = set(self.reducible_nodes) | set(self.peripheral_nodes)
         return hypergraph.subgraph_with_labels(nodes)
     
+    def number_of_nodes(self):
+        return len(self.reducible_nodes) + len(self.peripheral_nodes)
+    
+    def get_full_rule(self):
+        return "{0}.{1}.{2}.{3}".format(self.rule, self.subrule, self.subsubrule, self.subsubsubrule)
+    
     def __repr__(self, *args, **kwargs):
         reducible = u", ".join(map(lambda node: unicode(node), self.reducible_nodes))
         periphery = u", ".join(map(lambda node: unicode(node), self.peripheral_nodes))
-        return u"rule({0}.{1}.{2}.{3}), [{4}]---[{5}]".format(self.rule, self.subrule, self.subsubrule, self.subsubsubrule, reducible, periphery)
+        return u"rule({0}), [{1}]---[{2}]".format(self.get_full_rule(), reducible, periphery)
     
     def to_constructor_str(self):
         return u"ReducibleFeature({0}, {1}, {2}, {3}, {4}, {5})".format(
