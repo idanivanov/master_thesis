@@ -225,13 +225,13 @@ def run_algorithm(graph, return_features=False, compute_string=True):
             # no need to check if modified here to continue, just go to the next rule after
             rule_0(hypergraph)
 
-        modified, new_features = rule_1(hypergraph, return_features)
+        modified, new_features = rule_1(hypergraph, return_features, compute_string)
         if modified:
             if treewidth < 1:
                 treewidth = 1
             continue
 
-        modified, new_features = rule_2(hypergraph, return_features)
+        modified, new_features = rule_2(hypergraph, return_features, compute_string)
         if modified:
             if treewidth < 2:
                 treewidth = 2
@@ -243,7 +243,7 @@ def run_algorithm(graph, return_features=False, compute_string=True):
                 new_features = []
                 continue
 
-        modified, new_features = rules_4_5_6_7(hypergraph, return_features)
+        modified, new_features = rules_4_5_6_7(hypergraph, return_features, compute_string)
         if modified:
             if treewidth < 3:
                 treewidth = 3
