@@ -6,10 +6,10 @@ Created on Nov 21, 2015
 Extensions to the networkx package
 '''
 
-import networkx as nx
 from itertools import chain, combinations
-import matplotlib.pyplot as plt
 from unidecode import unidecode
+import matplotlib.pyplot as plt
+import networkx as nx
 
 
 def Graph(directed=False, multigraph=False):
