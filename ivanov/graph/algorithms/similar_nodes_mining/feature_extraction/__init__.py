@@ -100,13 +100,13 @@ def process_raw_feature(raw_feature, rball, max_nodes=6):
                 t = raw_feature.peripheral_nodes[1]
                 path = [s] + raw_feature.reducible_nodes + [t]
                 for subpath in sliding_window(path, max_nodes):
-                    yield rball.subgraph_with_labels(subpath)
+                    yield rball.subgraph_with_labels(set(subpath))
                 raise StopIteration
             elif rule == "2.2.0.0":
                 # ring: extract all subpaths of length max_nodes using a sliding window
                 cycle = raw_feature.peripheral_nodes + raw_feature.reducible_nodes
                 for subpath in sliding_window(cycle + cycle[:max_nodes - 1], max_nodes):
-                    yield rball.subgraph_with_labels(subpath)
+                    yield rball.subgraph_with_labels(set(subpath))
                 raise StopIteration
             elif rule == "4.2.0.0":
                 # buddy: If there are more than 3 buddies create a buddy
@@ -114,25 +114,26 @@ def process_raw_feature(raw_feature, rball, max_nodes=6):
                 assert len(raw_feature.peripheral_nodes) == 3
                 buddy_nodes = raw_feature.reducible_nodes
                 for buddy_nodes_subgroup in itertools.combinations(buddy_nodes, max_nodes - 3):
-                    yield rball.subgraph_with_labels(buddy_nodes_subgroup + list(raw_feature.peripheral_nodes))
+                    yield rball.subgraph_with_labels(set(buddy_nodes_subgroup) | set(raw_feature.peripheral_nodes))
                 raise StopIteration
             elif rule == "4.3.0.0":
                 # cube: similar approach as for wheel (5.2.3.1)
-                reducible_neigh = [set(rball.neighbors(node)) for node in raw_feature.reducible_nodes]
-                hub_node = reduce(lambda a, b: a.intersection(b), reducible_neigh)
-                ring_subgraph = rball.subgraph(raw_feature.reducible_nodes | (raw_feature.peripheral_nodes - hub_node))
-                ring = nx.cycle_basis(ring_subgraph)[0]
-                hub_node = list(hub_node)
-                for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
-                    yield rball.subgraph_with_labels(subpath + hub_node)
-                raise StopIteration
+                if nodes_count > max_nodes + 1:
+                    reducible_neigh = [set(rball.neighbors(node)) for node in raw_feature.reducible_nodes]
+                    hub_node = reduce(lambda a, b: a.intersection(b), reducible_neigh)
+                    ring_subgraph = rball.subgraph(raw_feature.reducible_nodes | (raw_feature.peripheral_nodes - hub_node))
+                    ring = nx.cycle_basis(ring_subgraph)[0]
+                    for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
+                        yield rball.subgraph_with_labels(set(subpath) | hub_node)
+                    raise StopIteration
             elif rule == "5.2.3.1":
                 # wheel: extract all cake-slice subpaths of length max_node using a sliding window
-                ring_subgraph = rball.subgraph(raw_feature.reducible_nodes)
-                ring = nx.cycle_basis(ring_subgraph)[0]
-                for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
-                    yield rball.subgraph_with_labels(subpath + list(raw_feature.peripheral_nodes))
-                raise StopIteration
+                if nodes_count > max_nodes + 1:
+                    ring_subgraph = rball.subgraph(raw_feature.reducible_nodes)
+                    ring = nx.cycle_basis(ring_subgraph)[0]
+                    for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
+                        yield rball.subgraph_with_labels(set(subpath) | set(raw_feature.peripheral_nodes))
+                    raise StopIteration
     elif feature_type == 2:
         # dynamic
         nodes_count = raw_feature.number_of_nodes()
@@ -140,7 +141,7 @@ def process_raw_feature(raw_feature, rball, max_nodes=6):
             nodes = set(raw_feature.reducible_nodes) | set(raw_feature.peripheral_nodes)
             node_subgroups = itertools.combinations(nodes, max_nodes)
             for node_subgroup in node_subgroups:
-                yield rball.subgraph_with_labels(node_subgroup)
+                yield rball.subgraph_with_labels(set(node_subgroup))
             raise StopIteration
     
     # fixed or pattern/dynamic with <= max_nodes number of nodes

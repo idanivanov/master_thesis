@@ -6,82 +6,17 @@ Created on Dec 29, 2015
 
 from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
     fingerprint, shingle_extraction
+from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
 from ivanov.graph.algorithms.similar_nodes_mining.min_hash_function import MinHashFunction
 from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMatrix
-from ivanov.graph.algorithms import similar_nodes_mining
+from ivanov.graph.algorithms import similar_nodes_mining, arnborg_proskurowski
 from ivanov.graph.hypergraph import Hypergraph
+from tests import example_graphs
 from ivanov.graph import algorithms
-import networkx as nx
 import numpy as np
 import unittest
-from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
 
 class TestSimilarNodesMining(unittest.TestCase):
-    dummy_graph = nx.MultiDiGraph()
-    dummy_graph.add_node(1, labels=["r"])
-    dummy_graph.add_node(2, labels=["r"])
-    dummy_graph.add_node(3, labels=["r"])
-    dummy_graph.add_node(4, labels=["b"])
-    dummy_graph.add_node(5, labels=["r"])
-    dummy_graph.add_node(6, labels=["b"])
-    dummy_graph.add_node(7, labels=["b"])
-    dummy_graph.add_node(8, labels=["b", "r"])
-    dummy_graph.add_node(9, labels=["r"])
-    dummy_graph.add_node(10, labels=["b"])
-    dummy_graph.add_node(11, labels=["b", "r"])
-    dummy_graph.add_node(12, labels=["b", "r"])
-    dummy_graph.add_edge(1, 8, label="g")
-    dummy_graph.add_edge(2, 1, label="n")
-    dummy_graph.add_edge(2, 3, label="g")
-    dummy_graph.add_edge(3, 5, label="n")
-    dummy_graph.add_edge(3, 6, label="n")
-    dummy_graph.add_edge(4, 3, label="g")
-    dummy_graph.add_edge(6, 2, label="n")
-    dummy_graph.add_edge(7, 2, label="n")
-    dummy_graph.add_edge(8, 7, label="n")
-    dummy_graph.add_edge(8, 9, label="n")
-    dummy_graph.add_edge(10, 8, label="g")
-    dummy_graph.add_edge(11, 1, label="n")
-    dummy_graph.add_edge(11, 12, label="n")
-    
-    dummy_graph_features = []
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["r"])
-    dummy_graph_features[-1].add_node("n_1", labels=["r"])
-    dummy_graph_features[-1].add_edge("n_2", "n_1", label="n")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["r"])
-    dummy_graph_features[-1].add_node("n_3", labels=["r"])
-    dummy_graph_features[-1].add_edge("n_2", "n_3", label="g")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
-    dummy_graph_features[-1].add_node("n_1", labels=["wl_6"])
-    dummy_graph_features[-1].add_edge("n_2", "n_1", label="wl_4")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
-    dummy_graph_features[-1].add_node("n_3", labels=["wl_5"])
-    dummy_graph_features[-1].add_edge("n_2", "n_3", label="wl_3")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["r"])
-    dummy_graph_features[-1].add_node("n_6", labels=["b"])
-    dummy_graph_features[-1].add_edge("n_6", "n_2", label="n")
-    
-    dummy_graph_features.append(nx.MultiDiGraph())
-    dummy_graph_features[-1].add_node("n_2", labels=["r"])
-    dummy_graph_features[-1].add_node("n_7", labels=["b"])
-    dummy_graph_features[-1].add_edge("n_7", "n_2", label="n")
-    
-    dummy_feature = nx.MultiDiGraph()
-    dummy_feature.add_node("n_1", labels=["1", "2"])
-    dummy_feature.add_node("n_2", labels=["3"])
-    dummy_feature.add_node("n_3", labels=["4", "5", "6"])
-    dummy_feature.add_edge("n_1", "n_2", label="7")
-    dummy_feature.add_edge("n_3", "n_1", label="7")
     
     raw_ch_matrix_exp = {9591196679437604257: set([0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11]), 9591196679437600161: set([0, 5, 6, 7, 8, 9, 10, 11]), 291392442519547772: set([0, 1, 2, 3, 4, 5, 7, 8, 10]), 11943967864708356199: set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), 12477866579637637325: set([0, 1, 5, 6, 7, 11]), 3187340149550852624: set([0, 2, 5, 6, 7, 8, 9, 10, 11]), 1816259076396273001: set([8, 4, 7]), 2652763168619356858: set([0, 1, 3, 4, 5, 6, 7, 11]), 291392442519551868: set([0, 1, 10, 5, 7])}
     
@@ -111,6 +46,16 @@ class TestSimilarNodesMining(unittest.TestCase):
         features, labels_list = feature_extraction.extract_features("n_2", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
         self.assertEqual(labels_list_exp, labels_list, "The wrong labels lists were computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], self.dummy_graph_features[i]) for i in range(len(features))])
+        self.assertTrue(isomorphic, "Wrong features extracted.")
+    
+    def testFeatureTypes(self):
+        dummy_hypergraph_2 = Hypergraph(example_graphs.snm_dummy_graph_2)
+        features = []
+        raw_features = arnborg_proskurowski.get_reduced_features(dummy_hypergraph_2)
+        for raw_feature in raw_features:
+            new_features = list(feature_extraction.process_raw_feature(raw_feature, dummy_hypergraph_2))
+            features += new_features
+        isomorphic = all([algorithms.isomorphic(features[i], example_graphs.snm_dummy_graph_features_2[i]) for i in range(len(features))])
         self.assertTrue(isomorphic, "Wrong features extracted.")
     
     def testRabinFingerprint(self):
