@@ -7,6 +7,7 @@ from ivanov.graph.algorithms.arnborg_proskurowski.reducible_feature import Reduc
 from ivanov.graph.algorithms import r_ball_hyper, arnborg_proskurowski,\
     weisfeiler_lehman
 from ivanov.graph.hypergraph import Hypergraph
+from ivanov.graph import nxext
 from itertools import islice
 import networkx as nx
 import itertools
@@ -135,12 +136,17 @@ def process_raw_feature(raw_feature, rball, max_nodes=6):
                         yield rball.subgraph_with_labels(set(subpath) | set(raw_feature.peripheral_nodes))
                     raise StopIteration
     elif feature_type == 2:
-        # dynamic
+        # dynamic (the reducible nodes are always of degree 3):
+        # for each pair of adjacent nodes u, v let a new feature be
+        # the subgraph that contains u, v and all neighbors of u and v.
         nodes_count = raw_feature.number_of_nodes()
         if nodes_count > max_nodes:
             nodes = set(raw_feature.reducible_nodes) | set(raw_feature.peripheral_nodes)
-            node_subgroups = itertools.combinations(nodes, max_nodes)
-            for node_subgroup in node_subgroups:
+            feature_graph = rball.subgraph(nodes)
+            adj_nodes = nxext.get_all_adjacent_nodes(feature_graph)
+            neighbors = {node: nxext.get_all_neighbors(feature_graph, node) for node in nodes}
+            for u, v in adj_nodes:
+                node_subgroup = set([u, v] + neighbors[u] + neighbors[v])
                 yield rball.subgraph_with_labels(set(node_subgroup))
             raise StopIteration
     
