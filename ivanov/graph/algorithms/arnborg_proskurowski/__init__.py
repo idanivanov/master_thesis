@@ -50,6 +50,15 @@ def run_algorithm(graph, return_features=False, compute_string=True):
     def rule_0(hypergraph):
         modified = False
         
+        # (originally 1.3) - remove self-loops
+        self_loops = list(hypergraph.self_loops)
+        for self_loop in self_loops:
+            if not modified:
+                modified = True
+            node = hypergraph.endpoints(self_loop)[0]
+            hypergraph.add_node_label(node, hypergraph.edge(self_loop)["labels"][0])
+            hypergraph.remove_edge(self_loop)
+        
         # rule 0.1
         nodes_with_more_labels = list(hypergraph.nodes_with_more_labels)
         if len(nodes_with_more_labels) > 0:
@@ -109,15 +118,6 @@ def run_algorithm(graph, return_features=False, compute_string=True):
             affected_nodes |= set(feature.reducible_nodes) | set(feature.peripheral_nodes)
         
         hypergraph.update_nodes_with_n_neighbors(affected_nodes)
-        
-        # 1.3 - remove self-loops
-        self_loops = list(hypergraph.self_loops)
-        for self_loop in self_loops:
-            if not modified:
-                modified = True
-            node = hypergraph.endpoints(self_loop)[0]
-            hypergraph.add_node_label(node, hypergraph.edge(self_loop)["labels"][0])
-            hypergraph.remove_edge(self_loop)
         
         return modified, pendant_features if return_features else None
     
