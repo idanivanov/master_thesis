@@ -4,12 +4,13 @@ Created on Dec 29, 2015
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
+from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
     fingerprint, shingle_extraction
-from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
-from ivanov.graph.algorithms.similar_nodes_mining.min_hash_function import MinHashFunction
-from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMatrix
-from ivanov.graph.algorithms import similar_nodes_mining, arnborg_proskurowski
+from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
+from ivanov.graph.algorithms.similar_graphs_mining.min_hash_function import MinHashFunction
+from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
+from ivanov.graph.algorithms import arnborg_proskurowski
+from ivanov.graph.algorithms import similar_graphs_mining
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import algorithms, nxext
 from tests import example_graphs
@@ -129,7 +130,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         similarity_matrix_exp = np.array(ch_matrix_jaccard_sim >= 0.8, dtype=np.float32)
         sketch_matrix = SketchMatrix(25, 265, ch_matrix)
-        similarity_matrix, _ = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
+        similarity_matrix, _ = similar_graphs_mining.get_node_similarity_matrix(sketch_matrix)
         equality = (similarity_matrix_exp == similarity_matrix).all()
         self.assertTrue(equality, "The computed similarity matrix is wrong (Keep in mind that the sketch_matrix is probabilistic, therefore, it may not be always correct. The test may pass in another run.).")
     
@@ -166,9 +167,9 @@ class TestSimilarNodesMining(unittest.TestCase):
         similar_nodes_2_exp = [["a", "b", "c", "d"], ["b", "d"]]
         similar_nodes_3_exp = [["a", "b"], ["b", "c"], ["c", "d"]]
         
-        similar_nodes_1 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
-        similar_nodes_2 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
-        similar_nodes_3 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
+        similar_nodes_1 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
+        similar_nodes_2 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
+        similar_nodes_3 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
         self.assertEqual(similar_nodes_1_exp, similar_nodes_1, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_2_exp, similar_nodes_2, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_3_exp, similar_nodes_3, "Wrong similar nodes were extracted.")

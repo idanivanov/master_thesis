@@ -4,7 +4,7 @@ Created on Dec 30, 2015
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining import shingle_extraction
+from ivanov.graph.algorithms.similar_graphs_mining import shingle_extraction
 from ivanov.graph.algorithms import arnborg_proskurowski
 from external.ffield import FField
 import numpy as np

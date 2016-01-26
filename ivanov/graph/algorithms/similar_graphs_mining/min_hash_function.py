@@ -4,7 +4,7 @@ Created on Jan 9, 2016
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining import fingerprint
+from ivanov.graph.algorithms.similar_graphs_mining import fingerprint
 import numpy as np
 import random
 

@@ -3,7 +3,7 @@ Created on Jan 13, 2016
 
 @author: Ivan Ivanov
 '''
-from ivanov.graph.algorithms.similar_nodes_mining import feature_extraction,\
+from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
     shingle_extraction, fingerprint
 from ivanov.inout.serializable import Serializable
 import numpy as np

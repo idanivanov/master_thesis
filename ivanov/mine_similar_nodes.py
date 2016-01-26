@@ -4,9 +4,9 @@ Created on Jan 13, 2016
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
-from ivanov.graph.algorithms.similar_nodes_mining.sketch_matrix import SketchMatrix
-from ivanov.graph.algorithms import similar_nodes_mining
+from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
+from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
+from ivanov.graph.algorithms import similar_graphs_mining
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf
 from ivanov import inout
@@ -123,13 +123,13 @@ if __name__ == '__main__':
     
     print "Building similarity matrix started at", time.strftime(time_format)
     start = time.time()
-    sim_mat, cols_nodes_map = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
+    sim_mat, cols_nodes_map = similar_graphs_mining.get_node_similarity_matrix(sketch_matrix)
     print "Building similarity matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
     print "Extracting similar nodes started at", time.strftime(time_format)
     start = time.time()
-    similar_nodes = similar_nodes_mining.get_similar_nodes(sim_mat, cols_nodes_map)
+    similar_nodes = similar_graphs_mining.get_similar_nodes(sim_mat, cols_nodes_map)
     print "Extracting similar nodes took", time.time() - start, "s"
     print "-----------------------------------------"
     

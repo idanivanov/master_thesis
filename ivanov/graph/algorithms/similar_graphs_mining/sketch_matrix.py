@@ -4,8 +4,8 @@ Created on Dec 21, 2015
 @author: Ivan Ivanov
 '''
 
-from ivanov.graph.algorithms.similar_nodes_mining.characteristic_matrix import CharacteristicMatrix
-from ivanov.graph.algorithms.similar_nodes_mining.min_hash_function import MinHashFunction
+from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
+from ivanov.graph.algorithms.similar_graphs_mining.min_hash_function import MinHashFunction
 from ivanov.inout.serializable import Serializable
 import numpy as np
 
