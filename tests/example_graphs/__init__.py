@@ -565,7 +565,10 @@ snm_dummy_feature.add_node("n_1", labels=["1", "2"])
 snm_dummy_feature.add_node("n_2", labels=["3"])
 snm_dummy_feature.add_node("n_3", labels=["4", "5", "6"])
 snm_dummy_feature.add_edge("n_1", "n_2", label="7")
+snm_dummy_feature.add_edge("n_1", "n_2", label="8")
 snm_dummy_feature.add_edge("n_3", "n_1", label="7")
+snm_dummy_feature.add_edge("n_1", "n_3", label="7")
+snm_dummy_feature.add_edge("n_3", "n_1", label="8")
 # /-------------------------------------------------------
 
 # --------------------------------------------------------
