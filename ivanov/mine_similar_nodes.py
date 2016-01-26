@@ -6,14 +6,14 @@ Created on Jan 13, 2016
 
 from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
-from ivanov.graph.algorithms import similar_graphs_mining
+from ivanov.graph.algorithms import similar_nodes_mining
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf
 from ivanov import inout
 import helpers
 import time
 
-dataset = "famont"
+dataset = "famont-ext"
 r_in = 3
 r_out = 2
 r_all = 0
@@ -23,7 +23,7 @@ L = 9
 
 time_format = "%H:%M:%S, %d.%m.%Y"
 
-path = "../output_2/"
+path = "../output_2/famont_test"
 
 def calculate_ch_matrix():
     in_files = helpers.datasets[dataset]["files"]
@@ -53,10 +53,16 @@ def calculate_ch_matrix():
     print "-----------------------------------------"
     
     print "Building characteristic matrix started at", time.strftime(time_format)
-    print "This may take", CharacteristicMatrix.estimate_time_to_build(hypergraph.number_of_nodes()), "s"
     start = time.time()
-    ch_matrix = CharacteristicMatrix(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all, wl_iterations=wl_iterations)
+    rballs_database, index_node_map = similar_nodes_mining.extract_rballs_database(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all)
+    ch_matrix = CharacteristicMatrix(rballs_database, hypergraph.number_of_nodes(), wl_iterations=wl_iterations)
     print "Building characteristic matrix took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    print "Saving Column index to Node map started at", time.strftime(time_format)
+    start = time.time()
+    inout.save_to_file(index_node_map, path + "{0}_index_node_map".format(dataset))
+    print "Saving Column index to Node map took", time.time() - start, "s"
     print "-----------------------------------------"
     
     print "Saving characteristic matrix started at", time.strftime(time_format)
@@ -65,7 +71,7 @@ def calculate_ch_matrix():
     print "Saving characteristic matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
-    return ch_matrix, hypergraph, node_id_map
+    return ch_matrix, hypergraph, index_node_map, node_id_map
 
 def load_ch_matrix():
     print "Reading NodeID map started at", time.strftime(time_format)
@@ -86,12 +92,16 @@ def load_ch_matrix():
     print "Reading characteristic matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
-    return ch_matrix, hypergraph, node_id_map
+    print "Reading Column index to Node map started at", time.strftime(time_format)
+    start = time.time()
+    index_node_map = inout.load_from_file(path + "{0}_index_node_map".format(dataset))
+    print "Reading Column index to Node map took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    return ch_matrix, hypergraph, index_node_map, node_id_map
 
 def calculate_sketch_matrix(ch_matrix, hypergraph):
     print "Building sketch matrix started at", time.strftime(time_format)
-    print "This may take", SketchMatrix.estimate_time_to_build(hypergraph.number_of_nodes(),
-        ch_matrix.non_empty_rows_count(), k, L), "s"
     start = time.time()
     sketch_matrix = SketchMatrix(k, L, ch_matrix)
     print "Building sketch matrix took", time.time() - start, "s"
@@ -106,30 +116,41 @@ def calculate_sketch_matrix(ch_matrix, hypergraph):
     return sketch_matrix
 
 def load_sketch_matrix():
+    print "Reading NodeID map started at", time.strftime(time_format)
+    start = time.time()
+    node_id_map = inout.load_from_file(path + "{0}_node_id_map".format(dataset))
+    print "Reading NodeID map took", time.time() - start, "s"
+    
     print "Reading sketch matrix started at", time.strftime(time_format)
     start = time.time()
     sketch_matrix = SketchMatrix.load_from_file(path + "{0}_sketch".format(dataset))
     print "Reading sketch matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
-    return sketch_matrix
+    print "Reading Column index to Node map started at", time.strftime(time_format)
+    start = time.time()
+    index_node_map = inout.load_from_file(path + "{0}_index_node_map".format(dataset))
+    print "Reading Column index to Node map took", time.time() - start, "s"
+    print "-----------------------------------------"
+    
+    return sketch_matrix, index_node_map, node_id_map
 
 if __name__ == '__main__':
-    ch_matrix, hypergraph, node_id_map = calculate_ch_matrix()
-#     ch_matrix, hypergraph, node_id_map = load_ch_matrix()
+    ch_matrix, hypergraph, index_node_map, node_id_map = calculate_ch_matrix()
+#     ch_matrix, hypergraph, index_node_map, node_id_map = load_ch_matrix()
     
     sketch_matrix = calculate_sketch_matrix(ch_matrix, hypergraph)
-#     sketch_matrix = load_sketch_matrix()
+#     sketch_matrix, index_node_map, node_id_map = load_sketch_matrix()
     
     print "Building similarity matrix started at", time.strftime(time_format)
     start = time.time()
-    sim_mat, cols_nodes_map = similar_graphs_mining.get_node_similarity_matrix(sketch_matrix)
+    sim_mat, cols_nodes_map = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
     print "Building similarity matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
     print "Extracting similar nodes started at", time.strftime(time_format)
     start = time.time()
-    similar_nodes = similar_graphs_mining.get_similar_nodes(sim_mat, cols_nodes_map)
+    similar_nodes = similar_nodes_mining.get_similar_nodes(sim_mat, cols_nodes_map)
     print "Extracting similar nodes took", time.time() - start, "s"
     print "-----------------------------------------"
     

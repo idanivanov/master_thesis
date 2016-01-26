@@ -16,12 +16,12 @@ class SketchMatrix(Serializable):
         '''
         return int(round(pow((1. / (1. - inflection_point)), k)))
     
-    @staticmethod
-    def estimate_time_to_build(nodes_count, ch_mat_non_empty_rows, k, L):
-        '''Get the estimated time to build the sketch matrix in seconds.
-        '''
-        time_per_shetch_cell_iteration = 0.00001
-        return nodes_count * ch_mat_non_empty_rows * k * L * time_per_shetch_cell_iteration
+#     @staticmethod
+#     def estimate_time_to_build(nodes_count, ch_mat_non_empty_rows, k, L):
+#         '''Get the estimated time to build the sketch matrix in seconds.
+#         '''
+#         time_per_shetch_cell_iteration = 0.00001
+#         return nodes_count * ch_mat_non_empty_rows * k * L * time_per_shetch_cell_iteration
     
     def build(self, ch_matrix):
         for i in ch_matrix.non_empty_rows(): # row i of M
