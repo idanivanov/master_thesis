@@ -12,20 +12,21 @@ def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
     be used for characteristic matrix; index_node_map mapping
     indices in the graph_database to node ids in the hypergraph
     '''
-    graph_database = []
-    index_node_map = {}
+    def rballs_database_generator():
+        for node in hypergraph.nodes_iter():
+            rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
+                      r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
+                      r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None]
+            
+            yield filter(lambda x: x is not None, rballs)
     
+    index_node_map = {}
     i = 0
     for node in hypergraph.nodes_iter():
-        rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
-                  r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
-                  r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None]
-        
-        graph_database.append(filter(lambda x: x is not None, rballs))
         index_node_map[i] = node
         i += 1
     
-    return graph_database, index_node_map
+    return rballs_database_generator(), index_node_map
 
 # TODO: can be optimized, since now we compute all symmetries
 def get_node_similarity_matrix(sketch_matrix):

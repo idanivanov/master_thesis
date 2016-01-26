@@ -74,7 +74,7 @@ class CharacteristicMatrix(Serializable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, graph_database, wl_iterations=0):
+    def __init__(self, graph_database, cols_count, wl_iterations=0):
         '''
         :param graph_database: A list of lists where each sublist represents
         an element of the database (will be represented by a column in the
@@ -83,7 +83,7 @@ class CharacteristicMatrix(Serializable):
         :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
         performed (before a graph becomes 'stable').
         '''
-        self.cols_count = len(graph_database)
+        self.cols_count = cols_count
         
         feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
         self.build(feature_lists)

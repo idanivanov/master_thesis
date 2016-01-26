@@ -113,14 +113,16 @@ class TestSimilarNodesMining(unittest.TestCase):
     def testCharacteristicMatrix(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
-        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=0)
         self.assertEqual(self.raw_ch_matrix_exp, ch_matrix.sparse_matrix, "The computed characteristic matrix is wrong.")
     
     def testCharacteristicMatrix_ReadWrite(self):
         file_name = "test_files/characteristic_matrix.tmp"
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=2, r_out=2, r_all=0)
-        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=4)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=4)
         ch_matrix.save_to_file(file_name)
         read_ch_matrix = CharacteristicMatrix.load_from_file(file_name)
         self.assertEqual(read_ch_matrix, ch_matrix, "The read characteristic matrix is different from the saved one.")
@@ -128,7 +130,8 @@ class TestSimilarNodesMining(unittest.TestCase):
     def testCharacteristicMatrix_JaccardSimMatrix(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
-        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=0)
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         equality = (self.ch_matrix_jaccard_sim_exp == ch_matrix_jaccard_sim).all()
         self.assertTrue(equality, "The computed Jaccard similarity matrix is wrong.")
@@ -136,7 +139,8 @@ class TestSimilarNodesMining(unittest.TestCase):
     def testSimilarNodesMining(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
-        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=0)
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         similarity_matrix_exp = np.array(ch_matrix_jaccard_sim >= 0.8, dtype=np.float32)
         sketch_matrix = SketchMatrix(25, 265, ch_matrix)
@@ -148,7 +152,8 @@ class TestSimilarNodesMining(unittest.TestCase):
         file_name = "test_files/sketch_matrix.tmp"
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=2, r_out=2, r_all=0)
-        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=4)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=4)
         sketch_matrix = SketchMatrix(5, 20, ch_matrix)
         sketch_matrix.save_to_file(file_name)
         read_sketch_matrix = SketchMatrix.load_from_file(file_name)
