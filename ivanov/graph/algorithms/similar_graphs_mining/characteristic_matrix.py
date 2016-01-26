@@ -11,20 +11,19 @@ import itertools
 
 class CharacteristicMatrix(Serializable):
     
-    @staticmethod
-    def estimate_time_to_build(nodes_count, features_per_node = 100):
-        '''Get the estimated time to build the characteristic matrix in seconds.
-        '''
-        time_per_feature = 0.001
-        return nodes_count * features_per_node * time_per_feature
+#     @staticmethod
+#     def estimate_time_to_build(nodes_count, features_per_node = 100):
+#         '''Get the estimated time to build the characteristic matrix in seconds.
+#         '''
+#         time_per_feature = 0.001
+#         return nodes_count * features_per_node * time_per_feature
     
     def build(self, feature_lists):
         self.sparse_matrix = {}
         i = -1
-        for node, node_features in feature_lists:
+        for element_features in feature_lists:
             i += 1
-            self.cols[node] = i # build node:column mapping
-            for feature in node_features:
+            for feature in element_features:
                 shingles = shingle_extraction.extract_shingles(feature)
                 fingerprints = fingerprint.get_fingerprints(shingles)
                 for fp in fingerprints:
@@ -68,16 +67,23 @@ class CharacteristicMatrix(Serializable):
     
     def __eq__(self, other):
         if isinstance(other, CharacteristicMatrix):
-            return self.sparse_matrix == other.sparse_matrix and  self.cols == other.cols
+            return self.sparse_matrix == other.sparse_matrix
         else:
             return False
     
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, hypergraph, r_in=0, r_out=0, r_all=0, wl_iterations=0):
-        self.cols_count = hypergraph.number_of_nodes()
-        self.cols = {}
+    def __init__(self, graph_database, wl_iterations=0):
+        '''
+        :param graph_database: A list of lists where each sublist represents
+        an element of the database (will be represented by a column in the
+        characteristic matrix), and each element in a sublist is a hypegraph.
+        (One element can be represented by multiple graphs)
+        :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
+        performed (before a graph becomes 'stable').
+        '''
+        self.cols_count = len(graph_database)
         
-        feature_lists = feature_extraction.get_feature_lists(hypergraph, r_in, r_out, r_all, wl_iterations)
+        feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
         self.build(feature_lists)

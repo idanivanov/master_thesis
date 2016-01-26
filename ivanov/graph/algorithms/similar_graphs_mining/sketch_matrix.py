@@ -55,7 +55,7 @@ class SketchMatrix(Serializable):
     def __repr__(self):
         return str(self.matrix)
 
-    def __init__(self, k, L, ch_matrix=None, hash_functions=None, raw_sketch_matrix=None, cols=None):
+    def __init__(self, k, L, ch_matrix=None, hash_functions=None, raw_sketch_matrix=None):
         self.k = k
         self.L = L
         self.h_count = k * L
@@ -68,9 +68,7 @@ class SketchMatrix(Serializable):
                 self.hash_functions = hash_functions
             else:
                 self.hash_functions = MinHashFunction.generate_functions(self.h_count)
-            self.cols = ch_matrix.cols
             
             self.build(ch_matrix)
         else:
             self.matrix = raw_sketch_matrix
-            self.cols = cols

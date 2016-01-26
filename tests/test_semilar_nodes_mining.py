@@ -6,13 +6,12 @@ Created on Dec 29, 2015
 
 from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
     fingerprint, shingle_extraction
+from ivanov.graph.algorithms import arnborg_proskurowski, similar_nodes_mining,\
+    r_ball_hyper
 from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
 from ivanov.graph.algorithms.similar_graphs_mining.min_hash_function import MinHashFunction
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
-from ivanov.graph.algorithms import arnborg_proskurowski
-from ivanov.graph.algorithms import similar_graphs_mining
 from ivanov.graph.hypergraph import Hypergraph
-from ivanov.graph import algorithms, nxext
 from tests import example_graphs
 import numpy as np
 import unittest
@@ -44,7 +43,13 @@ class TestSimilarNodesMining(unittest.TestCase):
             "wl_13;out(wl_1)", "wl_1;in(wl_13),out(wl_2)", "wl_2;in(wl_1,wl_1)"
         ]
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        features, labels_list = feature_extraction.extract_features("n_2", dummy_hypergraph, r_in=1, r_out=1, r_all=0, wl_iterations=4)
+        rballs_database = [r_ball_hyper(dummy_hypergraph, "n_2", 1, edge_dir=1),
+                            r_ball_hyper(dummy_hypergraph, "n_2", 1, edge_dir=-1)]
+        features = []
+        labels_list = []
+        for rball in rballs_database:
+            new_features, labels_list = feature_extraction.extract_features(rball, wl_iterations=4, wl_labels_list=labels_list)
+            features += new_features
         self.assertEqual(labels_list_exp, labels_list, "The wrong labels lists were computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], example_graphs.snm_dummy_graph_features[i]) for i in range(len(features))])
         self.assertTrue(isomorphic, "Wrong features extracted.")
@@ -106,38 +111,43 @@ class TestSimilarNodesMining(unittest.TestCase):
     
     def testCharacteristicMatrix(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=3, r_out=2, r_all=0, wl_iterations=0)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
+        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
         self.assertEqual(self.raw_ch_matrix_exp, ch_matrix.sparse_matrix, "The computed characteristic matrix is wrong.")
     
     def testCharacteristicMatrix_ReadWrite(self):
         file_name = "test_files/characteristic_matrix.tmp"
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=2, r_out=2, r_all=0)
+        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=4)
         ch_matrix.save_to_file(file_name)
         read_ch_matrix = CharacteristicMatrix.load_from_file(file_name)
         self.assertEqual(read_ch_matrix, ch_matrix, "The read characteristic matrix is different from the saved one.")
     
     def testCharacteristicMatrix_JaccardSimMatrix(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=3, r_out=2, r_all=0, wl_iterations=0)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
+        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         equality = (self.ch_matrix_jaccard_sim_exp == ch_matrix_jaccard_sim).all()
         self.assertTrue(equality, "The computed Jaccard similarity matrix is wrong.")
 
     def testSimilarNodesMining(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=3, r_out=2, r_all=0, wl_iterations=0)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
+        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=0)
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         similarity_matrix_exp = np.array(ch_matrix_jaccard_sim >= 0.8, dtype=np.float32)
         sketch_matrix = SketchMatrix(25, 265, ch_matrix)
-        similarity_matrix, _ = similar_graphs_mining.get_node_similarity_matrix(sketch_matrix)
+        similarity_matrix = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
         equality = (similarity_matrix_exp == similarity_matrix).all()
         self.assertTrue(equality, "The computed similarity matrix is wrong (Keep in mind that the sketch_matrix is probabilistic, therefore, it may not be always correct. The test may pass in another run.).")
     
     def testSketchMatrix_ReadWrite(self):
         file_name = "test_files/sketch_matrix.tmp"
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
-        ch_matrix = CharacteristicMatrix(dummy_hypergraph, r_in=2, r_out=2, r_all=0, wl_iterations=4)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=2, r_out=2, r_all=0)
+        ch_matrix = CharacteristicMatrix(rballs_database, wl_iterations=4)
         sketch_matrix = SketchMatrix(5, 20, ch_matrix)
         sketch_matrix.save_to_file(file_name)
         read_sketch_matrix = SketchMatrix.load_from_file(file_name)
@@ -167,9 +177,9 @@ class TestSimilarNodesMining(unittest.TestCase):
         similar_nodes_2_exp = [["a", "b", "c", "d"], ["b", "d"]]
         similar_nodes_3_exp = [["a", "b"], ["b", "c"], ["c", "d"]]
         
-        similar_nodes_1 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
-        similar_nodes_2 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
-        similar_nodes_3 = similar_graphs_mining.get_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
+        similar_nodes_1 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
+        similar_nodes_2 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
+        similar_nodes_3 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
         self.assertEqual(similar_nodes_1_exp, similar_nodes_1, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_2_exp, similar_nodes_2, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_3_exp, similar_nodes_3, "Wrong similar nodes were extracted.")
