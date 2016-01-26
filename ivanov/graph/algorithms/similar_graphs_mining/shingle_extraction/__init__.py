@@ -30,7 +30,7 @@ def extract_shingles(feature):
             edges = nxext.get_edge_labels_and_dirs(feature, u, v)
             edges_count = len(edges)
             for j, edge in enumerate(edges):
-                if edges_count > 1 and j < edges_count - 1:
+                if j < edges_count - 1:
                     _new_feature = new_feature.copy()
                 else:
                     # no need to copy when the graph will not be used for other iterations
