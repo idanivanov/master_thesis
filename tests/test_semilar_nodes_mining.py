@@ -12,6 +12,7 @@ from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import 
 from ivanov.graph.algorithms.similar_graphs_mining.min_hash_function import MinHashFunction
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
 from ivanov.graph.hypergraph import Hypergraph
+from ivanov.graph import algorithms
 from tests import example_graphs
 import numpy as np
 import unittest
