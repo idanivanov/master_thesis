@@ -23,7 +23,7 @@ L = 9
 
 time_format = "%H:%M:%S, %d.%m.%Y"
 
-path = "../output_2/famont_test"
+path = "../output_2/famont_test/"
 
 def calculate_ch_matrix():
     in_files = helpers.datasets[dataset]["files"]

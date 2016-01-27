@@ -34,6 +34,38 @@ class SketchMatrix(Serializable):
                     if h_of_i < self.matrix[l, j]:
                         self.matrix[l, j] = h_of_i
     
+    def compute_column(self, shingle_fingerprints):
+        '''Computes a sketch column for the list of shingle,
+        fingerprints using the same min-hash functions as for
+        the rest of the sketch.
+        :param shingles: A list of shingles.
+        :returns A numpy array representing a sketch column.
+        '''
+        column = np.full(self.h_count, np.iinfo(np.uint64).max, np.uint64)
+        for i in shingle_fingerprints:
+            for l in range(len(self.hash_functions)):
+                h = self.hash_functions[l]
+                h_of_i = h(i)
+                if h_of_i < column[l]:
+                    column[l] = h_of_i
+        return column
+    
+    def get_similar_columns(self, sketch_column):
+        '''Returns the indices of all columns, which evaluate to true
+        after being compared to the query sketch column using the AND-
+        and OR-amplification rules (see Big Data lectures).
+        '''
+        equality_sketch = self.matrix == sketch_column
+        # has a raw for each band
+        and_amplifications = np.empty((self.L, self.cols_count), np.bool_)
+        offset = 0
+        for l in range(self.L):
+            offset_new = offset + self.k
+            and_amplifications[l] = equality_sketch[offset : offset_new].all(0)
+            offset = offset_new
+        or_amplification = and_amplifications.any(0)
+        return np.nonzero(or_amplification)
+    
 #     def extend_sketch_matrix(self, feature_lists, new_cols_count, extension_id):
 #         new_matrix = np.full((self.h_count, len(self.cols) + new_cols_count), np.iinfo(np.uint64).max, np.uint64)
 #         new_matrix[:, :, -new_cols_count] = self.matrix
@@ -59,6 +91,7 @@ class SketchMatrix(Serializable):
         self.k = k
         self.L = L
         self.h_count = k * L
+        self.cols_count = ch_matrix.cols_count
         
         if ch_matrix is not None:
             assert isinstance(ch_matrix, CharacteristicMatrix)
