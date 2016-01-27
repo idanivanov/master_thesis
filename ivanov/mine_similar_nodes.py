@@ -150,7 +150,7 @@ if __name__ == '__main__':
     
     print "Extracting similar nodes started at", time.strftime(time_format)
     start = time.time()
-    similar_nodes = similar_nodes_mining.get_similar_nodes(sim_mat, cols_nodes_map)
+    similar_nodes = similar_nodes_mining.get_all_similar_nodes(sim_mat, cols_nodes_map)
     print "Extracting similar nodes took", time.time() - start, "s"
     print "-----------------------------------------"
     

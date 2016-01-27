@@ -53,7 +53,7 @@ def get_node_similarity_matrix(sketch_matrix):
     return np.triu(similarity_matrix)
 
 # TODO: very naive way of extracting similar nodes
-def get_similar_nodes(similarity_matrix, cols_nodes_map):
+def get_all_similar_nodes(similarity_matrix, cols_nodes_map):
     similar_nodes = []
     
     for row_index in range(len(similarity_matrix)):

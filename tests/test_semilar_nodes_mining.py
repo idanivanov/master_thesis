@@ -183,9 +183,9 @@ class TestSimilarNodesMining(unittest.TestCase):
         similar_nodes_2_exp = [["a", "b", "c", "d"], ["b", "d"]]
         similar_nodes_3_exp = [["a", "b"], ["b", "c"], ["c", "d"]]
         
-        similar_nodes_1 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
-        similar_nodes_2 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
-        similar_nodes_3 = similar_nodes_mining.get_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
+        similar_nodes_1 = similar_nodes_mining.get_all_similar_nodes(dummy_sim_matrix_1, cols_nodes_map)
+        similar_nodes_2 = similar_nodes_mining.get_all_similar_nodes(dummy_sim_matrix_2, cols_nodes_map)
+        similar_nodes_3 = similar_nodes_mining.get_all_similar_nodes(dummy_sim_matrix_3, cols_nodes_map)
         self.assertEqual(similar_nodes_1_exp, similar_nodes_1, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_2_exp, similar_nodes_2, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_3_exp, similar_nodes_3, "Wrong similar nodes were extracted.")
