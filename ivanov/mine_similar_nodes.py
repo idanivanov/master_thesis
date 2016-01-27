@@ -144,13 +144,13 @@ if __name__ == '__main__':
     
     print "Building similarity matrix started at", time.strftime(time_format)
     start = time.time()
-    sim_mat, cols_nodes_map = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
+    sim_mat = similar_nodes_mining.get_node_similarity_matrix(sketch_matrix)
     print "Building similarity matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     
     print "Extracting similar nodes started at", time.strftime(time_format)
     start = time.time()
-    similar_nodes = similar_nodes_mining.get_all_similar_nodes(sim_mat, cols_nodes_map)
+    similar_nodes = similar_nodes_mining.get_all_similar_nodes(sim_mat, index_node_map)
     print "Extracting similar nodes took", time.time() - start, "s"
     print "-----------------------------------------"
     
