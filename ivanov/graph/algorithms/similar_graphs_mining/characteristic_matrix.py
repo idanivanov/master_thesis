@@ -23,6 +23,7 @@ class CharacteristicMatrix(Serializable):
         i = -1
         for element_features in feature_lists:
             i += 1
+            print "Ch.Mat.: Processing column", i, "of", self.cols_count
             for feature in element_features:
                 shingles = shingle_extraction.extract_shingles(feature)
                 fingerprints = fingerprint.get_fingerprints(shingles)
