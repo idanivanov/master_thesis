@@ -16,23 +16,30 @@ def get_similar_graphs(query_graph_list, sketch_matrix, wl_iterations, wl_labels
     :param: wl_labels_list: List of labels used when building the sketch matrix.
     '''
     def get_shingle_fingerprints():
-        def inner():
-            for query_graph in query_graph_list:
-                if type(query_graph) is Hypergraph:
-                    query_hypergraph = query_graph
-                else:
-                    query_hypergraph = Hypergraph(query_graph)
-                
-                query_hypergraph_features = feature_extraction.extract_features(query_hypergraph, wl_iterations, wl_labels_list)
-                for feature in query_hypergraph_features:
+        def inner(query_features):
+            for features in query_features:
+                for feature in features:
                     shingles = shingle_extraction.extract_shingles(feature)
                     fingerprints = fingerprint.get_fingerprints(shingles)
-                    for fingerprint in fingerprints:
-                        yield fingerprint
-        return set(inner())
+                    for fp in fingerprints:
+                        yield fp
+        
+        new_wl_labels_list = wl_labels_list
     
-    shingle_fingerprints = get_shingle_fingerprints()
+        query_features = []
+        for query_graph in query_graph_list:
+            if type(query_graph) is Hypergraph:
+                query_hypergraph = query_graph
+            else:
+                query_hypergraph = Hypergraph(query_graph)
+            
+            features, new_wl_labels_list = feature_extraction.extract_features(query_hypergraph, wl_iterations, new_wl_labels_list)
+            query_features.append(features)
+        
+        return set(inner(query_features)), new_wl_labels_list
     
-    sketch_column = SketchMatrix.compute_column(shingle_fingerprints)
+    shingle_fingerprints, new_wl_labels_list = get_shingle_fingerprints()
     
-    return sketch_matrix.get_similar_columns(sketch_column)
+    sketch_column = sketch_matrix.compute_column(shingle_fingerprints)
+    
+    return sketch_matrix.get_similar_columns(sketch_column), new_wl_labels_list

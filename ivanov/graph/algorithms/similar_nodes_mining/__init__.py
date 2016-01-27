@@ -3,8 +3,15 @@ Created on Jan 26, 2016
 
 @author: Ivan Ivanov
 '''
-from ivanov.graph.algorithms import r_ball_hyper
+from ivanov.graph.algorithms import r_ball_hyper, similar_graphs_mining
 import numpy as np
+
+def extract_rballs_of_node(node, hypergraph, r_in=0, r_out=0, r_all=0):
+    rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
+              r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
+              r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None]
+    
+    return filter(lambda x: x is not None, rballs)
 
 def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
     '''Extract the r-ball(s) around each node in the hypergraph.
@@ -14,11 +21,7 @@ def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
     '''
     def rballs_database_generator():
         for node in hypergraph.nodes_iter():
-            rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
-                      r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
-                      r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None]
-            
-            yield filter(lambda x: x is not None, rballs)
+            yield extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
     
     index_node_map = {}
     i = 0
@@ -52,7 +55,11 @@ def get_node_similarity_matrix(sketch_matrix):
     
     return np.triu(similarity_matrix)
 
-# TODO: very naive way of extracting similar nodes
+def get_similar_nodes(node, hypergraph, sketch_matrix, wl_iterations, wl_labels_list, r_in=0, r_out=0, r_all=0):
+    rballs = extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
+    return similar_graphs_mining.get_similar_graphs(rballs, sketch_matrix, wl_iterations, wl_labels_list)
+
+# TODO: very naive way of extracting all similar nodes
 def get_all_similar_nodes(similarity_matrix, cols_nodes_map):
     similar_nodes = []
     

@@ -41,13 +41,13 @@ class SketchMatrix(Serializable):
         :param shingles: A list of shingles.
         :returns A numpy array representing a sketch column.
         '''
-        column = np.full(self.h_count, np.iinfo(np.uint64).max, np.uint64)
+        column = np.full((self.h_count, 1), np.iinfo(np.uint64).max, np.uint64)
         for i in shingle_fingerprints:
             for l in range(len(self.hash_functions)):
                 h = self.hash_functions[l]
                 h_of_i = h(i)
-                if h_of_i < column[l]:
-                    column[l] = h_of_i
+                if h_of_i < column[l, 0]:
+                    column[l, 0] = h_of_i
         return column
     
     def get_similar_columns(self, sketch_column):

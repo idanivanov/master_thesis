@@ -160,7 +160,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         equality = (read_sketch_matrix.matrix == sketch_matrix.matrix).all()
         self.assertTrue(equality, "The read sketch matrix is different from the saved one.")
     
-    def testGetSimilarNodes(self):
+    def testGetAllSimilarNodes(self):
         dummy_sim_matrix_1 = np.array([
             [0., 1., 1., 1.],
             [0., 0., 1., 1.],
@@ -189,6 +189,17 @@ class TestSimilarNodesMining(unittest.TestCase):
         self.assertEqual(similar_nodes_1_exp, similar_nodes_1, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_2_exp, similar_nodes_2, "Wrong similar nodes were extracted.")
         self.assertEqual(similar_nodes_3_exp, similar_nodes_3, "Wrong similar nodes were extracted.")
+    
+    def testGetSimilarNodesToQueryNode(self):
+        dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
+        rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)
+        nodes_count = dummy_hypergraph.number_of_nodes()
+        ch_matrix = CharacteristicMatrix(rballs_database, nodes_count, wl_iterations=0)
+        sketch_matrix = SketchMatrix(25, 265, ch_matrix)
+        similar_nodes_exp = np.array([0, 5, 7])
+        similar_nodes, _ = similar_nodes_mining.get_similar_nodes("n_7", dummy_hypergraph, sketch_matrix, 0, [], r_in=3, r_out=2, r_all=0)
+        equality = (similar_nodes_exp == similar_nodes).all()
+        self.assertTrue(equality, "Wrong similar nodes were extracted.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testFeatureExtraction']
