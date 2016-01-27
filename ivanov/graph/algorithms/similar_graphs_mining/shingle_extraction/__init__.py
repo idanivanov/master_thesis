@@ -48,9 +48,12 @@ def extract_shingles(feature):
                     yield _new_feature
         
         all_adj_nodes = list(nxext.get_all_adjacent_nodes(feature))
-        new_feature = nx.MultiDiGraph()
-        new_feature.add_nodes_from(feature.nodes_iter(data=True))
-        return process_parallel_edgess(all_adj_nodes, 0, new_feature)
+        if len(all_adj_nodes) == 0:
+            return [feature]
+        else:
+            new_feature = nx.MultiDiGraph()
+            new_feature.add_nodes_from(feature.nodes_iter(data=True))
+            return process_parallel_edgess(all_adj_nodes, 0, new_feature)
     
     def get_all_colorings(nodes_colors):
         '''Get all possible combinations of the feature graph in which
