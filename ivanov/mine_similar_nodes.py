@@ -13,7 +13,7 @@ from ivanov import inout
 import helpers
 import time
 
-dataset = "famont-ext"
+dataset = "dummy"
 r_in = 3
 r_out = 2
 r_all = 0
@@ -23,7 +23,7 @@ L = 9
 
 time_format = "%H:%M:%S, %d.%m.%Y"
 
-path = "../output_2/famont_test/"
+path = "../output_2/"
 
 def calculate_ch_matrix():
     in_files = helpers.datasets[dataset]["files"]
@@ -55,7 +55,7 @@ def calculate_ch_matrix():
     print "Building characteristic matrix started at", time.strftime(time_format)
     start = time.time()
     rballs_database, index_node_map = similar_nodes_mining.extract_rballs_database(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all)
-    ch_matrix = CharacteristicMatrix(rballs_database, hypergraph.number_of_nodes(), wl_iterations=wl_iterations)
+    ch_matrix = CharacteristicMatrix(rballs_database, hypergraph.number_of_nodes(), wl_iterations=wl_iterations, print_progress=True)
     print "Building characteristic matrix took", time.time() - start, "s"
     print "-----------------------------------------"
     

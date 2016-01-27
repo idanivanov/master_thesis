@@ -23,7 +23,8 @@ class CharacteristicMatrix(Serializable):
         i = -1
         for element_features in feature_lists:
             i += 1
-            print "Ch.Mat.: Processing column", i, "of", self.cols_count
+            if self.print_progress:
+                print "Ch.Mat.: Processing column", i, "of", self.cols_count
             for feature in element_features:
                 shingles = shingle_extraction.extract_shingles(feature)
                 fingerprints = fingerprint.get_fingerprints(shingles)
@@ -75,7 +76,7 @@ class CharacteristicMatrix(Serializable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, graph_database, cols_count, wl_iterations=0):
+    def __init__(self, graph_database, cols_count, wl_iterations=0, print_progress=False):
         '''
         :param graph_database: A list of lists where each sublist represents
         an element of the database (will be represented by a column in the
@@ -85,6 +86,7 @@ class CharacteristicMatrix(Serializable):
         performed (before a graph becomes 'stable').
         '''
         self.cols_count = cols_count
+        self.print_progress = print_progress
         
         feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
         self.build(feature_lists)
