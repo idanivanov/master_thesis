@@ -15,7 +15,7 @@ import codecs
 
 def compute_rballs_tw(in_files, output_dir):
     nx_graph, uri_node_map = rdf.convert_rdf_to_nx_graph(in_files, labels="uris", discard_classes=False)
-    node_uri_map = {node: uri for uri, node in uri_node_map.items()}
+    node_uri_map = {node: uri.replace(u",", u"[comma]").replace(u"\n", u"[new_line]") for uri, node in uri_node_map.items()}
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
     
@@ -39,7 +39,7 @@ def compute_rballs_tw(in_files, output_dir):
                     if tw == -1:
                         rballs_with_big_tw.add(node)
                 print "Treewidth: ", tw
-                line = u"{0},{1}\n".format(node_uri_map[node].replace(u",", u"[comma]").replace(u"\n", u"[new_line]"), tw)
+                line = u"{0},{1}\n".format(node_uri_map[node], tw)
                 out_file.write(line)
 #                 nxext.visualize_graph(rball, node_labels=True, edge_labels=False)
                 i += 1
