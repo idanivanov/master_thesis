@@ -47,30 +47,34 @@ def run_algorithm(graph, return_features=False, compute_string=True):
         
         return u",".join(labels)
     
-    def rule_0(hypergraph):
+    def rule_0(hypergraph, compute_string):
         modified = False
         
         # (originally 1.3) - remove self-loops
         self_loops = list(hypergraph.self_loops)
-        for self_loop in self_loops:
-            if not modified:
-                modified = True
-            node = hypergraph.endpoints(self_loop)[0]
-            hypergraph.add_node_label(node, hypergraph.edge(self_loop)["labels"][0])
-            hypergraph.remove_edge(self_loop)
+        if len(self_loops) > 0:
+            modified = True
+        if compute_string:
+            for self_loop in self_loops:
+                node = hypergraph.endpoints(self_loop)[0]
+                hypergraph.add_node_label(node, hypergraph.edge(self_loop)["labels"][0])
+                hypergraph.remove_edge(self_loop)
+        else:
+            hypergraph.remove_edges_from(self_loops)
         
         # rule 0.1
-        nodes_with_more_labels = list(hypergraph.nodes_with_more_labels)
-        if len(nodes_with_more_labels) > 0:
-            modified = True
+        if compute_string:
+            nodes_with_more_labels = list(hypergraph.nodes_with_more_labels)
+            if len(nodes_with_more_labels) > 0:
+                modified = True
             
-        for node in nodes_with_more_labels:
-            labels = hypergraph.node[node]["labels"]
-            labels.sort()
-            new_label = u"(0.1;{0})".format(u",".join(labels))
-            hypergraph.set_node_labels(node, [new_label])
-        
-        hypergraph.reset_nodes_with_more_labels()
+            for node in nodes_with_more_labels:
+                labels = hypergraph.node[node]["labels"]
+                labels.sort()
+                new_label = u"(0.1;{0})".format(u",".join(labels))
+                hypergraph.set_node_labels(node, [new_label])
+            
+            hypergraph.reset_nodes_with_more_labels()
         
         # rule 0.2
         parallel_edges_groups_keys = list(hypergraph.parallel_edges_groups.keys())
@@ -81,23 +85,27 @@ def run_algorithm(graph, return_features=False, compute_string=True):
         for key in parallel_edges_groups_keys:
             edges_group = list(hypergraph.parallel_edges_groups[key])
             endpoints = hypergraph.endpoints(edges_group[0])
-            perms = permutations(endpoints)
-            possible_labels = []
-            for perm in perms:
-                possible_label = {}
-                possible_label["perm"] = perm
-                possible_label["label"] = []
-                for edge in edges_group:
-                    possible_label["label"].append(Hypergraph.edge_to_string(hypergraph, edge, perm))
-                possible_label["label"].sort()
-                possible_label["label"] = u"(0.2;{0})".format(u",".join(possible_label["label"]))
-                possible_labels.append(possible_label)
-            possible_labels = sorted(possible_labels, key=lambda element: element["label"])
-            minimal_label = possible_labels[0]["label"]
-            minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
-            direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
-            hypergraph.remove_edges_from(edges_group)
-            hypergraph.add_edge(endpoints, direction, minimal_label)
+            if compute_string:
+                perms = permutations(endpoints)
+                possible_labels = []
+                for perm in perms:
+                    possible_label = {}
+                    possible_label["perm"] = perm
+                    possible_label["label"] = []
+                    for edge in edges_group:
+                        possible_label["label"].append(Hypergraph.edge_to_string(hypergraph, edge, perm))
+                    possible_label["label"].sort()
+                    possible_label["label"] = u"(0.2;{0})".format(u",".join(possible_label["label"]))
+                    possible_labels.append(possible_label)
+                possible_labels = sorted(possible_labels, key=lambda element: element["label"])
+                minimal_label = possible_labels[0]["label"]
+                minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
+                direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
+                hypergraph.remove_edges_from(edges_group)
+                hypergraph.add_edge(endpoints, direction, minimal_label)
+            else:
+                hypergraph.remove_edges_from(edges_group)
+                hypergraph.add_edge(endpoints, set(), "")
         
         hypergraph.reset_parallel_edges_groups()
         
@@ -221,9 +229,8 @@ def run_algorithm(graph, return_features=False, compute_string=True):
         if return_features:
             features += new_features
         
-        if compute_string:
-            # no need to check if modified here to continue, just go to the next rule after
-            rule_0(hypergraph)
+        # no need to check if modified here to continue, just go to the next rule after
+        rule_0(hypergraph, compute_string)
 
         modified, new_features = rule_1(hypergraph, return_features, compute_string)
         if modified:
