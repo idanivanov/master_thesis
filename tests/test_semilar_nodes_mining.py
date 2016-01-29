@@ -198,8 +198,10 @@ class TestSimilarNodesMining(unittest.TestCase):
         sketch_matrix = SketchMatrix(25, 265, ch_matrix)
         similar_nodes_exp = np.array([0, 5, 7])
         similar_nodes, _ = similar_nodes_mining.get_similar_nodes("n_7", dummy_hypergraph, sketch_matrix, 0, [], r_in=3, r_out=2, r_all=0)
-        equality = (similar_nodes_exp == similar_nodes).all()
-        self.assertTrue(equality, "Wrong similar nodes were extracted.")
+        equality = similar_nodes_exp == similar_nodes
+        if type(equality) is not bool:
+            equality = equality.all()
+        self.assertTrue(equality, "Wrong similar nodes were extracted (Keep in mind that the sketch_matrix is probabilistic, therefore, it may not be always correct. The test may pass in another run.).")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testFeatureExtraction']
