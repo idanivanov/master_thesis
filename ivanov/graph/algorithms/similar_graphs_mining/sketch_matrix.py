@@ -64,7 +64,7 @@ class SketchMatrix(Serializable):
             and_amplifications[l] = equality_sketch[offset : offset_new].all(0)
             offset = offset_new
         or_amplification = and_amplifications.any(0)
-        return np.nonzero(or_amplification)
+        return np.nonzero(or_amplification)[0]
     
 #     def extend_sketch_matrix(self, feature_lists, new_cols_count, extension_id):
 #         new_matrix = np.full((self.h_count, len(self.cols) + new_cols_count), np.iinfo(np.uint64).max, np.uint64)
