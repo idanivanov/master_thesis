@@ -23,7 +23,7 @@ def compute_rballs_tw(in_files, output_dir):
         rballs_with_big_tw = set()
         for r in [2, 3, 4, 5]:
             out_file = codecs.open(output_dir + "tw_r{0}_{1}".format(r, d), "w", "utf8")
-             
+            
             i = 0
             for node in nx_graph.nodes_iter():
                 print "-------------------------------------"
@@ -97,7 +97,7 @@ def test_graph(path_to_graph_file):
     return arnborg_proskurowski.get_treewidth(nx_graph)
 
 if __name__ == '__main__':
-#     compute_rballs_tw(helpers.datasets["famont"]["files"], "../output/fam_test/")
-    aggregate_results("../output/fam_test/")
-    aggregate_results("../output/fam_test/", percent=True, latex=True)
+    compute_rballs_tw(helpers.datasets["famont"]["files"], "../output/fam_test/")
+#     aggregate_results("../output/fam_test/")
+#     aggregate_results("../output/fam_test/", percent=True, latex=True)
 #     print test_graph("../output/peel/small_graph")

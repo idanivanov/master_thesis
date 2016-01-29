@@ -45,10 +45,12 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
     uri_node_map = {}
     if labels == "uris":
         for node in nodes:
-            # TODO: how to deal with literals?
-            nx_graph.add_node(node_id, labels=[unicode(node)])
-            uri_node_map[unicode(node)] = node_id
-            node_id += 1
+            u_node = unicode(node)
+            if u_node not in uri_node_map:
+                # Note: one node for all literals with the same value
+                nx_graph.add_node(node_id, labels=[u_node])
+                uri_node_map[u_node] = node_id
+                node_id += 1
         
         for s, p, o in triples:
             s_id = uri_node_map[unicode(s)]
@@ -72,42 +74,44 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
                     # we ignore classes
                     # TODO: what about predicates and other ontology definitions?
                     continue
-            node_kind = type(node)
-            node_colors = set()
-            if node_kind is BNode:
-                # add the bnode color
-                node_colors.add(colors[u"bnode"])
-            if node_kind in [BNode, URIRef]:
-                # add a color for each type of the node
-                types = list(get_node_types(rdf_graph, node))
-                if not types:
-                    # if there are not types add unknown color
-                    node_colors.add(colors[u"undefined"])
-                for node_type in types:
-                    node_type_raw = unicode(node_type)
-                    if node_type_raw not in colors:
-                        colors[node_type_raw] = str(color_id)
-                        color_id += 1
-                    node_colors.add(colors[node_type_raw])
-            elif node_kind is Literal:
-                # ad the literal color and the color for the datatype of the literal
-                node_colors.add(colors[u"literal"])
-                if node._datatype:
-                    datatype = unicode(node._datatype)
-                    if datatype not in colors:
-                        colors[datatype] = str(color_id)
-                        color_id += 1
+            u_node = unicode(node)
+            if u_node not in uri_node_map:
+                node_kind = type(node)
+                node_colors = set()
+                if node_kind is BNode:
+                    # add the bnode color
+                    node_colors.add(colors[u"bnode"])
+                if node_kind in [BNode, URIRef]:
+                    # add a color for each type of the node
+                    types = list(get_node_types(rdf_graph, node))
+                    if not types:
+                        # if there are not types add unknown color
+                        node_colors.add(colors[u"undefined"])
+                    for node_type in types:
+                        node_type_raw = unicode(node_type)
+                        if node_type_raw not in colors:
+                            colors[node_type_raw] = str(color_id)
+                            color_id += 1
+                        node_colors.add(colors[node_type_raw])
+                elif node_kind is Literal:
+                    # add the literal color and the color for the datatype of the literal
+                    node_colors.add(colors[u"literal"])
+                    if node._datatype:
+                        datatype = unicode(node._datatype)
+                        if datatype not in colors:
+                            colors[datatype] = str(color_id)
+                            color_id += 1
+                    else:
+                        datatype = u"http://www.w3.org/2001/XMLSchema#string"
+                    node_colors.add(colors[datatype])
                 else:
-                    datatype = u"http://www.w3.org/2001/XMLSchema#string"
-                node_colors.add(colors[datatype])
-            else:
-                # for cases like QuotedGraph and others.
-                # TODO: not properly handled
-                print "Unknown term type."
-                node_colors.add(colors[u"undefined"])
-            nx_graph.add_node(node_id, labels=list(node_colors))
-            uri_node_map[unicode(node)] = node_id
-            node_id += 1
+                    # for cases like QuotedGraph and others.
+                    # TODO: not properly handled
+                    print "Unknown term type."
+                    node_colors.add(colors[u"undefined"])
+                nx_graph.add_node(node_id, labels=list(node_colors))
+                uri_node_map[u_node] = node_id
+                node_id += 1
         
         for s, p, o in triples:
             if p == RDF.type:
