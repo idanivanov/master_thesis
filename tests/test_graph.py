@@ -58,23 +58,56 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(isomorphic, "Problem converting RDF graph to Networkx graph with colors.")
     
     def testWeisfeilerLehman(self):
-        labels_list_exp = [
-            '0', '1', 'a', 'b',
-            'wl_0;any(wl_2),in(wl_2)', 'wl_0;in(wl_3)', 'wl_1;any(wl_2),out(wl_2)', 'wl_1;any(wl_2),out(wl_2,wl_3)', 'wl_2;any(wl_0,wl_1)', 'wl_2;in(wl_1),out(wl_0)', 'wl_3;in(wl_1),out(wl_0)',
-            'wl_10;in(wl_7),out(wl_5)', 'wl_4;any(wl_8),in(wl_9)', 'wl_5;in(wl_10)', 'wl_6;any(wl_8),out(wl_9)', 'wl_7;any(wl_8),out(wl_10,wl_9)', 'wl_8;any(wl_4,wl_6)', 'wl_8;any(wl_4,wl_7)', 'wl_9;in(wl_6),out(wl_4)', 'wl_9;in(wl_7),out(wl_4)',
-            'wl_11;in(wl_15),out(wl_13)', 'wl_12;any(wl_16),in(wl_19)', 'wl_12;any(wl_17),in(wl_18)', 'wl_13;in(wl_11)', 'wl_14;any(wl_16),out(wl_18)', 'wl_15;any(wl_17),out(wl_11,wl_19)', 'wl_16;any(wl_12,wl_14)', 'wl_17;any(wl_12,wl_15)', 'wl_18;in(wl_14),out(wl_12)', 'wl_19;in(wl_15),out(wl_12)',
-            'wl_20;in(wl_25),out(wl_23)', 'wl_21;any(wl_26),in(wl_29)', 'wl_22;any(wl_27),in(wl_28)', 'wl_23;in(wl_20)', 'wl_24;any(wl_26),out(wl_28)', 'wl_25;any(wl_27),out(wl_20,wl_29)', 'wl_26;any(wl_21,wl_24)', 'wl_27;any(wl_22,wl_25)', 'wl_28;in(wl_24),out(wl_22)', 'wl_29;in(wl_25),out(wl_21)'
-        ]
+        wl_state_exp = {
+            "labels": {
+                "0": "wl_0.0",
+                "1": "wl_0.1",
+                "a": "wl_0.2",
+                "b": "wl_0.3",
+                "wl_0.0;in(wl_0.3)": "wl_1.0",
+                "wl_0.0;any(wl_0.2),in(wl_0.2)": "wl_1.1",
+                "wl_0.1;any(wl_0.2),out(wl_0.2,wl_0.3)": "wl_1.2",
+                "wl_0.1;any(wl_0.2),out(wl_0.2)": "wl_1.3",
+                "wl_0.2;in(wl_0.1),out(wl_0.0)": "wl_1.4",
+                "wl_0.2;any(wl_0.0,wl_0.1)": "wl_1.5",
+                "wl_0.3;in(wl_0.1),out(wl_0.0)": "wl_1.6",
+                "wl_1.0;in(wl_1.6)": "wl_2.0",
+                "wl_1.1;any(wl_1.5),in(wl_1.4)": "wl_2.1",
+                "wl_1.2;any(wl_1.5),out(wl_1.4,wl_1.6)": "wl_2.2",
+                "wl_1.3;any(wl_1.5),out(wl_1.4)": "wl_2.3",
+                "wl_1.4;in(wl_1.2),out(wl_1.1)": "wl_2.4",
+                "wl_1.4;in(wl_1.3),out(wl_1.1)": "wl_2.5",
+                "wl_1.5;any(wl_1.1,wl_1.2)": "wl_2.6",
+                "wl_1.5;any(wl_1.1,wl_1.3)": "wl_2.7",
+                "wl_1.6;in(wl_1.2),out(wl_1.0)": "wl_2.8",
+                "wl_2.0;in(wl_2.8)": "wl_3.0",
+                "wl_2.1;any(wl_2.7),in(wl_2.4)": "wl_3.1",
+                "wl_2.1;any(wl_2.6),in(wl_2.5)": "wl_3.2",
+                "wl_2.2;any(wl_2.6),out(wl_2.4,wl_2.8)": "wl_3.3",
+                "wl_2.3;any(wl_2.7),out(wl_2.5)": "wl_3.4",
+                "wl_2.4;in(wl_2.2),out(wl_2.1)": "wl_3.5",
+                "wl_2.5;in(wl_2.3),out(wl_2.1)": "wl_3.6",
+                "wl_2.6;any(wl_2.1,wl_2.2)": "wl_3.7",
+                "wl_2.7;any(wl_2.1,wl_2.3)": "wl_3.8",
+                "wl_2.8;in(wl_2.2),out(wl_2.0)": "wl_3.9"
+            },
+            "next_labels": {
+                0: 4,
+                1: 7,
+                2: 9,
+                3: 10
+            }
+        }
         hyper_dummy_wl = Hypergraph(example_graphs.gt_dummy_wl)
-        hyper_dummy_wl, labels_list = weisfeiler_lehman.init(hyper_dummy_wl)
+        hyper_dummy_wl, wl_state = weisfeiler_lehman.init(hyper_dummy_wl, test_mode=True)
         i = 1
         while True:
-            new_hyper_dummy_wl, labels_list = weisfeiler_lehman.iterate(hyper_dummy_wl, labels_list)
+            new_hyper_dummy_wl, wl_state = weisfeiler_lehman.iterate(hyper_dummy_wl, wl_state, i, test_mode=True)
             if weisfeiler_lehman.is_stable(hyper_dummy_wl, new_hyper_dummy_wl, i):
                 break
             hyper_dummy_wl = new_hyper_dummy_wl
             i += 1
-        self.assertEqual(labels_list_exp, labels_list, "The multi-sets of labels computed by Weisfeiler-Lehman are not correct.")
+        self.assertEqual(wl_state_exp, wl_state, "The multi-sets of labels computed by Weisfeiler-Lehman are not correct.")
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testHypergraphReadWrite']

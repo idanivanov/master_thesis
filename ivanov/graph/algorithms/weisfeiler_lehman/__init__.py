@@ -8,11 +8,14 @@ import networkx as nx
 from ivanov.graph import nxext
 from ivanov.graph.hypergraph import Hypergraph
 
-def iterate(graph, labels_list):
+def iterate(graph, wl_state, iteration, test_mode=False):
     '''Performs one iteration of the Weisfeiler-Lehman algorithm.
     :param graph: A Networkx graph or a Hypergraph
-    :param labels_list: A list of labels. Each label is uniquely
-    identified by its position index in the list.
+    :param wl_state: A dictionary containing 2 sub-dictionaries:
+    "labels" contains a mapping from the full original graph labels or
+    labels generated during the Weisfeiler & Lehman iterations to their
+    corresponding WL short unique labels; "next_labels" contains the next label
+    number for each WL iteration.
     :param iteration: The current iteration number.
     :return A tuple of the form (new_graph, new_labels_list), where
     new_graph is the resulting graph from the iteration, new_labels_list
@@ -75,72 +78,72 @@ def iterate(graph, labels_list):
         return "{0};{1}".format(node_label, label_extension)
     
     new_graph = graph.copy()
-    new_labels_list = []
-    new_node_labels = {}
     
-    labels_set = set(labels_list)
-    new_labels_set = set()
+    if iteration not in wl_state["next_labels"]:
+        wl_state["next_labels"][iteration] = 0
     
-    for node in graph.node:
+    if test_mode:
+        nodes = sorted(graph.node, key=lambda n: graph.node[n]["labels"][0])
+    else:
+        nodes = graph.node
+    
+    for node in nodes:
         if type(graph) is not Hypergraph:
             neighbors = nxext.get_all_neighbors(graph, node)
         else:
             neighbors = graph.bipartite_graph.neighbors(node)
         new_node_label = get_new_label(node, neighbors)
-        if new_node_label not in new_labels_set and new_node_label not in labels_set:
-                new_labels_list.append(new_node_label)
-                new_labels_set.add(new_node_label)
-        new_node_labels[node] = new_node_label
+        if new_node_label not in wl_state["labels"]:
+                wl_state["labels"][new_node_label] = "wl_{0}.{1}".format(iteration, wl_state["next_labels"][iteration])
+                wl_state["next_labels"][iteration] += 1
+        new_graph.node[node]["labels"] = [wl_state["labels"][new_node_label]]
     
-    new_labels_list.sort()
-    new_labels_list = labels_list + new_labels_list
+    return new_graph, wl_state
     
-    for node in graph.node:
-        new_graph.node[node]["labels"] = ["wl_" + str(new_labels_list.index(new_node_labels[node]))]
-    
-    return new_graph, new_labels_list
-    
-def init(graph, labels_list = []):
+def init(graph, wl_state=None, test_mode=False):
     '''Initialize the graph for performing Weisfeiler-Lehman algorithm.
     :param graph: Can be a Networkx graph or a Hypergraph.
-    :param labels_list: Optional. A list of predefined labels, whose
-    indices in the list will be used as indices of their occurrences
-    in the next iterations of the algorithm.
+    :param wl_state: Optional. A dictionary containing 2 sub-dictionaries:
+    "labels" contains a mapping from the full original graph labels or
+    labels generated during the Weisfeiler & Lehman iterations to their
+    corresponding WL short unique labels; "next_labels" contains the next label
+    number for each WL iteration.
     '''
-    def init_labels(_graph):
-        for node in _graph.node:
-            if "labels" not in _graph.node[node]:
-                _graph.node[node]["labels"] = ["0"]
-            elif not _graph.node[node]["labels"]:
-                _graph.node[node]["labels"] = ["0"]
-            elif len(_graph.node[node]["labels"]) != 1:
-                labels = _graph.node[node]["labels"]
-                labels.sort()
-                joined = ",".join(labels)
-                _graph.node[node]["labels"] = [joined]
+#     def init_labels(_graph):
+#         # TODO: This function is not really necessary
+#         for node in _graph.node:
+#             if "labels" not in _graph.node[node]:
+#                 _graph.node[node]["labels"] = ["0"]
+#             elif not _graph.node[node]["labels"]:
+#                 _graph.node[node]["labels"] = ["0"]
+#             elif len(_graph.node[node]["labels"]) != 1:
+#                 labels = _graph.node[node]["labels"]
+#                 labels.sort()
+#                 joined = ",".join(labels)
+#                 _graph.node[node]["labels"] = [joined]
     
     new_graph = graph.copy()
-    init_labels(new_graph)
+#     init_labels(new_graph)
     
-    # the labels in this list are represented by their indices in the new labels
-    new_labels_list = []
-    new_labels_set = set()
-    labels_set = set(labels_list)
+    if wl_state is None:
+        wl_state = {
+            "labels": {},
+            "next_labels": {0: 0}
+        }
     
-    for node in graph.node:
+    if test_mode:
+        nodes = sorted(graph.node, key=lambda n: graph.node[n]["labels"][0])
+    else:
+        nodes = graph.node
+    
+    for node in nodes:
         node_label = new_graph.node[node]["labels"][0]
-        if node_label not in labels_set and node_label not in new_labels_set:
-            new_labels_list.append(node_label)
-            new_labels_set.add(node_label)
+        if node_label not in wl_state["labels"]:
+            wl_state["labels"][node_label] = "wl_0.{0}".format(wl_state["next_labels"][0])
+            wl_state["next_labels"][0] += 1
+        new_graph.node[node]["labels"] = [wl_state["labels"][node_label]]
     
-    new_labels_list.sort()
-    new_labels_list = labels_list + new_labels_list
-    
-    for node in graph.node:
-        old_label = new_graph.node[node]["labels"][0]
-        new_graph.node[node]["labels"] = ["wl_" + str(new_labels_list.index(old_label))]
-    
-    return new_graph, new_labels_list
+    return new_graph, wl_state
     
 # TODO: what do we do when all labels are different?
 def is_stable(graph, new_graph, iteration=0):
@@ -154,6 +157,8 @@ def is_stable(graph, new_graph, iteration=0):
     if iteration > nodes_count:
         return True
     
+    repeating_new_labels = False
+    
     for node_1 in graph.node:
         node_1_label = graph.node[node_1]["labels"][0]
         node_1_new_label = new_graph.node[node_1]["labels"][0]
@@ -161,11 +166,19 @@ def is_stable(graph, new_graph, iteration=0):
             if node_1 != node_2:
                 node_2_label = graph.node[node_2]["labels"][0]
                 node_2_new_label = new_graph.node[node_2]["labels"][0]
-                if node_1_label == node_2_label or node_1_new_label == node_2_new_label:
-                    if node_1_label == node_2_label and node_1_new_label == node_2_new_label:
+                old_labels_cond = node_1_label == node_2_label
+                new_labels_cond = node_1_new_label == node_2_new_label
+                if old_labels_cond or new_labels_cond:
+                    if old_labels_cond and new_labels_cond:
+                        repeating_new_labels = True
                         continue
                     else:
                         is_stable = False
-                        break
+                        if repeating_new_labels:
+                            break
+    
+    if not is_stable and not repeating_new_labels:
+        # There is nothing to refine, since each new label appears only once in the graph
+        is_stable = True
     
     return is_stable
