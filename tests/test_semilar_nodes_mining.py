@@ -36,22 +36,35 @@ class TestSimilarNodesMining(unittest.TestCase):
         [0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]], dtype=np.float32)
     
     def testFeatureExtraction(self):
-        labels_list_exp = [
-            "g", "n", "r",
-            "wl_0;in(wl_2),out(wl_2)", "wl_1;in(wl_2),out(wl_2)", "wl_2;in(wl_0)", "wl_2;in(wl_1)", "wl_2;out(wl_0,wl_1)",
-            "wl_3;in(wl_7),out(wl_5)", "wl_4;in(wl_7),out(wl_6)", "wl_5;in(wl_3)", "wl_6;in(wl_4)", "wl_7;out(wl_3,wl_4)",
-            "b",
-            "wl_13;out(wl_1)", "wl_1;in(wl_13),out(wl_2)", "wl_2;in(wl_1,wl_1)"
-        ]
+        wl_state_exp = {
+            "labels": {
+                "g": "wl_0.0",
+                "n": "wl_0.1",
+                "r": "wl_0.2",
+                "b": "wl_0.3",
+                "wl_0.0;in(wl_0.2),out(wl_0.2)": "wl_1.0",
+                "wl_0.1;in(wl_0.2),out(wl_0.2)": "wl_1.1",
+                "wl_0.2;in(wl_0.1)": "wl_1.2",
+                "wl_0.2;out(wl_0.0,wl_0.1)": "wl_1.3",
+                "wl_0.2;in(wl_0.0)": "wl_1.4",
+                "wl_0.1;in(wl_0.3),out(wl_0.2)": "wl_1.5",
+                "wl_0.3;out(wl_0.1)": "wl_1.6",
+                "wl_0.2;in(wl_0.1,wl_0.1)": "wl_1.7"
+            },
+            "next_labels": {
+                0: 4,
+                1: 8
+            }
+        }
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database = [r_ball_hyper(dummy_hypergraph, "n_2", 1, edge_dir=1),
-                            r_ball_hyper(dummy_hypergraph, "n_2", 1, edge_dir=-1)]
+                           r_ball_hyper(dummy_hypergraph, "n_2", 1, edge_dir=-1)]
         features = []
-        labels_list = []
+        wl_state = None
         for rball in rballs_database:
-            new_features, labels_list = feature_extraction.extract_features(rball, wl_iterations=4, wl_labels_list=labels_list)
+            new_features, wl_state = feature_extraction.extract_features(rball, wl_iterations=4, wl_state=wl_state)
             features += new_features
-        self.assertEqual(labels_list_exp, labels_list, "The wrong labels lists were computed by Weisfeiler-Lehman.")
+        self.assertEqual(wl_state_exp, wl_state, "The wrong wl_state was computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], example_graphs.snm_dummy_graph_features[i]) for i in range(len(features))])
         self.assertTrue(isomorphic, "Wrong features extracted.")
     

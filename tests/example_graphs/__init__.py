@@ -539,14 +539,14 @@ snm_dummy_graph_features[-1].add_node("n_3", labels=["r"])
 snm_dummy_graph_features[-1].add_edge("n_2", "n_3", label="g")
 
 snm_dummy_graph_features.append(nx.MultiDiGraph())
-snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
-snm_dummy_graph_features[-1].add_node("n_1", labels=["wl_6"])
-snm_dummy_graph_features[-1].add_edge("n_2", "n_1", label="wl_4")
+snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_1.3"])
+snm_dummy_graph_features[-1].add_node("n_1", labels=["wl_1.2"])
+snm_dummy_graph_features[-1].add_edge("n_2", "n_1", label="wl_1.1")
 
 snm_dummy_graph_features.append(nx.MultiDiGraph())
-snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_7"])
-snm_dummy_graph_features[-1].add_node("n_3", labels=["wl_5"])
-snm_dummy_graph_features[-1].add_edge("n_2", "n_3", label="wl_3")
+snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_1.3"])
+snm_dummy_graph_features[-1].add_node("n_3", labels=["wl_1.4"])
+snm_dummy_graph_features[-1].add_edge("n_2", "n_3", label="wl_1.0")
 
 snm_dummy_graph_features.append(nx.MultiDiGraph())
 snm_dummy_graph_features[-1].add_node("n_2", labels=["r"])
@@ -557,6 +557,16 @@ snm_dummy_graph_features.append(nx.MultiDiGraph())
 snm_dummy_graph_features[-1].add_node("n_2", labels=["r"])
 snm_dummy_graph_features[-1].add_node("n_7", labels=["b"])
 snm_dummy_graph_features[-1].add_edge("n_7", "n_2", label="n")
+
+snm_dummy_graph_features.append(nx.MultiDiGraph())
+snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_1.7"])
+snm_dummy_graph_features[-1].add_node("n_6", labels=["wl_1.6"])
+snm_dummy_graph_features[-1].add_edge("n_6", "n_2", label="wl_1.5")
+
+snm_dummy_graph_features.append(nx.MultiDiGraph())
+snm_dummy_graph_features[-1].add_node("n_2", labels=["wl_1.7"])
+snm_dummy_graph_features[-1].add_node("n_7", labels=["wl_1.6"])
+snm_dummy_graph_features[-1].add_edge("n_7", "n_2", label="wl_1.5")
 # /-------------------------------------------------------
 
 # --------------------------------------------------------

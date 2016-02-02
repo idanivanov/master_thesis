@@ -27,13 +27,19 @@ def extract_features(hypergraph, wl_iterations=0, wl_state=None):
             hypergraph, wl_state = weisfeiler_lehman.init(hypergraph, wl_state)
         
         if i >= 1:
-            new_hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
-            if weisfeiler_lehman.is_stable(hypergraph, new_hypergraph, i):
-                break
-            hypergraph = new_hypergraph
+            old_hypergraph = hypergraph
+            hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
         
         new_features = [process_raw_feature(raw_feature, hypergraph) for raw_feature in raw_features]
         features += itertools.chain(*new_features)
+        
+        if i >= 1:
+            # TODO: This way we extract features for the current WL iteration, although the labels may be stable
+            # This approach is good when all the labels are distinct, but if there was no refinement
+            # in the last WL iteration the extracted features will not be semantically different
+            # from the ones extracted in the previous iteration.
+            if weisfeiler_lehman.is_stable(old_hypergraph, hypergraph, i):
+                break
     
     return features, wl_state
 
