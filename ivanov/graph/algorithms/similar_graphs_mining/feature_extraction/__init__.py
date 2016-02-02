@@ -13,13 +13,8 @@ import networkx as nx
 import itertools
 import sys
 
-def extract_features(hypergraph, wl_iterations=0, wl_labels_list = []):
+def extract_features(hypergraph, wl_iterations=0, wl_state=None):
     features = []
-    
-    if wl_iterations > 0:
-        new_wl_labels_list = list(wl_labels_list)
-    else:
-        new_wl_labels_list = []
     
     raw_features = arnborg_proskurowski.get_reduced_features(hypergraph)
 #     if tw == -1:
@@ -29,12 +24,10 @@ def extract_features(hypergraph, wl_iterations=0, wl_labels_list = []):
 
     for i in range(wl_iterations + 1):
         if i == 1:
-            hypergraph, new_wl_labels_list = weisfeiler_lehman.init(hypergraph, new_wl_labels_list)
+            hypergraph, wl_state = weisfeiler_lehman.init(hypergraph, wl_state)
         
         if i >= 1:
-            new_hypergraph, new_wl_labels_list = weisfeiler_lehman.iterate(hypergraph, new_wl_labels_list)
-            # TODO: should we skip the stability check for the first iteration?
-#                 if i > 1 and weisfeiler_lehman.is_stable(hypergraph, new_hypergraph, i):
+            new_hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
             if weisfeiler_lehman.is_stable(hypergraph, new_hypergraph, i):
                 break
             hypergraph = new_hypergraph
@@ -42,7 +35,7 @@ def extract_features(hypergraph, wl_iterations=0, wl_labels_list = []):
         new_features = [process_raw_feature(raw_feature, hypergraph) for raw_feature in raw_features]
         features += itertools.chain(*new_features)
     
-    return features, new_wl_labels_list
+    return features, wl_state
 
 def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     '''Turns a raw feature to a usable feature or a collection of features, depending on
@@ -145,11 +138,11 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     yield raw_feature.as_subgraph(hypergraph)
 
 def get_feature_lists(graph_database, wl_iterations=0):
-    wl_labels_lists = []
+    wl_state = None
     for element_hypergraphs in graph_database:
         # process the hypergraphs representing one element of the database
         features = []
         for hypergraph in element_hypergraphs:
-            new_features, wl_labels_lists = extract_features(hypergraph, wl_iterations, wl_labels_lists)
+            new_features, wl_state = extract_features(hypergraph, wl_iterations, wl_state)
             features += new_features
         yield features

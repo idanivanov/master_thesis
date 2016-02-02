@@ -109,21 +109,20 @@ def init(graph, wl_state=None, test_mode=False):
     corresponding WL short unique labels; "next_labels" contains the next label
     number for each WL iteration.
     '''
-#     def init_labels(_graph):
-#         # TODO: This function is not really necessary
-#         for node in _graph.node:
-#             if "labels" not in _graph.node[node]:
-#                 _graph.node[node]["labels"] = ["0"]
-#             elif not _graph.node[node]["labels"]:
-#                 _graph.node[node]["labels"] = ["0"]
-#             elif len(_graph.node[node]["labels"]) != 1:
-#                 labels = _graph.node[node]["labels"]
-#                 labels.sort()
-#                 joined = ",".join(labels)
-#                 _graph.node[node]["labels"] = [joined]
+    def init_labels(_graph):
+        for node in _graph.node:
+            if "labels" not in _graph.node[node]:
+                _graph.node[node]["labels"] = ["0"]
+            elif not _graph.node[node]["labels"]:
+                _graph.node[node]["labels"] = ["0"]
+            elif len(_graph.node[node]["labels"]) != 1:
+                labels = _graph.node[node]["labels"]
+                labels.sort()
+                joined = ",".join(labels)
+                _graph.node[node]["labels"] = [joined]
     
     new_graph = graph.copy()
-#     init_labels(new_graph)
+    init_labels(new_graph)
     
     if wl_state is None:
         wl_state = {
@@ -145,7 +144,6 @@ def init(graph, wl_state=None, test_mode=False):
     
     return new_graph, wl_state
     
-# TODO: what do we do when all labels are different?
 def is_stable(graph, new_graph, iteration=0):
     is_stable = True
     
