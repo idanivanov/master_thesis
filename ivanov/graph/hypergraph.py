@@ -475,8 +475,8 @@ class Hypergraph(Serializable):
         self.nodes_with_2_neighbors = set()
         self.nodes_with_3_neighbors = set()
     
-    def to_graph(self, multidigraph=False):
-        return self.subgraph(self.nodes(), multidigraph=multidigraph)
+    def to_nx_graph(self):
+        return self.subgraph_with_labels(set(self.nodes_iter()))
     
     def visualize(self):
         nxext.visualize_graph(self.bipartite_graph, bipartite=True, edge_labels=False)
