@@ -33,7 +33,7 @@ datasets = {
         ]
     },
     "peel": {
-         "files": [
+        "files": [
             data_path + "Peel/peel.rdf"
         ]
     },
@@ -45,34 +45,39 @@ datasets = {
         ]
     },
     "geospecies": {
-         "files": [
+        "files": [
             data_path + "GeoSpecies/geospecies.rdf"
         ]
     },
     "jamendo": {
-         "files": [
+        "files": [
             data_path + "Jamendo/jamendo-rdf/jamendo.rdf",
             data_path + "Jamendo/jamendo-rdf/mbz_jamendo.rdf"
         ]
     },
     "opencyc": {
-         "files": [
+        "files": [
             data_path + "OpenCyc/opencyc-latest.owl"
         ]
     },
     "famont-ext": {
-         "files": [
+        "files": [
             data_ext_path + "famont_ext.rdf"
         ]
     },
     "tele-ext": {
-         "files": [
+        "files": [
             data_ext_path + "tele_ext.rdf"
         ]
     },
     "peel-ext": {
-         "files": [
+        "files": [
             data_ext_path + "peel_ext.rdf"
+        ]
+    },
+    "mutagenicity": {
+        "files": [
+            data_path + "Mutagenicity/mutagenicity_cpk.txt"
         ]
     }
 }
