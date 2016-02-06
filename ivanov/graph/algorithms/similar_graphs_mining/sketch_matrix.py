@@ -16,6 +16,12 @@ class SketchMatrix(Serializable):
         '''
         return int(round(pow((1. / (1. - inflection_point)), k)))
     
+    @staticmethod
+    def get_inflation_point(k, L):
+        '''Calculate inflation point given k and L of the sketch matrix.
+        '''
+        return 1. - pow(1. / float(L), 1. / float(k))
+    
 #     @staticmethod
 #     def estimate_time_to_build(nodes_count, ch_mat_non_empty_rows, k, L):
 #         '''Get the estimated time to build the sketch matrix in seconds.
