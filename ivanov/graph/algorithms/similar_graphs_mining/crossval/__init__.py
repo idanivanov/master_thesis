@@ -48,9 +48,9 @@ def loo_crossval(graph_database, cols_count, target_values, wl_iter_range, k_L_r
     
     best_model = model(-1, -1, -1, -1)
     
-    for k, L in k_L_range:
-        for wl_iterations in wl_iter_range:
-            ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
+    for wl_iterations in wl_iter_range:
+        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
+        for k, L in k_L_range:
             sketch_matrix = SketchMatrix(k, L, ch_matrix)
             sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
             avg_quality = 0.
