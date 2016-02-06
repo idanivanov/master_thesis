@@ -10,18 +10,17 @@ from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMa
 from collections import Counter
 import numpy as np
 
-def model(quality, wl_iterations):
-    return {"quality": quality, "wl_iterations": wl_iterations}
+def model(quality, wl_iterations, k, L):
+    return {"quality": quality, "wl_iterations": wl_iterations, "k": k, "L": L}
 
-def loo_crossval(graph_database, cols_count, target_values, wl_iter_range, k, L, output_dir):
+def loo_crossval(graph_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir):
     '''Leave-one-out cross-validation.
     :param graph_database: Defined the same way as for CHaracteristicMatrix constructor.
     :param cols_count: Number of elements in the database.
     :param target_values: A list of the size of the graph_database, where each element
     indicates the real target value of the corresponding (by index) element in the database.
     :param wl_iter_range: Range of Weisfeiler-Lehman iterations to be considered in the cross-validation.
-    :param k: k of the sketch matrix.
-    :param L: L of the sketch matrix.
+    :param k_L_range: A range okf (k, L) tuples for the sketch matrix to be considered in the cross-validation.
 #     :param quality_function: a function with signature (G, sketch_matrix), where G is a list of graphs
 #     representing a single entity in the database and sketch_matrix is a sketch matrix. The function
 #     should return a real value. The cross-validation will find the model that maximizes this function.
@@ -47,20 +46,20 @@ def loo_crossval(graph_database, cols_count, target_values, wl_iter_range, k, L,
         extimated_target_i = predict_target(similar_targets)
         return int(true_target_i == extimated_target_i) # zero-one loss
     
-    best_model = model(-1, -1)
+    best_model = model(-1, -1, -1, -1)
     
-    for wl_iterations in wl_iter_range:
-        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
-        sketch_matrix = SketchMatrix(k, L, ch_matrix)
-        sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
-        avg_quality = 0.
-        for i in range(cols_count):
-            avg_quality += float(quality(i, sketch_matrix))
-        print avg_quality
-        avg_quality /= cols_count
-        print model(avg_quality, wl_iterations)
-        if avg_quality > best_model["quality"]:
-            best_model = model(avg_quality, wl_iterations)
+    for k, L in k_L_range:
+        for wl_iterations in wl_iter_range:
+            ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
+            sketch_matrix = SketchMatrix(k, L, ch_matrix)
+            sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
+            avg_quality = 0.
+            for i in range(cols_count):
+                avg_quality += float(quality(i, sketch_matrix))
+            avg_quality /= cols_count
+            print model(avg_quality, wl_iterations, k, L)
+            if avg_quality > best_model["quality"]:
+                best_model = model(avg_quality, wl_iterations, k, L)
     
     return best_model
                     
