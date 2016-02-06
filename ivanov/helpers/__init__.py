@@ -77,7 +77,7 @@ datasets = {
     },
     "mutagenicity": {
         "files": [
-            data_path + "Mutagenicity/mutagenicity_cpk.txt"
+            data_path + "Mutagenicity/mutagenicity.txt"
         ]
     }
 }

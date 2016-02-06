@@ -80,7 +80,7 @@ class CharacteristicMatrix(Serializable):
         '''
         :param graph_database: A list of lists where each sublist represents
         an element of the database (will be represented by a column in the
-        characteristic matrix), and each element in a sublist is a hypegraph.
+        characteristic matrix), and each element in a sublist is a Hypegraph.
         (One element can be represented by multiple graphs)
         :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
         performed (before a graph becomes 'stable').

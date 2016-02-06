@@ -3,6 +3,7 @@ Created on Feb 4, 2016
 
 @author: Ivan Ivanov
 '''
+from ivanov.graph.hypergraph import Hypergraph
 import networkx as nx
 import itertools
 import codecs
@@ -17,7 +18,7 @@ def read_chemical_compounts(in_file):
     chem_graph_database = []
     chem_props = [] # properties of the compounds indexed by their position in the chem_graph_database
     
-    current_graph = nx.Graph()
+    current_graph = None
     current_properties = None
     with codecs.open(in_file, "r", "utf8") as fp:
         i = 0
@@ -27,6 +28,9 @@ def read_chemical_compounts(in_file):
                     break
                 assert line.startswith("#")
                 current_properties = map(lambda x: int(x), line.split(" ")[1:])
+                current_graph = nx.Graph()
+#                 if current_properties[0] > 10:
+#                     break
             elif i == 1:
                 nodes = line.split(" ")[:-1]
                 assert len(nodes) == current_properties[2]
@@ -37,10 +41,9 @@ def read_chemical_compounts(in_file):
                 edges = [edges[e : e + 3] for e in itertools.imap(lambda x: 3 * x, range(len(edges)/3))]
                 assert len(edges) == current_properties[3]
                 for edge in edges:
-                    edge = list(edge)
                     current_graph.add_edge(int(edge[0]), int(edge[1]), label=edge[2])
                 
-                chem_graph_database.append([current_graph])
+                chem_graph_database.append([Hypergraph(current_graph)])
                 chem_props.append(current_properties)
             i = (i + 1) % 3
     

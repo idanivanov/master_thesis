@@ -50,6 +50,9 @@ class SketchMatrix(Serializable):
                     column[l, 0] = h_of_i
         return column
     
+    def get_column(self, i):
+        return self.matrix[:, i : i + 1]
+    
     def get_similar_columns(self, sketch_column):
         '''Returns the indices of all columns, which evaluate to true
         after being compared to the query sketch column using the AND-
