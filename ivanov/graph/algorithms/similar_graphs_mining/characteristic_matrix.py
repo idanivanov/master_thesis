@@ -54,7 +54,9 @@ class CharacteristicMatrix(Serializable):
         for col_1, col_2 in itertools.combinations(range(self.cols_count), 2):
             shingles_col_1 = get_shingles_fp_set(col_1)
             shingles_col_2 = get_shingles_fp_set(col_2)
-            jaccard_sim_mat[col_1, col_2] = jaccard_sim(shingles_col_1, shingles_col_2)
+            similarity = jaccard_sim(shingles_col_1, shingles_col_2)
+            jaccard_sim_mat[col_1, col_2] = similarity
+            jaccard_sim_mat[col_2, col_1] = similarity
         
         return jaccard_sim_mat
     
