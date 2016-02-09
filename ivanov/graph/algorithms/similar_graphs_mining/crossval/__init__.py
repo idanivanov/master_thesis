@@ -16,10 +16,14 @@ def model(quality, wl_iterations):
 def model_threshold(quality, wl_iterations, k=-1, L=-1, infl_point=-1):
     if k != -1 and L != -1:
         infl_point = SketchMatrix.get_inflation_point(k, L)
-    return model(quality, wl_iterations).update({"k": k, "L": L, "infl_point": infl_point})
+    m = model(quality, wl_iterations)
+    m.update({"k": k, "L": L, "infl_point": infl_point})
+    return m
 
 def model_p(quality, wl_iterations, p):
-    return model(quality, wl_iterations).update({"p", p})
+    m = model(quality, wl_iterations)
+    m.update({"p": p})
+    return m
 
 def predict_target_majority(similar_targets):
         '''Majority election of target.
@@ -87,7 +91,7 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
         estimated_target_i = predict_target_majority(similar_targets)
         return int(true_target_i == estimated_target_i) # zero-one loss
     
-    best_model = model_threshold(-1, -1)
+    best_model = model_p(-1, -1, -1)
     
     for wl_iterations in wl_iter_range:
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
@@ -99,7 +103,7 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
             avg_quality /= cols_count
             print model_p(avg_quality, wl_iterations, p)
             if avg_quality > best_model["quality"]:
-                best_model = model(avg_quality, wl_iterations, p)
+                best_model = model_p(avg_quality, wl_iterations, p)
     
     return best_model
 
