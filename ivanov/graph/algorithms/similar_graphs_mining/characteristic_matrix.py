@@ -47,7 +47,11 @@ class CharacteristicMatrix(Serializable):
                 return shingles_fp
         
         def jaccard_sim(u, v):
-            return float(len(u.intersection(v))) / float(len(u.union(v)))
+            len_union = len(u.union(v))
+            if len_union > 0:
+                return float(len(u.intersection(v))) / float(len_union)
+            else:
+                return 0.
         
         jaccard_sim_mat = np.zeros((self.cols_count, self.cols_count), dtype=np.float32)
         
