@@ -9,6 +9,7 @@ from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import 
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
 from collections import Counter
 import numpy as np
+import itertools
 
 def model(quality, wl_iterations):
     return {"quality": quality, "wl_iterations": wl_iterations}
@@ -27,9 +28,14 @@ def model_p(quality, wl_iterations, p):
 
 def predict_target_majority(similar_targets):
         '''Majority election of target.
+        :param similar_targets: A list of either integers or lists. Each element may have multiple target values.
+        The target label that appears most frequently is the chosen one.
         '''
         if similar_targets:
-            target_counts = Counter(similar_targets)
+            if type(similar_targets[0]) is list:
+                target_counts = Counter(itertools.chain(*similar_targets))
+            else:
+                target_counts = Counter(similar_targets)
             majority_label = max(target_counts, key=lambda x: target_counts[x])
             return majority_label
         else:
@@ -60,7 +66,10 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
 #         print "Similar cols:", similar_cols
 #         print "Similar targets:", similar_targets
 #         print "--------------------------------------"
-        return int(true_target_i == estimated_target_i) # zero-one loss
+        if type(true_target_i) is list:
+            return int(estimated_target_i in true_target_i) # zero-one loss
+        else:
+            return int(true_target_i == estimated_target_i) # zero-one loss
     
     best_model = model_threshold(-1, -1)
     
@@ -68,7 +77,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
         for k, L in k_L_range:
             sketch_matrix = SketchMatrix(k, L, ch_matrix)
-            sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
+#             sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
             avg_quality = 0.
             for i in range(cols_count):
                 avg_quality += float(quality(i, sketch_matrix))
@@ -84,13 +93,6 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
     '''
-    def quality(i, jaccard_similarity_matrix, threshold):
-        similar_cols = np.where(jaccard_similarity_matrix[i, :] >= threshold)[0]
-        similar_targets = map(lambda c: target_values[c], similar_cols)
-        true_target_i = target_values[i]
-        estimated_target_i = predict_target_majority(similar_targets)
-        return int(true_target_i == estimated_target_i) # zero-one loss
-    
     best_model = model_p(-1, -1, -1)
     
     for wl_iterations in wl_iter_range:
@@ -117,7 +119,10 @@ def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_ra
         similar_targets = map(lambda c: target_values[c], similar_cols)
         true_target_i = target_values[i]
         estimated_target_i = predict_target_majority(similar_targets)
-        return int(true_target_i == estimated_target_i) # zero-one loss
+        if type(true_target_i) is list:
+            return int(estimated_target_i in true_target_i) # zero-one loss
+        else:
+            return int(true_target_i == estimated_target_i) # zero-one loss
     
     return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, threshold_range, quality, output_dir)
 
@@ -134,6 +139,9 @@ def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p
         k_most_similar_targets = map(lambda c: target_values[c], k_most_similar_cols)
         true_target_i = target_values[i]
         estimated_target_i = predict_target_majority(k_most_similar_targets)
-        return int(true_target_i == estimated_target_i) # zero-one loss
+        if type(true_target_i) is list:
+            return int(estimated_target_i in true_target_i) # zero-one loss
+        else:
+            return int(true_target_i == estimated_target_i) # zero-one loss
     
     return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, p_range, quality_pnn, output_dir)
