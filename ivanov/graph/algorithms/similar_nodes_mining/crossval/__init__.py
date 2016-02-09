@@ -3,8 +3,8 @@ Created on Feb 9, 2016
 
 @author: Ivan Ivanov
 '''
-from ivanov.graph.algorithms import similar_nodes_mining, similar_graphs_mining
 from ivanov.graph.algorithms.similar_graphs_mining import crossval as sgm_crossval
+from ivanov.graph.algorithms import similar_nodes_mining, similar_graphs_mining
 
 
 def model_threshold(quality, wl_iterations, r_in, r_out, r_all, k=-1, L=-1, infl_point=-1):
