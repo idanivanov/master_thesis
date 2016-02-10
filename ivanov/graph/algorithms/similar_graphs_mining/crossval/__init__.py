@@ -87,6 +87,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
             current_model = model_infl_point(avg_quality, wl_iterations, k, L)
             print current_model
             models_file.write(str(current_model) + ",\n")
+            models_file.flush()
             if avg_quality > best_model["quality"]:
                 best_model = current_model
     
