@@ -14,7 +14,7 @@ import itertools
 def model(quality, wl_iterations):
     return {"quality": quality, "wl_iterations": wl_iterations}
 
-def model_threshold(quality, wl_iterations, k=-1, L=-1, infl_point=-1):
+def model_infl_point(quality, wl_iterations, k=-1, L=-1, infl_point=-1):
     if k != -1 and L != -1:
         infl_point = SketchMatrix.get_inflation_point(k, L)
     m = model(quality, wl_iterations)
@@ -71,7 +71,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    best_model = model_threshold(-1, -1)
+    best_model = model_infl_point(-1, -1)
     
     for wl_iterations in wl_iter_range:
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
@@ -82,9 +82,9 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
             for i in range(cols_count):
                 avg_quality += float(quality(i, sketch_matrix))
             avg_quality /= cols_count
-            print model_threshold(avg_quality, wl_iterations, k, L)
+            print model_infl_point(avg_quality, wl_iterations, k, L)
             if avg_quality > best_model["quality"]:
-                best_model = model_threshold(avg_quality, wl_iterations, k, L)
+                best_model = model_infl_point(avg_quality, wl_iterations, k, L)
     
     return best_model
 
@@ -109,22 +109,28 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
     
     return best_model
 
-def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_range, threshold_range, output_dir):
+def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, output_dir):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
+    :param infl_point_range: A range of inflation point values (infl_point = 1. - threshold).
     '''
-    def quality(i, jaccard_similarity_matrix, threshold):
+    def quality(i, jaccard_similarity_matrix, infl_point):
+        threshold = 1. - infl_point
         similar_cols = np.where(jaccard_similarity_matrix[i, :] >= threshold)[0]
         similar_targets = map(lambda c: target_values[c], similar_cols)
         true_target_i = target_values[i]
         estimated_target_i = predict_target_majority(similar_targets)
+#         print "Col:", i, ", Target:", true_target_i, ", Est. target: ", estimated_target_i
+#         print "Similar cols:", similar_cols
+#         print "Similar targets:", similar_targets
+#         print "--------------------------------------"
         if type(true_target_i) is list:
             return int(estimated_target_i in true_target_i) # zero-one loss
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, threshold_range, quality, output_dir)
+    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, quality, output_dir)
 
 def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p_range, output_dir):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
