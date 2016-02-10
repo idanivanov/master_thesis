@@ -8,7 +8,7 @@ from ivanov.graph.algorithms import similar_nodes_mining, similar_graphs_mining
 
 
 def model_threshold(quality, wl_iterations, r_in, r_out, r_all, k=-1, L=-1, infl_point=-1):
-    m = sgm_crossval.model_threshold(quality, wl_iterations, k, L, infl_point)
+    m = sgm_crossval.model_infl_point(quality, wl_iterations, k, L, infl_point)
     return model(m, r_in, r_out, r_all)
 
 def model_p(quality, wl_iterations, r_in, r_out, r_all, p):
@@ -30,6 +30,9 @@ def loo_crossval_sketch(hypergraph, wl_iter_range, k_L_range, r_in_range, r_out_
                 cols_count = hypergraph.number_of_nodes()
                 target_values = map(lambda n: hypergraph.node[n]["labels"], hypergraph.nodes_iter())
                 pre_model = sgm_crossval.loo_crossval_sketch(rballs_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir)
+                models_file = open(output_dir + "models", "a")
+                models_file.write(str(model(pre_model, r_in, r_out, r_all)) + ",\n")
+                models_file.close()
                 if pre_model["quality"] > best_model["quality"]:
                     best_model = model(pre_model, r_in, r_out, r_all)
     

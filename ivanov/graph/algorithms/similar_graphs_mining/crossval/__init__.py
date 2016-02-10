@@ -73,6 +73,8 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
     
     best_model = model_infl_point(-1, -1)
     
+    models_file = open(output_dir + "models", "a")
+    
     for wl_iterations in wl_iter_range:
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
         for k, L in k_L_range:
@@ -82,9 +84,14 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
             for i in range(cols_count):
                 avg_quality += float(quality(i, sketch_matrix))
             avg_quality /= cols_count
-            print model_infl_point(avg_quality, wl_iterations, k, L)
+            current_model = model_infl_point(avg_quality, wl_iterations, k, L)
+            print current_model
+            models_file.write(str(current_model) + ",\n")
             if avg_quality > best_model["quality"]:
-                best_model = model_infl_point(avg_quality, wl_iterations, k, L)
+                best_model = current_model
+    
+    models_file.write("Best model: " + str(best_model) + "\n")
+    models_file.close()
     
     return best_model
 
