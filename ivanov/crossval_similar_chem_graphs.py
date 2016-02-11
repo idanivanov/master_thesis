@@ -8,7 +8,7 @@ from ivanov.graph import dataset_manager
 from ivanov import helpers
 
 dataset = "mutagenicity"
-wl_iter_range = range(5, 12)
+wl_iter_range = range(0, 12)
 k_L_range = [
     (20, 1),   # inflection point ~0.
     (25, 14),   # inflection point 0.1

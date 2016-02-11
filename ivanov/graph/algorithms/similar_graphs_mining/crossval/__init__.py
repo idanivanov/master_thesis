@@ -11,18 +11,20 @@ from collections import Counter
 import numpy as np
 import itertools
 
-def model(quality, wl_iterations):
-    return {"quality": quality, "wl_iterations": wl_iterations}
+def model(quality, wl_iterations, base_model = {}):
+    m = base_model.copy()
+    m.update({"quality": quality, "wl_iterations": wl_iterations})
+    return m
 
-def model_infl_point(quality, wl_iterations, k=-1, L=-1, infl_point=-1):
+def model_infl_point(quality, wl_iterations, k=-1, L=-1, infl_point=-1, base_model = {}):
     if k != -1 and L != -1:
         infl_point = SketchMatrix.get_inflation_point(k, L)
-    m = model(quality, wl_iterations)
+    m = model(quality, wl_iterations, base_model)
     m.update({"k": k, "L": L, "infl_point": infl_point})
     return m
 
-def model_p(quality, wl_iterations, p):
-    m = model(quality, wl_iterations)
+def model_p(quality, wl_iterations, p, base_model = {}):
+    m = model(quality, wl_iterations, base_model)
     m.update({"p": p})
     return m
 
@@ -41,7 +43,7 @@ def predict_target_majority(similar_targets):
         else:
             return 0
 
-def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir):
+def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir, base_model={}):
     '''Leave-one-out cross-validation.
     :param graph_database: Defined the same way as for CHaracteristicMatrix constructor.
     :param cols_count: Number of elements in the database.
@@ -71,7 +73,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    best_model = model_infl_point(-1, -1)
+    best_model = model_infl_point(-1, -1, base_model=base_model)
     
     models_file = open(output_dir + "models", "a")
     
@@ -84,24 +86,29 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
             for i in range(cols_count):
                 avg_quality += float(quality(i, sketch_matrix))
             avg_quality /= cols_count
-            current_model = model_infl_point(avg_quality, wl_iterations, k, L)
+            current_model = model_infl_point(avg_quality, wl_iterations, k, L, base_model=base_model)
             print current_model
             models_file.write(str(current_model) + ",\n")
             models_file.flush()
             if avg_quality > best_model["quality"]:
                 best_model = current_model
     
-    models_file.write("Best model: " + str(best_model) + "\n")
+    if not base_model:
+        # print best model when there are no outer parameters
+        models_file.write("Best model: " + str(best_model) + "\n")
+    
     models_file.close()
     
     return best_model
 
-def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, param_2_range, quality_function, output_dir):
+def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, param_2_range, quality_function, output_dir, base_model={}):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
     '''
-    best_model = model_p(-1, -1, -1)
+    best_model = model_p(-1, -1, -1, base_model=base_model)
+    
+    models_file = open(output_dir + "models", "a")
     
     for wl_iterations in wl_iter_range:
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
@@ -111,13 +118,22 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
             for i in range(cols_count):
                 avg_quality += float(quality_function(i, jaccard_similarity_matrix, p))
             avg_quality /= cols_count
-            print model_p(avg_quality, wl_iterations, p)
+            current_model = model_p(avg_quality, wl_iterations, p, base_model=base_model)
+            print current_model
+            models_file.write(str(current_model) + ",\n")
+            models_file.flush()
             if avg_quality > best_model["quality"]:
-                best_model = model_p(avg_quality, wl_iterations, p)
+                best_model = current_model
+    
+    if not base_model:
+        # print best model when there are no outer parameters
+        models_file.write("Best model: " + str(best_model) + "\n")
+    
+    models_file.close()
     
     return best_model
 
-def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, output_dir):
+def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, output_dir, base_model={}):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -138,7 +154,7 @@ def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_ra
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, quality, output_dir)
+    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, quality, output_dir, base_model)
 
 def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p_range, output_dir):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
@@ -158,4 +174,4 @@ def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, p_range, quality_pnn, output_dir)
+    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, p_range, quality_pnn, output_dir, base_model)

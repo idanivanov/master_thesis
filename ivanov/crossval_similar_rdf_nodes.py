@@ -39,6 +39,5 @@ if __name__ == '__main__':
     in_files = helpers.datasets[dataset]["files"]
     graph, node_id_map = rdf.convert_rdf_to_nx_graph(in_files, discard_classes=False)
     hypergraph = Hypergraph(graph)
-    best_model = crossval.loo_crossval_sketch(hypergraph, wl_iter_range, k_L_range, r_in_range, r_out_range, r_all_range, output_dir)
-#     best_model = crossval.loo_crossval_pnn(hypergraph, wl_iter_range, p_range, r_in_range, r_out_range, r_all_range, output_dir)
+    best_model = crossval.loo_crossval(hypergraph, wl_iter_range, r_in_range, r_out_range, r_all_range, output_dir, k_L_range=k_L_range)
     print "Best model:", best_model

@@ -7,49 +7,30 @@ from ivanov.graph.algorithms.similar_graphs_mining import crossval as sgm_crossv
 from ivanov.graph.algorithms import similar_nodes_mining, similar_graphs_mining
 
 
-def model_threshold(quality, wl_iterations, r_in, r_out, r_all, k=-1, L=-1, infl_point=-1):
-    m = sgm_crossval.model_infl_point(quality, wl_iterations, k, L, infl_point)
-    return model(m, r_in, r_out, r_all)
+def model(r_in, r_out, r_all):
+    return {"r_in": r_in, "r_out": r_out, "r_all": r_all}
 
-def model_p(quality, wl_iterations, r_in, r_out, r_all, p):
-    m = sgm_crossval.model_p(quality, wl_iterations, p)
-    return model(m, r_in, r_out, r_all)
-
-def model(pre_model, r_in, r_out, r_all):
-    m = pre_model.copy()
-    m.update({"r_in": r_in, "r_out": r_out, "r_all": r_all})
-    return m
-
-def loo_crossval_sketch(hypergraph, wl_iter_range, k_L_range, r_in_range, r_out_range, r_all_range, output_dir):
-    best_model = model_threshold(-1, -1, -1, -1, -1)
+def loo_crossval(hypergraph, wl_iter_range, r_in_range, r_out_range, r_all_range, output_dir, k_L_range=None, infl_point_range=None, p_range=None):
+    best_model = sgm_crossval.model(-1, -1, base_model=model(-1, -1, -1))
     
     for r_in in r_in_range:
         for r_out in r_out_range:
             for r_all in r_all_range:
+                base_model = model(r_in, r_out, r_all)
                 rballs_database, _ = similar_nodes_mining.extract_rballs_database(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all)
                 cols_count = hypergraph.number_of_nodes()
                 target_values = map(lambda n: hypergraph.node[n]["labels"], hypergraph.nodes_iter())
-                pre_model = sgm_crossval.loo_crossval_sketch(rballs_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir)
-                models_file = open(output_dir + "models", "a")
-                models_file.write(str(model(pre_model, r_in, r_out, r_all)) + ",\n")
-                models_file.close()
-                if pre_model["quality"] > best_model["quality"]:
-                    best_model = model(pre_model, r_in, r_out, r_all)
+                if k_L_range:
+                    current_model = sgm_crossval.loo_crossval_sketch(rballs_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir, base_model=base_model)
+                elif infl_point_range:
+                    current_model = sgm_crossval.loo_crossval_threshold(rballs_database, cols_count, target_values, wl_iter_range, infl_point_range, output_dir, base_model=base_model)
+                else:
+                    current_model = sgm_crossval.loo_crossval_pnn(rballs_database, cols_count, target_values, wl_iter_range, p_range, output_dir, base_model=base_model)
+                if current_model["quality"] > best_model["quality"]:
+                    best_model = current_model
     
-    return best_model
-
-def loo_crossval_pnn(hypergraph, wl_iter_range, p_range, r_in_range, r_out_range, r_all_range, output_dir):
-    best_model = model_p(-1, -1, -1, -1, -1, -1)
-    
-    for r_in in r_in_range:
-        for r_out in r_out_range:
-            for r_all in r_all_range:
-                rballs_database, _ = similar_nodes_mining.extract_rballs_database(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all)
-                cols_count = hypergraph.number_of_nodes()
-                target_values = map(lambda n: hypergraph.node[n]["labels"], hypergraph.nodes_iter())
-                pre_model = sgm_crossval.loo_crossval_pnn(rballs_database, cols_count, target_values, wl_iter_range, p_range, output_dir)
-                print model(pre_model, r_in, r_out, r_all)
-                if pre_model["quality"] > best_model["quality"]:
-                    best_model = model(pre_model, r_in, r_out, r_all)
+    models_file = open(output_dir + "models", "a")
+    models_file.write(str(best_model) + ",\n")
+    models_file.close()
     
     return best_model
