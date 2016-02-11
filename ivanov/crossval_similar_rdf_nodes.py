@@ -11,22 +11,17 @@ from ivanov import helpers
 dataset = "famont"
 wl_iter_range = range(0, 5)
 k_L_range = [
-    (25, 14),   # inflation point 0.1
-    (25, 58),   # inflation point 0.15
-    (25, 265),  # inflation point 0.2
-    (15, 211),  # inflation point 0.3
-    (10, 165),  # inflation point 0.4
-    (5, 32)     # inflation point 0.5
-#     (15, 75),   # inflation point 0.25
-#     (15, 92),   # inflation point 0.26
-#     (15, 112),   # inflation point 0.27
-#     (15, 138),   # inflation point 0.28
-#     (15, 170),   # inflation point 0.29
-#     (15, 261),   # inflation point 0.31
-#     (14, 221),   # inflation point 0.32
-#     (14, 272),   # inflation point 0.33
-#     (13, 222),   # inflation point 0.34
-#     (13, 270),   # inflation point 0.35
+    (20, 1),    # inflation point ~0.
+    (15, 5),    # inflation point 0.1
+    (10, 9),    # inflation point 0.2
+    (7, 12),    # inflation point 0.3
+    (5, 13),    # inflation point 0.4
+    (4, 16),    # inflation point 0.5
+    (3, 16),    # inflation point 0.6
+    (2, 11),    # inflation point 0.7
+    (2, 25),    # inflation point 0.8
+    (1, 10),    # inflation point 0.9
+    (1, 20),    # inflation point ~1.
 ]
 p_range = [4]
 r_in_range = range(1, 4)
