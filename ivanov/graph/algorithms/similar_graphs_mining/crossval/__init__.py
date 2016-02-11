@@ -10,6 +10,7 @@ from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMa
 from collections import Counter
 import numpy as np
 import itertools
+import time
 
 def model(quality, wl_iterations, base_model = {}):
     m = base_model.copy()
@@ -78,14 +79,20 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
     models_file = open(output_dir + "models", "a")
     
     for wl_iterations in wl_iter_range:
+        start = time.time()
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
+        print "Building characteristic matrix for wl_iter =", wl_iterations, "took:", time.time() - start
         for k, L in k_L_range:
+            start = time.time()
             sketch_matrix = SketchMatrix(k, L, ch_matrix)
+            print "Building sketch matrix for k={0} and L={1} took:".format(k, L), time.time() - start
 #             sketch_matrix.save_to_file(output_dir + "sketch_matrix_wl{0}_k{1}_L{2}".format(wl_iterations, k, L))
+            start = time.time()
             avg_quality = 0.
             for i in range(cols_count):
                 avg_quality += float(quality(i, sketch_matrix))
             avg_quality /= cols_count
+            print "Classification took:", time.time() - start
             current_model = model_infl_point(avg_quality, wl_iterations, k, L, base_model=base_model)
             print current_model
             models_file.write(str(current_model) + ",\n")
