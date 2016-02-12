@@ -85,7 +85,7 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
                     # add a color for each type of the node
                     types = list(get_node_types(rdf_graph, node))
                     if not types:
-                        # if there are not types add unknown color
+                        # if there are no types add unknown color
                         node_colors.add(colors[u"undefined"])
                     for node_type in types:
                         node_type_raw = unicode(node_type)

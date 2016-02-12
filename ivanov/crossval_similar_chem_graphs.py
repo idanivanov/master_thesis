@@ -10,27 +10,27 @@ from ivanov import helpers
 dataset = "mutagenicity"
 wl_iter_range = range(0, 12)
 k_L_range = [
-    (20, 1),   # inflection point ~0.
-    (25, 14),   # inflection point 0.1
-    (25, 58),   # inflection point 0.15
-    (25, 265),  # inflection point 0.2
-    (15, 75),   # inflection point 0.25
-    (15, 92),   # inflection point 0.26
+    (20, 1),     # inflection point ~0.
+    (25, 14),    # inflection point 0.1
+    (25, 58),    # inflection point 0.15
+    (25, 265),   # inflection point 0.2
+    (15, 75),    # inflection point 0.25
+    (15, 92),    # inflection point 0.26
     (15, 112),   # inflection point 0.27
     (15, 138),   # inflection point 0.28
     (15, 170),   # inflection point 0.29
-    (15, 211),  # inflection point 0.3
+    (15, 211),   # inflection point 0.3
     (15, 261),   # inflection point 0.31
     (14, 221),   # inflection point 0.32
     (14, 272),   # inflection point 0.33
     (13, 222),   # inflection point 0.34
     (13, 270),   # inflection point 0.35
-    (10, 165),  # inflection point 0.4
+    (10, 165),   # inflection point 0.4
     (5, 32),     # inflection point 0.5
     (5, 98),     # inflection point 0.6
-    (4, 123),     # inflection point 0.7
-    (3, 125),     # inflection point 0.8
-    (2, 100),     # inflection point 0.9
+    (4, 123),    # inflection point 0.7
+    (3, 125),    # inflection point 0.8
+    (2, 100),    # inflection point 0.9
     (1, 200)     # inflection point ~1.
 ]
 p_range = range(189)
