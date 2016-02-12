@@ -18,6 +18,7 @@ def loo_crossval(hypergraph, wl_iter_range, r_in_range, r_out_range, r_all_range
             for r_all in r_all_range:
                 base_model = model(r_in, r_out, r_all)
                 rballs_database, _ = similar_nodes_mining.extract_rballs_database(hypergraph, r_in=r_in, r_out=r_out, r_all=r_all)
+                rballs_database = [list(G) for G in rballs_database] # execute generator
                 cols_count = hypergraph.number_of_nodes()
                 target_values = map(lambda n: hypergraph.node[n]["labels"], hypergraph.nodes_iter())
                 if k_L_range:
