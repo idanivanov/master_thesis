@@ -60,6 +60,21 @@ datasets = {
             data_path + "OpenCyc/opencyc-latest.owl"
         ]
     },
+    "homepages": {
+        "files": [
+            data_path + "Benchmark/homepages-fixed.nt"
+        ]
+    },
+    "geocoordinates": {
+        "files": [
+            data_path + "Benchmark/geocoordinates-fixed.nt"
+        ]
+    },
+    "drugadmin": {
+        "files": [
+            data_path + "DrugAdmin/drugadmin.ttl"
+        ]
+    },
     "famont-ext": {
         "files": [
             data_ext_path + "famont_ext.rdf"
