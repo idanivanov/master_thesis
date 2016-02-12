@@ -69,6 +69,12 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
 #         print "Similar cols:", similar_cols
 #         print "Similar targets:", similar_targets
 #         print "--------------------------------------"
+        fp = open(output_dir + "classification", "a")
+        fp.write("Col: {0}, Target: {1}, Est. target: {2}\n".format(i, true_target_i, estimated_target_i))
+        fp.write("Similar cols: {0}\n".format(similar_cols))
+        fp.write("Similar targets: {0}\n".format(similar_targets))
+        fp.write("--------------------------------------\n")
+        fp.close()
         if type(true_target_i) is list:
             return int(estimated_target_i in true_target_i) # zero-one loss
         else:
@@ -80,7 +86,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
     
     for wl_iterations in wl_iter_range:
         start = time.time()
-        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
+        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations, print_progress=True)
         print "Building characteristic matrix for wl_iter =", wl_iterations, "took:", time.time() - start
         for k, L in k_L_range:
             start = time.time()
