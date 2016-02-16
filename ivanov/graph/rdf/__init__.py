@@ -59,11 +59,11 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
     else:
         colors = {
             u"undefined": "0",
-            u"bnode": "1", # TODO: is the bnode color needed?
-            u"literal": "2", # TODO: is the literal color needed?
-            u"http://www.w3.org/2001/XMLSchema#string": "3" # default literal type
+#             u"bnode": "1", # TODO: is the bnode color needed?
+#             u"literal": "2", # TODO: is the literal color needed?
+            u"http://www.w3.org/2001/XMLSchema#string": "1" # default literal type
         }
-        color_id = 4
+        color_id = 2
         
         if discard_classes:
             all_classes = get_all_classes(rdf_graph)
@@ -78,9 +78,9 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
             if u_node not in uri_node_map:
                 node_kind = type(node)
                 node_colors = set()
-                if node_kind is BNode:
-                    # add the bnode color
-                    node_colors.add(colors[u"bnode"])
+#                 if node_kind is BNode:
+#                     # add the bnode color
+#                     node_colors.add(colors[u"bnode"])
                 if node_kind in [BNode, URIRef]:
                     # add a color for each type of the node
                     types = list(get_node_types(rdf_graph, node))
@@ -95,7 +95,7 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
                         node_colors.add(colors[node_type_raw])
                 elif node_kind is Literal:
                     # add the literal color and the color for the datatype of the literal
-                    node_colors.add(colors[u"literal"])
+#                     node_colors.add(colors[u"literal"])
                     if node._datatype:
                         datatype = unicode(node._datatype)
                         if datatype not in colors:
