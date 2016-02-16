@@ -23,9 +23,10 @@ k_L_range = [
     (1, 10),    # inflection point 0.9
     (1, 20),    # inflection point ~1.
 ]
+infl_point_range = [0., 0.0000001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
 p_range = [4]
-r_in_range = range(3, 4)
-r_out_range = range(2, 3)
+r_in_range = [2] # range(1, 4)
+r_out_range = [3] # range(1, 4)
 r_all_range = [0]
 
 output_dir = "../output_rdf/crossval_test/"
@@ -34,5 +35,6 @@ if __name__ == '__main__':
     in_files = helpers.datasets[dataset]["files"]
     graph, node_id_map = rdf.convert_rdf_to_nx_graph(in_files, discard_classes=False)
     hypergraph = Hypergraph(graph)
+#     best_model = crossval.loo_crossval(hypergraph, wl_iter_range, r_in_range, r_out_range, r_all_range, output_dir, infl_point_range=infl_point_range)
     best_model = crossval.loo_crossval(hypergraph, wl_iter_range, r_in_range, r_out_range, r_all_range, output_dir, k_L_range=k_L_range)
     print "Best model:", best_model
