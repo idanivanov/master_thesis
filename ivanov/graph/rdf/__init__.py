@@ -145,7 +145,8 @@ def get_all_classes(rdf_graph):
     from_type = set(rdf_graph.objects(None, RDF.type))
     from_owl = set(rdf_graph.subjects(RDF.type, OWL.Class))
     from_rdfs = set(rdf_graph.subjects(RDF.type, RDFS.Class))
-    return from_type | from_owl | from_rdfs
+    from_rdfs_subclass = set(rdf_graph.subjects(RDF.subClassOf, None))
+    return from_type | from_owl | from_rdfs | from_rdfs_subclass
 
 def extract_subjects_by_types(rdf_graph, output_dir):
     all_classes = get_all_classes(rdf_graph)
