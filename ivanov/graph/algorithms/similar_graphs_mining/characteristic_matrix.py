@@ -21,17 +21,32 @@ class CharacteristicMatrix(Serializable):
     def build(self, feature_lists):
         self.sparse_matrix = {}
         i = -1
-        for element_features in feature_lists:
+        for _, record_features in feature_lists:
             i += 1
             if self.print_progress:
                 print "Ch.Mat.: Processing column", i, "of", self.cols_count
-            for feature in element_features:
+            for feature in record_features:
                 shingles = shingle_extraction.extract_shingles(feature)
                 fingerprints = fingerprint.get_fingerprints(shingles)
                 for fp in fingerprints:
                     if not self.sparse_matrix.has_key(fp):
                         self.sparse_matrix[fp] = set()
                     self.sparse_matrix[fp].add(i)
+    
+    def compute_column_fingerprints(self, record_graphs):
+        features = []
+        for hypergraph in record_graphs:
+            new_features, self.wl_state = feature_extraction.extract_features(hypergraph, self.wl_iterations, self.wl_state)
+            features += new_features
+        
+        column = set()
+        
+        for feature in features:
+            shingles = shingle_extraction.extract_shingles(feature)
+            fingerprints = fingerprint.get_fingerprints(shingles)
+            column |= set(fingerprints)
+        
+        return sorted(column)
     
     def compute_jaccard_similarity_matrix(self):
         cols_cache = {}
@@ -83,16 +98,18 @@ class CharacteristicMatrix(Serializable):
         return not self.__eq__(other)
 
     def __init__(self, graph_database, cols_count, wl_iterations=0, print_progress=False):
-        '''
-        :param graph_database: A list of lists where each sublist represents
-        an element of the database (will be represented by a column in the
-        characteristic matrix), and each element in a sublist is a Hypegraph.
-        (One element can be represented by multiple graphs)
+        '''A sparse binary matrix M having records as columns and fingerprints as rows.
+        M(i, j)=1 iff record j has a shingle with fingerprint i.
+        :param graph_database: A list of tuples where each tuple has the form
+        (record_id, graphs) and represents an element of the database (will be
+        represented by a column in the characteristic matrix). The field graphs is
+        a list of Hypergraphs (One element can be represented by multiple graphs).
         :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
         performed (before a graph becomes 'stable').
         '''
         self.cols_count = cols_count
         self.print_progress = print_progress
+        self.wl_iterations = wl_iterations
         
-        feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
+        feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
         self.build(feature_lists)
