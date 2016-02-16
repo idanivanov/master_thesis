@@ -6,14 +6,14 @@ Created on Jan 26, 2016
 from ivanov.graph.algorithms import r_ball_hyper, similar_graphs_mining
 import numpy as np
 
-def extract_rballs_of_node(node, hypergraph, r_in=0, r_out=0, r_all=0):
-    rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1) if r_in > 0 else None,
-              r_ball_hyper(hypergraph, node, r_out, edge_dir=1) if r_out > 0 else None,
-              r_ball_hyper(hypergraph, node, r_all, edge_dir=0) if r_all > 0 else None]
+def extract_rballs_of_node(node, hypergraph, r_in=0, r_out=0, r_all=0, center_default_color=False):
+    rballs = [r_ball_hyper(hypergraph, node, r_in, edge_dir=-1, center_default_color=center_default_color) if r_in > 0 else None,
+              r_ball_hyper(hypergraph, node, r_out, edge_dir=1, center_default_color=center_default_color) if r_out > 0 else None,
+              r_ball_hyper(hypergraph, node, r_all, edge_dir=0, center_default_color=center_default_color) if r_all > 0 else None]
     
     return filter(lambda x: x is not None, rballs)
 
-def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
+def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0, center_default_color=False):
     '''Extract the r-ball(s) around each node in the hypergraph.
     :return (graph_database, index_node_map) - graph_database to
     be used for characteristic matrix; index_node_map mapping
@@ -21,7 +21,9 @@ def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
     '''
     def rballs_database_generator():
         for node in hypergraph.nodes_iter():
-            yield node, extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
+            rballs = extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all, center_default_color=center_default_color)
+            target_values = hypergraph.node[node]["labels"]
+            yield node, rballs, target_values
     
     index_node_map = {}
     i = 0
@@ -53,7 +55,7 @@ def get_node_similarity_matrix(sketch_matrix):
     
     np.fill_diagonal(similarity_matrix, 0.)
     
-    return np.triu(similarity_matrix)
+    return similarity_matrix
 
 def get_similar_nodes(node, hypergraph, sketch_matrix, wl_iterations, wl_labels_list, r_in=0, r_out=0, r_all=0):
     rballs = extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
