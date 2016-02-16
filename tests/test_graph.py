@@ -52,6 +52,27 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(out_isomorphic, "Problem extracting r-ball with edge_dir=1.")
         self.assertTrue(in_isomorphic, "Problem extracting r-ball with edge_dir=-1.")
     
+    def testRBallHyper_CenterDefaultColor(self):
+        dummy_hypergraph = Hypergraph(example_graphs.gt_dummy_graph)
+        rball_in = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, -1, center_default_color=True)
+        rball_out = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, 1, center_default_color=True)
+        rball_all = algorithms.r_ball_hyper(dummy_hypergraph, "n_10", 2, 0, center_default_color=True)
+        d_rball_all = Hypergraph(example_graphs.gt_dummy_rball_10_r2_all)
+        d_rball_out = Hypergraph(example_graphs.gt_dummy_rball_10_r2_out)
+        d_rball_in = Hypergraph(example_graphs.gt_dummy_rball_10_r2_in)
+        
+        d_rball_all.node["n_10"]["labels"] = ["0"]
+        d_rball_out.node["n_10"]["labels"] = ["0"]
+        d_rball_in.node["n_10"]["labels"] = ["0"]
+        
+        all_isomorphic = algorithms.isomorphic(d_rball_all, rball_all)
+        out_isomorphic = algorithms.isomorphic(d_rball_out, rball_out)
+        in_isomorphic = algorithms.isomorphic(d_rball_in, rball_in)
+        
+        self.assertTrue(all_isomorphic, "Problem extracting r-ball with edge_dir=0.")
+        self.assertTrue(out_isomorphic, "Problem extracting r-ball with edge_dir=1.")
+        self.assertTrue(in_isomorphic, "Problem extracting r-ball with edge_dir=-1.")
+    
     def testRDFToNxGraphConvertionWithColoring(self):
         dummy_colored, _ = rdf.convert_rdf_to_nx_graph(["test_files/dummy.rdf"], test_mode=True)
         isomorphic = algorithms.isomorphic(example_graphs.gt_dummy_colored_expected, dummy_colored)
