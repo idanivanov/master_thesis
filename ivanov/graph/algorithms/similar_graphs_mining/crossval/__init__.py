@@ -44,12 +44,9 @@ def predict_target_majority(similar_targets):
         else:
             return 0
 
-def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range, k_L_range, output_dir, base_model={}, prepare_query_function=None):
+def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, base_model={}):
     '''Leave-one-out cross-validation.
-    :param graph_database: Defined the same way as for CharacteristicMatrix constructor.
-    :param cols_count: Number of elements in the database.
-    :param target_values: A list of the size of the graph_database, where each element
-    indicates the real target value of the corresponding (by index) element in the database.
+    :param graph_database: Defined the same way as for CharacteristicMatrix constructor (but cannot be a generator).
     :param wl_iter_range: Range of Weisfeiler-Lehman iterations to be considered in the cross-validation.
     :param k_L_range: A range okf (k, L) tuples for the sketch matrix to be considered in the cross-validation.
 #     :param quality_function: a function with signature (G, sketch_matrix), where G is a list of graphs
@@ -57,19 +54,15 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
 #     should return a real value. The cross-validation will find the model that maximizes this function.
     :param output_dir: A local directory, that will be used to save the sketch matrices of all models.
     :param base_model: A base model that is going to be extended by the new parameters.
-    :param prepare_query_function: A function to prepare the query record that is left out by the cross-validation.
     :return The best model as a dictionary in the form: {quality, wl_iterations}.
     '''
-    def quality(i, ch_matrix, sketch_matrix):
-        if prepare_query_function:
-            col_i = prepare_query_function(i, graph_database, ch_matrix, sketch_matrix)
-        else:
-            col_i = sketch_matrix.get_column(i)
+    def quality(i, sketch_matrix):
+        col_i = sketch_matrix.get_column(i)
         similar_cols = list(sketch_matrix.get_similar_columns(col_i))
         if i in similar_cols:
             similar_cols.remove(i)
-        similar_targets = map(lambda c: target_values[c], similar_cols)
-        true_target_i = target_values[i]
+        similar_targets = map(lambda c: graph_database[c][2], similar_cols)
+        true_target_i = graph_database[i][2]
         estimated_target_i = predict_target_majority(similar_targets)
 #         print "Col:", i, ", Target:", true_target_i, ", Est. target: ", estimated_target_i
 #         print "Similar cols:", similar_cols
@@ -87,6 +80,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
             return int(true_target_i == estimated_target_i) # zero-one loss
     
     best_model = model_infl_point(-1, -1, base_model=base_model)
+    cols_count = len(graph_database)
     
     models_file = open(output_dir + "models", "a")
     
@@ -102,7 +96,7 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
 #             start = time.time()
             avg_quality = 0.
             for i in range(cols_count):
-                avg_quality += float(quality(i, ch_matrix, sketch_matrix))
+                avg_quality += float(quality(i, sketch_matrix))
             avg_quality /= cols_count
 #             print "Classification took:", time.time() - start
             current_model = model_infl_point(avg_quality, wl_iterations, k, L, base_model=base_model)
@@ -120,12 +114,13 @@ def loo_crossval_sketch(graph_database, cols_count, target_values, wl_iter_range
     
     return best_model
 
-def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, param_2_range, quality_function, output_dir, base_model={}):
+def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_function, output_dir, base_model={}):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
     '''
     best_model = model_p(-1, -1, -1, base_model=base_model)
+    cols_count = len(graph_database)
     
     models_file = open(output_dir + "models", "a")
     
@@ -152,7 +147,7 @@ def loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range,
     
     return best_model
 
-def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, output_dir, base_model={}):
+def loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model={}):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -161,8 +156,8 @@ def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_ra
     def quality(i, jaccard_similarity_matrix, infl_point):
         threshold = 1. - infl_point
         similar_cols = np.where(jaccard_similarity_matrix[i, :] >= threshold)[0]
-        similar_targets = map(lambda c: target_values[c], similar_cols)
-        true_target_i = target_values[i]
+        similar_targets = map(lambda c: graph_database[c][2], similar_cols)
+        true_target_i = graph_database[i][2]
         estimated_target_i = predict_target_majority(similar_targets)
 #         print "Col:", i, ", Target:", true_target_i, ", Est. target: ", estimated_target_i
 #         print "Similar cols:", similar_cols
@@ -179,9 +174,9 @@ def loo_crossval_threshold(graph_database, cols_count, target_values, wl_iter_ra
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, infl_point_range, quality, output_dir, base_model)
+    return loo_crossval_naive(graph_database, wl_iter_range, infl_point_range, quality, output_dir, base_model)
 
-def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p_range, output_dir, base_model={}):
+def loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model={}):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -191,12 +186,12 @@ def loo_crossval_pnn(graph_database, cols_count, target_values, wl_iter_range, p
         '''Quality estimation by p nearest neighbors classification.
         '''
         k_most_similar_cols = jaccard_similarity_matrix[i, :].argsort()[-p:]
-        k_most_similar_targets = map(lambda c: target_values[c], k_most_similar_cols)
-        true_target_i = target_values[i]
+        k_most_similar_targets = map(lambda c: graph_database[c][2], k_most_similar_cols)
+        true_target_i = graph_database[i][2]
         estimated_target_i = predict_target_majority(k_most_similar_targets)
         if type(true_target_i) is list:
             return int(estimated_target_i in true_target_i) # zero-one loss
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, cols_count, target_values, wl_iter_range, p_range, quality_pnn, output_dir, base_model)
+    return loo_crossval_naive(graph_database, wl_iter_range, p_range, quality_pnn, output_dir, base_model)

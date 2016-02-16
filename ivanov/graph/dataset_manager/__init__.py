@@ -43,7 +43,8 @@ def read_chemical_compounts(in_file):
                 for edge in edges:
                     current_graph.add_edge(int(edge[0]), int(edge[1]), label=edge[2])
                 
-                chem_graph_database.append([Hypergraph(current_graph)])
+                ch_db_record = (current_properties[0], [Hypergraph(current_graph)], current_properties[1])
+                chem_graph_database.append(ch_db_record)
                 chem_props.append(current_properties)
             i = (i + 1) % 3
     

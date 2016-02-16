@@ -146,7 +146,7 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
 
 def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
     def get_features_lists_generator(wl_state):
-        for record_id, element_hypergraphs in graph_database:
+        for record_id, element_hypergraphs, _ in graph_database:
             # process the hypergraphs representing one element of the database
             features = []
             for hypergraph in element_hypergraphs:

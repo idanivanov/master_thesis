@@ -101,9 +101,10 @@ class CharacteristicMatrix(Serializable):
         '''A sparse binary matrix M having records as columns and fingerprints as rows.
         M(i, j)=1 iff record j has a shingle with fingerprint i.
         :param graph_database: A list of tuples where each tuple has the form
-        (record_id, graphs) and represents an element of the database (will be
+        (record_id, graphs, target_values) and represents an element of the database (will be
         represented by a column in the characteristic matrix). The field graphs is
-        a list of Hypergraphs (One element can be represented by multiple graphs).
+        a list of Hypergraphs (One element can be represented by multiple graphs) and
+        the field target_values is a list of target labels for the record.
         :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
         performed (before a graph becomes 'stable').
         '''
