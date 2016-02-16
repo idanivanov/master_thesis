@@ -14,7 +14,7 @@ from ivanov.graph import rdf
 import codecs
 
 def compute_rballs_tw(in_files, output_dir):
-    nx_graph, uri_node_map = rdf.convert_rdf_to_nx_graph(in_files, labels="uris", discard_classes=False)
+    nx_graph, uri_node_map = rdf.convert_rdf_to_nx_graph(in_files, discard_classes=True)
     node_uri_map = {node: uri.replace(u",", u"[comma]").replace(u"\n", u"[new_line]") for uri, node in uri_node_map.items()}
     nodes_in_graph = nx_graph.number_of_nodes()
     print "Nodes in graph:", nodes_in_graph
@@ -27,7 +27,7 @@ def compute_rballs_tw(in_files, output_dir):
             i = 0
             for node in nx_graph.nodes_iter():
                 print "-------------------------------------"
-                print "Node {0}/{1} ({2})".format(i, nodes_in_graph, node)
+                print u"Node {0}/{1} ({2})".format(i, nodes_in_graph, node_uri_map[node])
                 print "r = {0}, d = {1}".format(r, d)
                 if node in rballs_with_big_tw:
                     # don't compute treewidth for r-balls which are known to be big
