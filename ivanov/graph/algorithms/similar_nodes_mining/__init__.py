@@ -21,7 +21,7 @@ def extract_rballs_database(hypergraph, r_in=0, r_out=0, r_all=0):
     '''
     def rballs_database_generator():
         for node in hypergraph.nodes_iter():
-            yield extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
+            yield node, extract_rballs_of_node(node, hypergraph, r_in, r_out, r_all)
     
     index_node_map = {}
     i = 0

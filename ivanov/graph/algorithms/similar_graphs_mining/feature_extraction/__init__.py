@@ -144,12 +144,21 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     # fixed or pattern/dynamic with <= max_nodes number of nodes
     yield raw_feature.as_subgraph(hypergraph)
 
-def get_feature_lists(graph_database, wl_iterations=0):
-    wl_state = None
-    for element_hypergraphs in graph_database:
-        # process the hypergraphs representing one element of the database
-        features = []
-        for hypergraph in element_hypergraphs:
-            new_features, wl_state = extract_features(hypergraph, wl_iterations, wl_state)
-            features += new_features
-        yield features
+def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
+    def get_features_lists_generator(wl_state):
+        for record_id, element_hypergraphs in graph_database:
+            # process the hypergraphs representing one element of the database
+            features = []
+            for hypergraph in element_hypergraphs:
+                new_features, state["wl_state"] = extract_features(hypergraph, wl_iterations, state["wl_state"])
+                features += new_features
+            yield record_id, features
+    
+    state = {"wl_state": None}
+    features_lists = get_features_lists_generator(state)
+    
+    if iterator:
+        return features_lists
+    else:
+        features_lists = [(record_id, list(features)) for record_id, features in features_lists]
+        return features_lists, state["wl_state"]
