@@ -23,11 +23,11 @@ k_L_range = [
     (1, 10),    # inflection point 0.9
     (1, 20),    # inflection point ~1.
 ]
-infl_point_range = [0.7] # [0., 0.0000001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
+infl_point_range = [0., 0.0000001, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
 p_range = [1]
-r_in_range = range(1, 4)
-r_out_range = range(1, 4)
-r_all_range = range(1, 2)
+r_in_range = [3] # range(0, 4)
+r_out_range = [2] # range(0, 4)
+r_all_range = [0]
 
 output_dir = "../output_rdf/crossval_test/"
 
