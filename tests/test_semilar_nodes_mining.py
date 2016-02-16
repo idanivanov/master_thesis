@@ -62,7 +62,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         features = []
         wl_state = None
         for rball in rballs_database:
-            new_features, wl_state = feature_extraction.extract_features(rball, wl_iterations=4, wl_state=wl_state)
+            new_features, wl_state = feature_extraction.extract_features(rball, wl_iterations=1, wl_state=wl_state)
             features += new_features
         self.assertEqual(wl_state_exp, wl_state, "The wrong wl_state was computed by Weisfeiler-Lehman.")
         isomorphic = all([algorithms.isomorphic(features[i], example_graphs.snm_dummy_graph_features[i]) for i in range(len(features))])
