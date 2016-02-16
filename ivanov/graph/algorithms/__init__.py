@@ -45,7 +45,7 @@ def r_ball(graph, center, r, edge_dir=0):
     return rball
 
 # TODO: can be optimized
-def r_ball_hyper(hypergraph, center, r, edge_dir=0):
+def r_ball_hyper(hypergraph, center, r, edge_dir=0, center_default_color=False):
     '''The same as r_ball but for Hypergraph.
     '''
     assert type(hypergraph) is Hypergraph
@@ -72,7 +72,11 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0):
                         recurse(v, i + 1)
     
     rball = Hypergraph()
-    rball.add_node(center, attr_dict=copy.deepcopy(hypergraph.node[center]))
+    if center_default_color:
+        # the center node's default color is 0 ("unknown")
+        rball.add_node(center, attr_dict={"labels": ["0"]})
+    else:
+        rball.add_node(center, attr_dict=copy.deepcopy(hypergraph.node[center]))
     if r > 0:
         recurse(center, 1)
     
