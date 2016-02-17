@@ -68,7 +68,7 @@ def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, ba
 #         print "Similar cols:", similar_cols
 #         print "Similar targets:", similar_targets
 #         print "--------------------------------------"
-#         fp = open(output_dir + "classification", "a")
+#         fp = open(output_dir + "classification_sketch", "a")
 #         fp.write("Col: {0}, Target: {1}, Est. target: {2}\n".format(i, true_target_i, estimated_target_i))
 #         fp.write("Similar cols: {0}\n".format(similar_cols))
 #         fp.write("Similar targets: {0}\n".format(similar_targets))
@@ -163,7 +163,7 @@ def loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, outp
 #         print "Similar cols:", similar_cols
 #         print "Similar targets:", similar_targets
 #         print "--------------------------------------"
-#         fp = open(output_dir + "classification", "a")
+#         fp = open(output_dir + "classification_threshold", "a")
 #         fp.write("Col: {0}, Target: {1}, Est. target: {2}\n".format(i, true_target_i, estimated_target_i))
 #         fp.write("Similar cols: {0}\n".format(similar_cols))
 #         fp.write("Similar targets: {0}\n".format(similar_targets))
