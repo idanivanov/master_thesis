@@ -82,7 +82,7 @@ def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, ba
     best_model = model_infl_point(-1, -1, base_model=base_model)
     cols_count = len(graph_database)
     
-    models_file = open(output_dir + "models", "a")
+    models_file = open(output_dir + "models_sketch", "a")
     
     for wl_iterations in wl_iter_range:
 #         start = time.time()
@@ -122,7 +122,7 @@ def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_fun
     best_model = model_p(-1, -1, -1, base_model=base_model)
     cols_count = len(graph_database)
     
-    models_file = open(output_dir + "models", "a")
+    models_file = open(output_dir + "models_naive", "a")
     
     for wl_iterations in wl_iter_range:
         ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations)
