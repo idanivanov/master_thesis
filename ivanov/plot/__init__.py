@@ -11,26 +11,44 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
 
-def plot_3d(data, x_axis, y_axis, z_axis, out_eps_file=None):
+def plot_2d(data, x_axis, y_axis, out_eps_file=None):
+    def find_value(x):
+        for d in data:
+            if d[x_axis] == x:
+                return d[y_axis]
+        return 0.
+    
+    X = np.array(sorted(list(set(map(lambda d: d[x_axis], data)))))
+    Y = np.array(sorted(map(lambda x: find_value(x), X)))
+    
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
+    plt.plot(X, Y, '-')
+    
+    if out_eps_file:
+        plt.savefig(out_eps_file, format='eps')
+    
+    plt.show()
+    
+def plot_3d(data, x_axis, y_axis, z_axis, out_eps_file=None, azim=0., elev=0.):
     '''Plot data in 3D.
     :param data: A list of dictionaries.
     :param x_axis: A string representing the data property for the x axis.
     :param y_axis: A string representing the data property for the y axis.
     :param z_axis: A string representing the data property for the z axis.
     '''
-    def quality(infl_point, wl_iter):
-        model = filter(lambda x: x[x_axis] == infl_point and x[y_axis] == wl_iter, data)
-        if len(model) > 0:
-            return model[0][z_axis]
-        else:
-            return 0.
+    def accuracy(x, y):
+        for d in data:
+            if d[x_axis] == x and d[y_axis] == y:
+                return d[z_axis]
+        return 0.
 
-    vector_quality = np.vectorize(quality)
+    vector_accuracy = np.vectorize(accuracy)
     
     X = np.array(sorted(list(set(map(lambda x: x[x_axis], data)))))
     Y = np.array(sorted(list(set(map(lambda x: x[y_axis], data)))))
     X, Y = np.meshgrid(X, Y)
-    Z = vector_quality(X, Y)
+    Z = vector_accuracy(X, Y)
     
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -42,8 +60,7 @@ def plot_3d(data, x_axis, y_axis, z_axis, out_eps_file=None):
     plt.rc('font', **font)
     
     surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-#     ax.view_init(azim=-133., elev=47.)
-    ax.view_init(azim=-80., elev=70.)
+    ax.view_init(azim=azim, elev=elev)
     
     ax.set_xlabel(x_axis)
     ax.set_ylabel(y_axis)
