@@ -94,5 +94,10 @@ datasets = {
         "files": [
             data_path + "Mutagenicity/mutagenicity.txt"
         ]
+    },
+    "nci-hiv": {
+        "files": [
+            data_path + "NCI_HIV/AIDS99.txt"
+        ]
     }
 }
