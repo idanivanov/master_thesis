@@ -21,7 +21,7 @@ class CharacteristicMatrix(Serializable):
     def build(self, feature_lists):
         self.sparse_matrix = {}
         i = -1
-        for _, record_features in feature_lists:
+        for _, record_features, _ in feature_lists:
             i += 1
             if self.print_progress:
                 print "Ch.Mat.: Processing column", i, "of", self.cols_count
