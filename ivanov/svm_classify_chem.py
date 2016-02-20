@@ -6,7 +6,7 @@ Created on Feb 17, 2016
 from ivanov.graph.algorithms import similar_graphs_mining, arnborg_proskurowski
 from ivanov.graph import dataset_manager
 from ivanov import helpers
-import svmlight as sl
+# import svmlight as sl
 
 import codecs
 import networkx as nx

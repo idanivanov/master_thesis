@@ -127,7 +127,7 @@ class ReducibleFeature(object):
                         hub_ring_periphery = hub_periphery.union(cube_peripheral_nodes)
                         periphery_subgraph = nx.Graph(hypergraph.subgraph(hub_ring_periphery))
                         cycle = nx.cycle_basis(periphery_subgraph)
-                        if not cycle:
+                        if len(cycle) != 1:
                             continue
                         elif len(cycle[0]) != len(hub_periphery) * 2:
                             # the ring around the hub should be of alternating reducible and peripheral nodes
