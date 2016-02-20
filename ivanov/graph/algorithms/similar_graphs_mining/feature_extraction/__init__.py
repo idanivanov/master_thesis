@@ -16,6 +16,12 @@ import sys
 def extract_features(hypergraph, wl_iterations=0, wl_state=None):
     features = []
     
+    for _, new_features, wl_state in extract_features_for_each_wl_iter(hypergraph, wl_iterations, wl_state):
+        features += new_features
+    
+    return features, wl_state
+
+def extract_features_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None):
     raw_features = arnborg_proskurowski.get_reduced_features(hypergraph)
 #     if tw == -1:
 #         # TODO: How to handle graphs with larger tree-width?
@@ -31,7 +37,6 @@ def extract_features(hypergraph, wl_iterations=0, wl_state=None):
             hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
         
         new_features = [process_raw_feature(raw_feature, hypergraph) for raw_feature in raw_features]
-        features += itertools.chain(*new_features)
         
 #         # NOTE: we should do all iterations, regardless if the graph is stable
 #         if i >= 1:
@@ -42,7 +47,7 @@ def extract_features(hypergraph, wl_iterations=0, wl_state=None):
 #             if weisfeiler_lehman.is_stable(old_hypergraph, hypergraph, i):
 #                 break
     
-    return features, wl_state
+        yield i, itertools.chain(*new_features), wl_state
 
 def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     '''Turns a raw feature to a usable feature or a collection of features, depending on
@@ -114,18 +119,30 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
                     reducible_neigh = [set(hypergraph.neighbors(node)) for node in raw_feature.reducible_nodes]
                     hub_node = reduce(lambda a, b: a.intersection(b), reducible_neigh)
                     ring_subgraph = hypergraph.subgraph(raw_feature.reducible_nodes | (raw_feature.peripheral_nodes - hub_node))
-                    ring = nx.cycle_basis(ring_subgraph)[0]
-                    for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
-                        yield hypergraph.subgraph_with_labels(set(subpath) | hub_node)
-                    raise StopIteration
+                    ring = nx.cycle_basis(ring_subgraph)
+                    if len(ring) > 0:
+                        ring = ring[0]
+                        for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
+                            yield hypergraph.subgraph_with_labels(set(subpath) | hub_node)
+                        raise StopIteration
+                    else:
+                        # if there is no ring in the feature, treat it as a fixed feature
+                        # TODO: This can lead to a large number of shingles. Better solution?
+                        pass
             elif rule == "5.2.3.1":
                 # wheel: extract all cake-slice subpaths of length max_node using a sliding window
                 if nodes_count > max_nodes + 1:
                     ring_subgraph = hypergraph.subgraph(raw_feature.reducible_nodes)
-                    ring = nx.cycle_basis(ring_subgraph)[0]
-                    for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
-                        yield hypergraph.subgraph_with_labels(set(subpath) | set(raw_feature.peripheral_nodes))
-                    raise StopIteration
+                    ring = nx.cycle_basis(ring_subgraph)
+                    if len(ring) > 0:
+                        ring = ring[0]
+                        for subpath in sliding_window(ring + ring[:max_nodes - 1], max_nodes):
+                            yield hypergraph.subgraph_with_labels(set(subpath) | set(raw_feature.peripheral_nodes))
+                        raise StopIteration
+                    else:
+                        # if there is no ring in the feature, treat it as a fixed feature
+                        # TODO: This can lead to a large number of shingles. Better solution?
+                        pass
     elif feature_type == 2:
         # dynamic (the reducible nodes are always of degree 3):
         # for each pair of adjacent nodes u, v let a new feature be
@@ -146,13 +163,13 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
 
 def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
     def get_features_lists_generator(wl_state):
-        for record_id, element_hypergraphs, _ in graph_database:
+        for record_id, element_hypergraphs, target in graph_database:
             # process the hypergraphs representing one element of the database
             features = []
             for hypergraph in element_hypergraphs:
                 new_features, state["wl_state"] = extract_features(hypergraph, wl_iterations, state["wl_state"])
                 features += new_features
-            yield record_id, features
+            yield record_id, features, target
     
     state = {"wl_state": None}
     features_lists = get_features_lists_generator(state)
@@ -160,5 +177,5 @@ def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
     if iterator:
         return features_lists
     else:
-        features_lists = [(record_id, list(features)) for record_id, features in features_lists]
+        features_lists = [(record_id, list(features), target) for record_id, features, target in features_lists]
         return features_lists, state["wl_state"]
