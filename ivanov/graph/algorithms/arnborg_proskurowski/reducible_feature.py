@@ -348,9 +348,15 @@ class ReducibleFeature(object):
                     if len_periphery == 0:
                         conflicts.append(ReducibleFeature(7, 1, raw_conflict[0], raw_conflict[1]))
                         continue
-                    # Rule 7.2 - Hammock
+                    # Rule 7.2 - Hammock (normal version)
                     elif len_periphery == 2:
                         conflicts.append(ReducibleFeature(7, 2, raw_conflict[0], raw_conflict[1]))
+                        continue
+                    # Rule 7.2 - Hammock (second version)
+                    elif len_periphery == 1 and len(raw_conflict[0]) == 7:
+                        # chose one of the neighbors of the peripheral node to create a Hammock
+                        peripheral_neighbor = set([conflict_subgraph.neighbors(list(raw_conflict[1])[0])[0]])
+                        conflicts.append(ReducibleFeature(7, 2, raw_conflict[0] - peripheral_neighbor, raw_conflict[1] | peripheral_neighbor))
                         continue
                  
                 sys.stderr.write("\n[ReducibleFeature] The conflicting cubes {0} were not handled by any rule.".format(raw_conflicts))
@@ -879,7 +885,7 @@ class ReducibleFeature(object):
             _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template, compute_string)
             new_edges |= _new_edges
         elif self.subrule == 2:
-            # Cat's cradle
+            # Hammock
             assert len(self.reducible_nodes) == 6
             assert len(self.peripheral_nodes) == 2
             if compute_string:
