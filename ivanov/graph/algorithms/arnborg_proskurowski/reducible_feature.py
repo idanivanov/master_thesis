@@ -129,7 +129,8 @@ class ReducibleFeature(object):
                         cycle = nx.cycle_basis(periphery_subgraph)
                         if not cycle:
                             continue
-                        elif filter(lambda node: len(nxext.get_all_neighbors(periphery_subgraph, node)) != 2, cycle[0]):
+                        elif len(cycle[0]) != len(hub_periphery) * 2:
+                            # the ring around the hub should be of alternating reducible and peripheral nodes
                             continue
                         
                         # there should be no mutually-adjacent neighbors in the periphery
@@ -235,15 +236,14 @@ class ReducibleFeature(object):
                      
                     elif reducible_degree == 2:
                         # Rule 5.2.3
-                        # TODO: there is a bug here: consider the case of 1 triangle, when each of the vertices are connected to a separate outer vertex.
                         t_edges = []
                         three_cliques = filter(lambda clique: len(clique) == 3, nx.find_cliques_recursive(conflict_subgraph))
+                        subgraph_H = conflict_subgraph.subgraph(raw_conflict[0])
+                        all_H_edges = map(lambda edge: set([edge[0], edge[1]]), subgraph_H.edges_iter())
                         for clique in three_cliques:
-                            new_t_edges = map(lambda edge: set([edge[0], edge[1]]), combinations(clique, 2))
+                            new_t_edges = map(lambda edge: set([edge[0], edge[1]]), combinations(set(clique) & raw_conflict[0], 2))
                             t_edges += filter(lambda edge: edge not in t_edges, new_t_edges)
-                         
-                        all_edges = map(lambda edge: set([edge[0], edge[1]]),conflict_subgraph.edges_iter())
-                        f_edges = filter(lambda edge: edge not in t_edges, all_edges)
+                        f_edges = filter(lambda edge: edge not in t_edges, all_H_edges)
                         def filter_A_vertices(node):
                             neighbors = conflict_subgraph.neighbors(node)
                             has_t = False
@@ -738,14 +738,16 @@ class ReducibleFeature(object):
             elif self.subsubrule == 3:
                 if self.subsubsubrule == 1:
                     # wheel
-                    assert len(self.peripheral_nodes) == 1
+                    assert len(self.reducible_nodes) == 3 or len(self.peripheral_nodes) == 1
                     def get_wheel_permutations():
+                        preipheral_perms = list(permutations(self.peripheral_nodes))
                         ring_subgraph = hypergraph.subgraph(self.reducible_nodes)
                         ring = nx.cycle_basis(ring_subgraph)[0]
                         n = len(ring)
                         for i in range(n):
-                            yield tuple(self.peripheral_nodes) + tuple([ring[(i + j) % n] for j in range(n)])
-                            yield tuple(self.peripheral_nodes) + tuple([ring[(i - j) % n] for j in range(n)])
+                            for preipheral_perm in preipheral_perms:
+                                yield tuple(preipheral_perm) + tuple([ring[(i + j) % n] for j in range(n)])
+                                yield tuple(preipheral_perm) + tuple([ring[(i - j) % n] for j in range(n)])
                     if compute_string:
                         label_template = u"(5.2.3.1;{0})"
                         # TODO: nothing is mentioned about the permutations?
@@ -899,7 +901,7 @@ class ReducibleFeature(object):
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             self_dict = dict(self.__dict__)
-            other_dict = dict(self.__dict__)
+            other_dict = dict(other.__dict__)
             del self_dict["reduced"]
             del other_dict["reduced"]
             return self_dict == other_dict
