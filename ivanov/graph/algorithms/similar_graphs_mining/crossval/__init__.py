@@ -44,7 +44,7 @@ def predict_target_majority(similar_targets):
         else:
             return 0
 
-def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, base_model={}):
+def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, base_model={}, cols_count=None):
     '''Leave-one-out cross-validation.
     :param graph_database: Defined the same way as for CharacteristicMatrix constructor (but cannot be a generator).
     :param wl_iter_range: Range of Weisfeiler-Lehman iterations to be considered in the cross-validation.
@@ -80,7 +80,8 @@ def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, ba
             return int(true_target_i == estimated_target_i) # zero-one loss
     
     best_model = model_infl_point(-1, -1, base_model=base_model)
-    cols_count = len(graph_database)
+    if not cols_count:
+        cols_count = len(graph_database)
     
     models_file = open(output_dir + "models_sketch", "a")
     

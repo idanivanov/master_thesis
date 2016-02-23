@@ -34,6 +34,7 @@ class CharacteristicMatrix(Serializable):
                     self.sparse_matrix[fp].add(i)
     
     def compute_column_fingerprints(self, record_graphs):
+        assert self.wl_state
         features = []
         for hypergraph in record_graphs:
             new_features, self.wl_state = feature_extraction.extract_features(hypergraph, self.wl_iterations, self.wl_state)
@@ -112,5 +113,10 @@ class CharacteristicMatrix(Serializable):
         self.print_progress = print_progress
         self.wl_iterations = wl_iterations
         
-        feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+        if isinstance(graph_database, list):
+            feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+        else:
+            self.wl_state = None
+            feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
+        
         self.build(feature_lists)
