@@ -21,10 +21,13 @@ def read_chemical_compounts(in_file, process_compound_function=None):
     
     current_graph = None
     current_properties = None
+    r = 0
     with codecs.open(in_file, "r", "utf8") as fp:
         i = 0
         for line in fp:
             if i == 0:
+                r += 1
+                print "Processing row:", r
                 if line.startswith("$"): # EOF
                     break
                 assert line.startswith("#")
@@ -78,8 +81,8 @@ def build_svmlight_chemical_data(in_file, wl_iterations, output_dir):
         
     chem_database = read_chemical_compounts(in_file, process_compound)
     
-    for _ in chem_database:
-        pass
+    for i, _ in enumerate(chem_database):
+        print i
         
     for f in files:
         f.close()

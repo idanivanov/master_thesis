@@ -86,7 +86,7 @@ def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, ba
     
     for wl_iterations in wl_iter_range:
 #         start = time.time()
-        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations, print_progress=False)
+        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations, print_progress=True)
 #         print "Building characteristic matrix for wl_iter =", wl_iterations, "took:", time.time() - start
         for k, L in k_L_range:
 #             start = time.time()
