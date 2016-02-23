@@ -21,13 +21,13 @@ def read_chemical_compounts(in_file, process_compound_function=None):
     
     current_graph = None
     current_properties = None
-    r = 0
+#     r = 0
     with codecs.open(in_file, "r", "utf8") as fp:
         i = 0
         for line in fp:
             if i == 0:
-                r += 1
-                print "Processing row:", r
+#                 r += 1
+#                 print "Processing row:", r
                 if line.startswith("$"): # EOF
                     break
                 assert line.startswith("#")

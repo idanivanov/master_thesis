@@ -40,8 +40,8 @@ output_dir = "../output_chem/nci_hiv/"
 
 if __name__ == '__main__':
     in_file = helpers.datasets[dataset]["files"][0]
-    graph_database = list(dataset_manager.read_chemical_compounts(in_file))
-    best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir)
+    graph_database = dataset_manager.read_chemical_compounts(in_file)
+    best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=42687)
 #     best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir)
 #     best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir)
     print "Best model:", best_model
