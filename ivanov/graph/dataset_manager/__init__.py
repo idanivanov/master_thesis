@@ -88,3 +88,15 @@ def build_svmlight_chemical_data(in_file, wl_iterations, output_dir):
         f.close()
     
     print "Done."
+
+def read_svm_light_bool_data(in_file):
+    with open(in_file) as in_f:
+        for line in in_f:
+            elem = line.split(" ")
+            target = int(elem[0])
+            props = []
+            for e in elem[1:]:
+                prop = e.split(":")
+                if float(prop[1]) > 0.:
+                    props.append(int(prop[0]))
+            yield target, props
