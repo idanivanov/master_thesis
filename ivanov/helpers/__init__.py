@@ -99,5 +99,10 @@ datasets = {
         "files": [
             data_path + "NCI_HIV/AIDS99.txt"
         ]
+    },
+    "nci-hiv-sample": {
+        "files": [
+            data_path + "NCI_HIV/AIDS99_sample.txt"
+        ]
     }
 }
