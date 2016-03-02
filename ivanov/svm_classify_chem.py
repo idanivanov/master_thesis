@@ -42,9 +42,9 @@ def svm_crossval(g):
             k_range = range(1, crossval_folds + 1)
             for k in k_range:
                 print g, w, k
-                learn_comm = "~/Programs/svm_light/svm_learn -t {2} -g {3} {5}fold_{0}/train_wl_{1} {5}models/model_rbf_{4}".format(k, w, kernel, g, g[2:], path)
+                learn_comm = "svm_learn -t {2} -g {3} {5}fold_{0}/train_wl_{1} {5}models/model_rbf_{4}".format(k, w, kernel, g, g[2:], path)
                 commands.getstatusoutput(learn_comm)
-                predict_comm = "~/Programs/svm_light/svm_classify {3}fold_{0}/val_wl_{1} {3}models/model_rbf_{2} {3}models/predict_rbf_{2}_k_{0}".format(k, w, g[2:], path)
+                predict_comm = "svm_classify {3}fold_{0}/val_wl_{1} {3}models/model_rbf_{2} {3}models/predict_rbf_{2}_k_{0}".format(k, w, g[2:], path)
                 commands.getstatusoutput(predict_comm)
             scores = compute_scores(w, g)
             print "Scores:", scores
