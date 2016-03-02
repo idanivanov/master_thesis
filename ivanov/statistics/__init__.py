@@ -18,7 +18,7 @@ def predict_target_majority(targets, default_negative_target=0):
     :param similar_targets: A list of either integers or lists. Each element may have multiple target values.
     The target label that appears most frequently is the chosen one.
     '''
-    if targets:
+    if len(targets):
         if type(targets[0]) is list:
             target_counts = Counter(itertools.chain(*targets))
         else:
