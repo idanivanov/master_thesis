@@ -42,13 +42,13 @@ class CharacteristicMatrix(Serializable):
             self.target_values.append(target)
             if self.print_progress:
                 print "Ch.Mat.: Processing column", i, "of", self.cols_count
-            for property in record_props:
+            for prop in record_props:
 #                 fingerprints = fingerprint.get_fingerprints(shingles)
 #                 for fp in fingerprints:
                 # TODO: potential problem for the SketchMatrix because the properties are not fingerprints
-                if not self.sparse_matrix.has_key(property):
-                    self.sparse_matrix[property] = set()
-                self.sparse_matrix[property].add(i)
+                if not self.sparse_matrix.has_key(prop):
+                    self.sparse_matrix[prop] = set()
+                self.sparse_matrix[prop].add(i)
     
     def compute_column_fingerprints(self, record_graphs):
         assert self.wl_state
