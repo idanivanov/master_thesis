@@ -29,6 +29,23 @@ class SketchMatrix(Serializable):
 #         time_per_shetch_cell_iteration = 0.00001
 #         return nodes_count * ch_mat_non_empty_rows * k * L * time_per_shetch_cell_iteration
     
+    @staticmethod
+    def _get_similar_columns(sketch_column, raw_sketch_matrix, k, L, cols_count):
+        '''Returns the indices of all columns, which evaluate to true
+        after being compared to the query sketch column using the AND-
+        and OR-amplification rules (see Big Data lectures).
+        '''
+        equality_sketch = raw_sketch_matrix == sketch_column
+        # has a raw for each band
+        and_amplifications = np.empty((L, cols_count), np.bool_)
+        offset = 0
+        for l in range(L):
+            offset_new = offset + k
+            and_amplifications[l] = equality_sketch[offset : offset_new].all(0)
+            offset = offset_new
+        or_amplification = and_amplifications.any(0)
+        return np.nonzero(or_amplification)[0]
+    
     def build(self, ch_matrix):
         for i in ch_matrix.non_empty_rows(): # row i of M
             ch_mat_row_i = ch_matrix[i]
@@ -60,20 +77,7 @@ class SketchMatrix(Serializable):
         return self.matrix[:, i : i + 1]
     
     def get_similar_columns(self, sketch_column):
-        '''Returns the indices of all columns, which evaluate to true
-        after being compared to the query sketch column using the AND-
-        and OR-amplification rules (see Big Data lectures).
-        '''
-        equality_sketch = self.matrix == sketch_column
-        # has a raw for each band
-        and_amplifications = np.empty((self.L, self.cols_count), np.bool_)
-        offset = 0
-        for l in range(self.L):
-            offset_new = offset + self.k
-            and_amplifications[l] = equality_sketch[offset : offset_new].all(0)
-            offset = offset_new
-        or_amplification = and_amplifications.any(0)
-        return np.nonzero(or_amplification)[0]
+        return SketchMatrix._get_similar_columns(sketch_column, self.matrix, self.k, self.L, self.cols_count)
     
 #     def extend_sketch_matrix(self, feature_lists, new_cols_count, extension_id):
 #         new_matrix = np.full((self.h_count, len(self.cols) + new_cols_count), np.iinfo(np.uint64).max, np.uint64)
