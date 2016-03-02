@@ -33,6 +33,23 @@ class CharacteristicMatrix(Serializable):
                         self.sparse_matrix[fp] = set()
                     self.sparse_matrix[fp].add(i)
     
+    def build_from_records(self, records):
+        self.target_values = []
+        self.sparse_matrix = {}
+        i = -1
+        for target, record_props in records:
+            i += 1
+            self.target_values.append(target)
+            if self.print_progress:
+                print "Ch.Mat.: Processing column", i, "of", self.cols_count
+            for property in record_props:
+#                 fingerprints = fingerprint.get_fingerprints(shingles)
+#                 for fp in fingerprints:
+                # TODO: potential problem for the SketchMatrix because the properties are not fingerprints
+                if not self.sparse_matrix.has_key(property):
+                    self.sparse_matrix[property] = set()
+                self.sparse_matrix[property].add(i)
+    
     def compute_column_fingerprints(self, record_graphs):
         assert self.wl_state
         features = []
@@ -98,7 +115,7 @@ class CharacteristicMatrix(Serializable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, graph_database, cols_count, wl_iterations=0, print_progress=False):
+    def __init__(self, graph_database=None, cols_count=None, wl_iterations=0, print_progress=False, records=None):
         '''A sparse binary matrix M having records as columns and fingerprints as rows.
         M(i, j)=1 iff record j has a shingle with fingerprint i.
         :param graph_database: A list of tuples where each tuple has the form
@@ -113,10 +130,14 @@ class CharacteristicMatrix(Serializable):
         self.print_progress = print_progress
         self.wl_iterations = wl_iterations
         
-        if isinstance(graph_database, list):
-            feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+        if graph_database:
+            if isinstance(graph_database, list):
+                feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+            else:
+                self.wl_state = None
+                feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
+            
+            self.build(feature_lists)
         else:
-            self.wl_state = None
-            feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
-        
-        self.build(feature_lists)
+            assert records
+            self.build_from_records(records)
