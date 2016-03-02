@@ -3,43 +3,56 @@ Created on Feb 17, 2016
 
 @author: Ivan Ivanov
 '''
-from ivanov.graph.algorithms import similar_graphs_mining, arnborg_proskurowski
-from ivanov.graph import dataset_manager
-from ivanov import helpers
-# import svmlight as sl
+from ivanov import statistics
+import commands
 
-dataset = "mutagenicity"
-wl_iter_range = range(0, 12)
-output_dir = "../output_chem/svm_test/"
+path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/cv_data_A_vs_M/"
+output_file = path + "scores_A_vs_M_RBF_001"
+
+kernel = 2 # TODO: currently only for RBF
+g = 0.001
+wl_range = range(0, 12)
 crossval_folds = 10
 
-# if __name__ == '__main__':
-#     in_file = helpers.datasets[dataset]["files"][0]
-#     graph_database, chem_props = dataset_manager.read_chemical_compounts(in_file)
-#     
-#     for wl_iterations in wl_iter_range:
-#         print wl_iterations
-#         svm_data = similar_graphs_mining.build_svmlight_data(graph_database, wl_iterations, "hiv_data_wl_{0}".format(wl_iterations))
-# #         fold_size = len(graph_database) / crossval_folds
-# #         total_accuracy = 0.
-# #         offset = 0
-# #         offset_end = fold_size
-# #         for _ in range(crossval_folds):
-# #             training_data = svm_data[:offset]
-# #             training_data += svm_data[offset_end:]
-# #             test_data = svm_data[offset : offset_end]
-# #             model = sl.learn(training_data, type='classification', verbosity=0)
-# #             predictions = sl.classify(model, test_data)
-# #             correct = [predictions[i] == test_data[i][0] for i in range(len(predictions))]
-# #             accuracy = float(len(filter(lambda x: x, correct))) / float(len(correct))
-# #             total_accuracy += accuracy
-# #             
-# #             offset = offset_end
-# #             offset_end += fold_size
-# #         
-# #         total_accuracy /= float(crossval_folds)
-# #         print wl_iterations, total_accuracy
-#     print "done"
+def compute_scores(w, g):
+    auc_avg = 0.
+    acc_avg = 0.
+    prec_avg = 0.
+    rec_avg = 0.
+    
+    for k in range(1, crossval_folds + 1):
+        auc, acc, prec, rec = statistics.all_scores_from_files(path + "fold_{0}/val_wl_{1}".format(k, w), path + "models/predict_rbf_{2}_k_{0}".format(k, w, g[2:]))
+        auc_avg += auc
+        acc_avg += acc
+        prec_avg += prec
+        rec_avg += rec
+    
+    auc_avg /= crossval_folds
+    acc_avg /= crossval_folds
+    prec_avg /= crossval_folds
+    rec_avg /= crossval_folds
+    
+    return w, auc_avg, acc_avg, prec_avg, rec_avg
 
-in_file = helpers.datasets[dataset]["files"][0]
-dataset_manager.build_svmlight_chemical_data(in_file, 11, "../output_chem/svm/")
+def svm_crossval(g):
+    print "Start:", g
+    with open(output_file, "w") as fl:
+        fl.write("wl_iter,auc,accuracy,precision,recall\n")
+        for w in wl_range:
+            k_range = range(1, crossval_folds + 1)
+            for k in k_range:
+                print g, w, k
+                learn_comm = "~/Programs/svm_light/svm_learn -t {2} -g {3} {5}fold_{0}/train_wl_{1} {5}models/model_rbf_{4}".format(k, w, kernel, g, g[2:], path)
+                commands.getstatusoutput(learn_comm)
+                predict_comm = "~/Programs/svm_light/svm_classify {3}fold_{0}/val_wl_{1} {3}models/model_rbf_{2} {3}models/predict_rbf_{2}_k_{0}".format(k, w, g[2:], path)
+                commands.getstatusoutput(predict_comm)
+            scores = compute_scores(w, g)
+            print "Scores:", scores
+            fl.write(",".join(map(lambda x: str(x), scores)) + "\n")
+            fl.flush()
+    
+    print "Done:", g
+
+if __name__ == '__main__':
+    svm_crossval(str(g))
+    print "Done!"
