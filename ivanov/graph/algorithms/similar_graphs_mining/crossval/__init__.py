@@ -29,7 +29,7 @@ def model_p(quality, wl_iterations, p, base_model = {}):
     m.update({"p": p})
     return m
 
-def model_score(score, wl_iterations, k=-1, L=-1, infl_point=-1, base_model = {}):
+def model_score(score, k=-1, L=-1, infl_point=-1, base_model = {}):
     if k != -1 and L != -1:
         infl_point = SketchMatrix.get_inflation_point(k, L)
     m = base_model.copy()
@@ -38,7 +38,6 @@ def model_score(score, wl_iterations, k=-1, L=-1, infl_point=-1, base_model = {}
         "accuracy": score[1],
         "precision": score[2],
         "recall": score[3],
-        "wl_iterations": wl_iterations,
         "k": k,
         "L": L,
         "infl_point": infl_point
@@ -256,7 +255,7 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}):
         
         return all_scores_prob(test_targets, test_targets_proba)
         
-    best_model = model_score([-1., -1., -1., -1.], -1, base_model=base_model)
+    best_model = model_score([-1., -1., -1., -1.], base_model=base_model)
     
     models_file = open(output_dir + "models_sketch", "a")
     
@@ -272,7 +271,7 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}):
         start = time.time()
         avg_score = d_folds(d, sketch_matrix, cols_count, quality, targets)
         print "Classification took:", time.time() - start
-        current_model = model_score(avg_score, "outer", k, L, base_model=base_model)
+        current_model = model_score(avg_score, k, L, base_model=base_model)
         print current_model
         models_file.write(str(current_model) + ",\n")
         models_file.flush()
