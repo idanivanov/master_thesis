@@ -6,42 +6,48 @@ Created on Feb 4, 2016
 from ivanov.graph.algorithms.similar_graphs_mining import crossval
 from ivanov.graph import dataset_manager
 from ivanov import helpers
+from itertools import imap
 
 dataset = "nci-hiv"
-wl_iter_range = range(3, 4)
+wl_iter_range = range(0, 12)
 k_L_range = [
-     (7, 12)     # inflection point 0.3
-#     (20, 1),     # inflection point ~0.
-#     (25, 14),    # inflection point 0.1
-#     (25, 58),    # inflection point 0.15
-#     (25, 265),   # inflection point 0.2
-#     (15, 75),    # inflection point 0.25
-#     (15, 92),    # inflection point 0.26
-#     (15, 112),   # inflection point 0.27
-#     (15, 138),   # inflection point 0.28
-#     (15, 170),   # inflection point 0.29
-#     (15, 211),   # inflection point 0.3
-#     (15, 261),   # inflection point 0.31
-#     (14, 221),   # inflection point 0.32
-#     (14, 272),   # inflection point 0.33
-#     (13, 222),   # inflection point 0.34
-#     (13, 270),   # inflection point 0.35
-#     (10, 165),   # inflection point 0.4
-#     (5, 32),     # inflection point 0.5
-#     (5, 98),     # inflection point 0.6
-#     (4, 123),    # inflection point 0.7
-#     (3, 125),    # inflection point 0.8
-#     (2, 100),    # inflection point 0.9
-#     (1, 200)     # inflection point ~1.
+    (20, 1),    # inflection point ~0.
+    (15, 5),    # inflection point 0.1
+    (10, 9),    # inflection point 0.2
+    (7, 12),    # inflection point 0.3
+    (7, 16),    # inflection point 0.33
+    (5, 13),    # inflection point 0.4
+    (4, 16),    # inflection point 0.5
+    (3, 16),    # inflection point 0.6
+    (2, 11),    # inflection point 0.7
+    (2, 25),    # inflection point 0.8
+    (1, 10),    # inflection point 0.9
+    (1, 20),    # inflection point ~1.
 ]
 p_range = range(3)
 infl_point_range = [0., 0.0000001, 0.1, 0.15, 0.2, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
-output_dir = "../output_chem/nci_hiv/"
+output_dir = "../output_chem/"
 
-if __name__ == '__main__':
+def crossval_small_dataset():
     in_file = helpers.datasets[dataset]["files"][0]
     graph_database = dataset_manager.read_chemical_compounts(in_file)
-    best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=42687)
+#     best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=188)
 #     best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir)
-#     best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir)
+    best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir)
     print "Best model:", best_model
+
+def crossval_big_dataset():
+    path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/data/A_vs_M/"
+    examples_count = 1503
+    folds_count = 10
+    data_file = path_to_data + "svm_light_data_wl_{0}"
+    for wl_iterations in wl_iter_range:
+        data = dataset_manager.read_svm_light_bool_data(data_file.format(wl_iterations))
+        data = imap(lambda tup: (1 if tup[0] == 2 else -1, tup[1]), data) # TODO: only for A_vs_M
+        base_model = {"wl_iterations": wl_iterations}
+        best_model = crossval.d_fold_crossval(data, examples_count, folds_count, k_L_range, output_dir, base_model=base_model)
+        print "Best model:", best_model
+
+if __name__ == '__main__':
+#     crossval_small_dataset()
+    crossval_big_dataset()
