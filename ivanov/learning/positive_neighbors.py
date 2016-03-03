@@ -15,7 +15,7 @@ from ivanov import statistics
 class PositiveNeighbors(object):
     # TODO: Find a better name for the module.
     
-    def __init__(self, data, records_count, input_dimensions, positive_label=1):
+    def __init__(self, data, records_count, input_dimensions, output_file, positive_label=1):
         '''Constructor
         :param data: Input data, where each record is a tuple of the form (target, props), where props is a sparse vector.
         '''
@@ -27,26 +27,28 @@ class PositiveNeighbors(object):
             for prop in props:
                 self.X[i, prop] = 1
         
-#         self.appr_nn = neighbors.LSHForest().fit(self.X)
-        self.exact_nn = neighbors.NearestNeighbors(algorithm="auto").fit(self.X)
+        self.appr_nn = neighbors.LSHForest().fit(self.X)
+#         self.exact_nn = neighbors.NearestNeighbors(algorithm="auto").fit(self.X)
         
         min_k_for_positive = 0
         
         X_to_check = self.X[(self.y == positive_label),:]
+        with open(output_file, "w") as fl:
+            for k in range(1, records_count + 1):
+                fl.write("{0}, {1}\n".format(k, np.shape(X_to_check)))
+                neigh = self.appr_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
+#                 neigh = self.exact_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
+                neigh = neigh[:, 1:] # remove self from neighbors
+                neigh_targets = np.vectorize(lambda x: self.y[x])(neigh)
+                have_no_positive_neighbors = np.apply_along_axis(lambda row: not np.in1d(positive_label, row)[0], 1, neigh_targets)
+                X_to_check = X_to_check[have_no_positive_neighbors, :]
+                if np.shape(X_to_check)[0] == 0:
+                    min_k_for_positive = k
+                    break
+                
+            fl.write("Result: {0}\n".format(min_k_for_positive))
         
-        for k in range(1, records_count + 1):
-            print k, np.shape(X_to_check)
-#             neigh = self.appr_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
-            neigh = self.exact_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
-            neigh = neigh[:, 1:] # remove self from neighbors
-            neigh_targets = np.vectorize(lambda x: self.y[x])(neigh)
-            have_no_positive_neighbors = np.apply_along_axis(lambda row: not np.in1d(positive_label, row)[0], 1, neigh_targets)
-            X_to_check = X_to_check[have_no_positive_neighbors, :]
-            if np.shape(X_to_check)[0] == 0:
-                min_k_for_positive = k
-                break
-        
-        print min_k_for_positive
+        print "Result:", min_k_for_positive
     
     @staticmethod
     def classify_appr_knn():
@@ -70,12 +72,15 @@ class PositiveNeighbors(object):
         print y_test == y_test_pred
     
 print "Start"
-# data_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/mutagenicity/data/mut_data_wl_3"
-data_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/data/AM_vs_I/svm_light_data_wl_8"
+# path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/mutagenicity/"
+# data_file = path + "data/mut_data_wl_3"
+path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/"
+data_file = "data/A_vs_M/svm_light_data_wl_6"
+output_file = path + "min_pos_k_result"
 data = dataset_manager.read_svm_light_bool_data(data_file)
 # records_count = 188
 # input_dimensions = 766
-records_count = 42687
-input_dimensions = 3200132
-pn = PositiveNeighbors(data, records_count, input_dimensions)
+records_count = 1503
+input_dimensions = 3198007
+pn = PositiveNeighbors(data, records_count, input_dimensions, output_file)
 print "Done"
