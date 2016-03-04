@@ -106,3 +106,81 @@ datasets = {
         ]
     }
 }
+
+'''svm_light_format_datasets Format:
+dataset-name: {
+    [sub-dataset-name: {]
+        examples_count: Number of records in the dataset.
+        file_template: Template of the file path where the data is stored.
+        dim_wl_iter_i: Dimensionality of the data for Weisfeiler & Lehman iteration i.
+    [}]
+}
+'''
+svm_light_format_datasets = {
+    "mutagenicity": {
+        "examples_count": 188,
+        "file_template": "data/mut_data_wl_{0}",
+        "dim_wl_iter_0": 57,
+        "dim_wl_iter_1": 166,
+        "dim_wl_iter_2": 414,
+        "dim_wl_iter_3": 766,
+        "dim_wl_iter_4": 1305,
+        "dim_wl_iter_5": 1970,
+        "dim_wl_iter_6": 3000,
+        "dim_wl_iter_7": 4212,
+        "dim_wl_iter_8": 5781,
+        "dim_wl_iter_9": 7499,
+        "dim_wl_iter_10": 9475,
+        "dim_wl_iter_11": 11522
+    },
+    "nci-hiv": {
+        "A-vs-M": {
+            "examples_count": 1503,
+            "file_template": "data/A_vs_M/svm_light_data_wl_{0}",
+            "dim_wl_iter_0": 971313,
+            "dim_wl_iter_1": 1772797,
+            "dim_wl_iter_2": 3197992,
+            "dim_wl_iter_3": 3197994,
+            "dim_wl_iter_4": 3197997,
+            "dim_wl_iter_5": 3198002,
+            "dim_wl_iter_6": 3198007,
+            "dim_wl_iter_7": 3198014,
+            "dim_wl_iter_8": 3198021,
+            "dim_wl_iter_9": 3198030,
+            "dim_wl_iter_10": 3198039,
+            "dim_wl_iter_11": 3198049
+        },
+        "AM-vs-I": {
+            "examples_count": 42687,
+            "file_template": "data/AM_vs_I/svm_light_data_wl_{0}",
+            "dim_wl_iter_0": 346930,
+            "dim_wl_iter_1": 346931,
+            "dim_wl_iter_2": 346933,
+            "dim_wl_iter_3": 3200095,
+            "dim_wl_iter_4": 3200100,
+            "dim_wl_iter_5": 3200105,
+            "dim_wl_iter_6": 3200112,
+            "dim_wl_iter_7": 3200120,
+            "dim_wl_iter_8": 3200132,
+            "dim_wl_iter_9": 3200145,
+            "dim_wl_iter_10": 3200163,
+            "dim_wl_iter_11": 3200181
+        },
+        "A-vs-I": {
+            "examples_count": 41606,
+            "file_template": "data/A_vs_I/svm_light_data_wl_{0}",
+            "dim_wl_iter_0": 346930,
+            "dim_wl_iter_1": 346931,
+            "dim_wl_iter_2": 346933,
+            "dim_wl_iter_3": 3200095,
+            "dim_wl_iter_4": 3200100,
+            "dim_wl_iter_5": 3200105,
+            "dim_wl_iter_6": 3200112,
+            "dim_wl_iter_7": 3200120,
+            "dim_wl_iter_8": 3200132,
+            "dim_wl_iter_9": 3200145,
+            "dim_wl_iter_10": 3200163,
+            "dim_wl_iter_11": 3200181
+        }
+    }
+}
