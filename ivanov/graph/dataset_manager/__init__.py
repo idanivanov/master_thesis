@@ -6,7 +6,9 @@ Created on Feb 4, 2016
 from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
     shingle_extraction
 from ivanov.graph.hypergraph import Hypergraph
+from scipy.sparse import csr_matrix
 import networkx as nx
+import numpy as np
 import itertools
 import codecs
 
@@ -100,3 +102,16 @@ def read_svm_light_bool_data(in_file):
                 if float(prop[1]) > 0.:
                     props.append(int(prop[0]))
             yield target, props
+
+def read_svm_light_bool_data_to_sparse(in_file, records_count, input_dimensions):
+    data = read_svm_light_bool_data(in_file)
+    
+    X = csr_matrix((records_count, input_dimensions), dtype=np.int8)
+    y = np.empty(records_count, dtype=np.int8)
+    
+    for i, (target, props) in enumerate(data):
+        y[i] = 1 if target == 2 else target
+        for prop in props:
+            X[i, prop] = 1
+    
+    return X, y
