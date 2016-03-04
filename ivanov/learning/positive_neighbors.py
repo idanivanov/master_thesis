@@ -4,83 +4,85 @@ Created on Mar 1, 2016
 @author: Ivan Ivanov
 '''
 from sklearn.cross_validation import train_test_split
-from ivanov.graph import dataset_manager
-from scipy.sparse import csr_matrix
+from scipy.sparse import vstack
 from sklearn import neighbors
 import numpy as np
-from collections import Counter
-import itertools
-from ivanov import statistics
 
 class PositiveNeighbors(object):
-    # TODO: Find a better name for the module.
+    '''This class defines a model for computing the proportion of positive examples, 
+    among all positive examples, for which it is true that there is at least one other
+    positive example among their neighbors (for the given number of nearest neighbors).
+    '''
     
-    def __init__(self, data, records_count, input_dimensions, output_file, positive_label=1):
+    def __init__(self, n_neighbors, approximate=False, positive_label=1):
         '''Constructor
-        :param data: Input data, where each record is a tuple of the form (target, props), where props is a sparse vector.
+        :param n_neighbors: Number of nearest neighbors.
+        :param approximate: If True will use and approximate nearest neighbor algorithm. Default is False.
+        :param positive_label: The positive label in the input data. Default is 1.
         '''
-        self.X = csr_matrix((records_count, input_dimensions), dtype=np.int8)
-        self.y = np.empty(records_count, dtype=np.int8)
+        self.positive_label = positive_label
         
-        for i, (target, props) in enumerate(data):
-            self.y[i] = 1 if target == 2 else target
-            for prop in props:
-                self.X[i, prop] = 1
+        if approximate:
+            self.nn = neighbors.LSHForest(n_neighbors=n_neighbors)
+        else:
+            self.nn = neighbors.NearestNeighbors(n_neighbors=n_neighbors, algorithm="auto")
+    
+    def fit(self, X, y):
+        '''Fit the model to the input data.
+        :param X: Input data.
+        :param y: Target labels of the input data.
+        :return: Self.
+        '''
+        self.X = X
+        self.y = y
         
-        self.appr_nn = neighbors.LSHForest().fit(self.X)
-#         self.exact_nn = neighbors.NearestNeighbors(algorithm="auto").fit(self.X)
+        self.nn.fit(self.X)
         
-        min_k_for_positive = 0
-        
-        X_to_check = self.X[(self.y == positive_label),:]
-        with open(output_file, "w") as fl:
-            for k in range(1, records_count + 1):
-                fl.write("{0}, {1}\n".format(k, np.shape(X_to_check)))
-                neigh = self.appr_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
-#                 neigh = self.exact_nn.kneighbors(X_to_check, n_neighbors=k+1, return_distance=False)
-                neigh = neigh[:, 1:] # remove self from neighbors
-                neigh_targets = np.vectorize(lambda x: self.y[x])(neigh)
-                have_no_positive_neighbors = np.apply_along_axis(lambda row: not np.in1d(positive_label, row)[0], 1, neigh_targets)
-                X_to_check = X_to_check[have_no_positive_neighbors, :]
-                if np.shape(X_to_check)[0] == 0:
-                    min_k_for_positive = k
-                    break
-                
-            fl.write("Result: {0}\n".format(min_k_for_positive))
-        
-        print "Result:", min_k_for_positive
+        return self
+    
+    def predict(self, X_test, y_test):
+        '''Compute the proportion of positive test examples which satisfy the
+        condition (to have at least one positive neighbor in the training data)
+        for the given number of nearest neighbors.
+        :param X_test: Input test data.
+        :param y_test: Target labels of the input test data.
+        :return: The proportion of positive test examples satisfying the condition
+        among all positive test examples.
+        '''
+        positive_X = X_test[(y_test == self.positive_label),:]
+        neigh = self.nn.kneighbors(positive_X, return_distance=False)
+        neigh_targets = np.vectorize(lambda x: self.y[x])(neigh)
+        have_positive_neighbors = np.apply_along_axis(lambda row: np.in1d(self.positive_label, row)[0], 1, neigh_targets)
+        prediction = float(np.sum(have_positive_neighbors)) / float(np.shape(positive_X)[0]) 
+        return prediction
     
     @staticmethod
-    def classify_appr_knn():
-        X = csr_matrix((records_count, input_dimensions), dtype=np.int8)
-        y = np.empty(records_count, dtype=np.int8)
+    def cross_validate(X, y, n_neighbors, folds_count=10, approximate=False, positive_label=1):
+        '''Cross-validate the prediction using the given number of folds.
+        :param X: Input data.
+        :param y: Target labels of the input data.
+        :param n_neighbors: Number of nearest neighbors.
+        :param folds_count: Number of cross-validation folds.
+        :param approximate: If True will use and approximate nearest neighbor algorithm. Default is False.
+        :param positive_label: The positive label in the input data. Default is 1.
+        '''
+        fold_size = len(y) / folds_count
+        fold_offset = 0
+        fold_offset_end = 0
         
-        for i, (target, props) in enumerate(data):
-            y[i] = target
-            for prop in props:
-                X[i, prop] = 1
+        avg_prediction = 0.
         
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-        appr_nn = neighbors.LSHForest().fit(X_train)
-        similar_records = appr_nn.kneighbors(X_test, n_neighbors=2, return_distance=False)
-        similar_targets = np.vectorize(lambda x: y_train[x])(similar_records)
+        for _ in range(folds_count):
+            fold_offset_end += fold_size
+            X_train = vstack([X[:fold_offset], X[fold_offset_end:]])
+            y_train = np.hstack((y[:fold_offset], y[fold_offset_end:]))
+            X_test = X[fold_offset:fold_offset_end]
+            y_test = y[fold_offset:fold_offset_end]
+            pn = PositiveNeighbors(n_neighbors=n_neighbors, approximate=approximate, positive_label=positive_label)
+            pn.fit(X_train, y_train)
+            avg_prediction += pn.predict(X_test, y_test)
+            fold_offset = fold_offset_end
         
-        y_test_pred = np.apply_along_axis(statistics.predict_target_majority, 1, similar_targets)
+        avg_prediction /= float(folds_count)
         
-        print y_test
-        print y_test_pred
-        print y_test == y_test_pred
-    
-print "Start"
-# path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/mutagenicity/"
-# data_file = path + "data/mut_data_wl_3"
-path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/"
-data_file = "data/A_vs_M/svm_light_data_wl_6"
-output_file = path + "min_pos_k_result"
-data = dataset_manager.read_svm_light_bool_data(data_file)
-# records_count = 188
-# input_dimensions = 766
-records_count = 1503
-input_dimensions = 3198007
-pn = PositiveNeighbors(data, records_count, input_dimensions, output_file)
-print "Done"
+        return avg_prediction
