@@ -28,7 +28,8 @@ if __name__ == '__main__':
             input_dimensions = wl_props["dim_wl_iter_{0}".format(w)]
             data_file = path + wl_props["file_template"].format(w)
             X, y = dataset_manager.read_svm_light_bool_data_to_sparse(data_file, records_count, input_dimensions)
-            for n in range(1, 20):
+            y = map(lambda t: 1 if t == 2 else -1, y) # Only for A_vs_M
+            for n in range(1, 40):
                 prediction = PositiveNeighbors.cross_validate(X, y, n_neighbors=n, folds_count=10, approximate=False)
                 print w, n, prediction
                 fl.write("{0}, {1}, {2}\n".format(w, n, prediction))

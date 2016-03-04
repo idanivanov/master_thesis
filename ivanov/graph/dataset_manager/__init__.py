@@ -110,7 +110,7 @@ def read_svm_light_bool_data_to_sparse(in_file, records_count, input_dimensions)
     y = np.empty(records_count, dtype=np.int8)
     
     for i, (target, props) in enumerate(data):
-        y[i] = 1 if target == 2 else target
+        y[i] = target
         for prop in props:
             X[i, prop] = 1
     
