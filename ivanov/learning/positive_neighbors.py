@@ -3,7 +3,6 @@ Created on Mar 1, 2016
 
 @author: Ivan Ivanov
 '''
-from sklearn.cross_validation import train_test_split
 from scipy.sparse import vstack
 from sklearn import neighbors
 import numpy as np
