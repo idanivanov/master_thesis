@@ -4,6 +4,7 @@ Created on Feb 17, 2016
 @author: Ivan Ivanov
 '''
 from ivanov import statistics
+import numpy as np
 import commands
 
 # comm_prefix = ""
@@ -11,16 +12,17 @@ comm_prefix = "~/Programs/svm_light/"
 
 path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/cv_data_A_vs_M/"
 
-_id = "tanh"
-kernel = 3
-g = 0.
-s = 0.001
-r = 0.001
-d = 0.
-wl_range = range(0, 12)
+_id = "A_vs_M_rbf"
+kernel = 2
+# g = 0.
+# s = 0.001
+# r = 0.001
+# d = 0.
+wl_range = range(10, 11)
+g_range = np.arange(0.0047, 0.0055, 0.0002)
 crossval_folds = 10
 
-output_file = path + "scores_A_vs_M_" + _id
+output_file = path + "scores_" + _id
 
 def compute_scores(w):
     auc_avg = 0.
@@ -50,7 +52,7 @@ def compute_scores(w):
     
     return w, auc_avg, acc_avg, prec_avg, rec_avg
 
-def svm_crossval():
+def svm_crossval_wl_iter(g, s=0., r=0., d=0.):
     print "Start:", _id
     
     form = {
@@ -66,13 +68,13 @@ def svm_crossval():
         "path": path
     }
     
-    with open(output_file, "w") as fl:
-        fl.write("wl_iter,auc,accuracy,precision,recall\n")
+    with open(output_file, "a") as fl:
+#         fl.write("g,wl_iter,auc,accuracy,precision,recall\n")
         for w in wl_range:
             form["w"] = w
             k_range = range(1, crossval_folds + 1)
             for k in k_range:
-                print _id, w, k
+                print _id, g, w, k
                 form["k"] = k
                 learn_comm = "{prefix}svm_learn -t {kernel} -g {g} -s {s} -r {r} -d {d} {path}fold_{k}/train_wl_{w} {path}models/model_{id}".format(**form)
                 predict_comm = "{prefix}svm_classify {path}fold_{k}/val_wl_{w} {path}models/model_{id} {path}models/predict_{id}_k_{k}".format(**form)
@@ -80,10 +82,14 @@ def svm_crossval():
                 commands.getstatusoutput(predict_comm)
             scores = compute_scores(w)
             print "Scores:", scores
-            fl.write(",".join(map(lambda x: str(x), scores)) + "\n")
+            fl.write(str(g) + ", " + ",".join(map(lambda x: str(x), scores)) + "\n")
             fl.flush()
     
     print "Done:", _id
+
+def svm_crossval():
+    for g in g_range:
+        svm_crossval_wl_iter(g)
 
 if __name__ == '__main__':
     svm_crossval()
