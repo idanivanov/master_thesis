@@ -7,19 +7,20 @@ from ivanov import statistics
 import numpy as np
 import commands
 
-# comm_prefix = ""
-comm_prefix = "~/Programs/svm_light/"
+comm_prefix = ""
+# comm_prefix = "~/Programs/svm_light/"
 
-path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/cv_data_A_vs_M/"
+path = "/home/stud/ivanovi/Thesis/svm/nci_hiv/cv_data_A_vs_I/"
+# path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/cv_data_A_vs_I/"
 
-_id = "A_vs_M_rbf"
+_id = "A_vs_I_rbf_1"
 kernel = 2
 # g = 0.
 # s = 0.001
 # r = 0.001
 # d = 0.
-wl_range = range(10, 11)
-g_range = np.arange(0.0047, 0.0055, 0.0002)
+wl_range = range(8, 11)
+g_range = np.arange(0.0045, 0.005, 0.0001)
 crossval_folds = 10
 
 output_file = path + "scores_" + _id
