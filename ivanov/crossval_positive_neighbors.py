@@ -9,15 +9,16 @@ from ivanov import helpers
 
 if __name__ == '__main__':
     
-    path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/mutagenicity/"
-    # path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/"
+#     path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/mutagenicity/"
+#     path = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/"
+    path = "/home/stud/ivanovi/Thesis/svm/nci_hiv/"
     
-    wl_props = helpers.svm_light_format_datasets["mutagenicity"]
-#     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-M"]
+#     wl_props = helpers.svm_light_format_datasets["mutagenicity"]
+    wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-M"]
 #     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["AM-vs-I"]
 #     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-I"]
     
-    output_file = path + "positive_neighbors"
+    output_file = path + "positive_neighbors _A_vs_M"
     
     print "Start"
     
