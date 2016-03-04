@@ -18,7 +18,7 @@ if __name__ == '__main__':
 #     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["AM-vs-I"]
 #     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-I"]
     
-    output_file = path + "positive_neighbors _A_vs_M"
+    output_file = path + "positive_neighbors_A_vs_M"
     
     print "Start"
     
