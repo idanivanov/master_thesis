@@ -6,6 +6,7 @@ Created on Mar 4, 2016
 from ivanov.learning.positive_neighbors import PositiveNeighbors
 from ivanov.graph import dataset_manager
 from ivanov import helpers
+import numpy as np
 
 if __name__ == '__main__':
     
@@ -28,7 +29,8 @@ if __name__ == '__main__':
             input_dimensions = wl_props["dim_wl_iter_{0}".format(w)]
             data_file = path + wl_props["file_template"].format(w)
             X, y = dataset_manager.read_svm_light_bool_data_to_sparse(data_file, records_count, input_dimensions)
-            y = map(lambda t: 1 if t == 2 else -1, y) # Only for A_vs_M
+            y = np.vectorize(lambda t: 1 if t == 2 else -1)(y) # Only for A_vs_M
+#             y = np.vectorize(lambda t: 1 if t == 2 else t)(y) # Only for AM_vs_I and A_vs_I
             for n in range(1, 40):
                 prediction = PositiveNeighbors.cross_validate(X, y, n_neighbors=n, folds_count=10, approximate=False)
                 print w, n, prediction
