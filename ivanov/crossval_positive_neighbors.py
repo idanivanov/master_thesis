@@ -15,11 +15,11 @@ if __name__ == '__main__':
     path = "/home/stud/ivanovi/Thesis/svm/nci_hiv/"
     
 #     wl_props = helpers.svm_light_format_datasets["mutagenicity"]
-    wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-M"]
-#     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["AM-vs-I"]
+#     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-M"]
+    wl_props = helpers.svm_light_format_datasets["nci-hiv"]["AM-vs-I"]
 #     wl_props = helpers.svm_light_format_datasets["nci-hiv"]["A-vs-I"]
     
-    output_file = path + "positive_neighbors_A_vs_M"
+    output_file = path + "positive_neighbors_AM_vs_I"
     
     print "Start"
     
@@ -27,14 +27,14 @@ if __name__ == '__main__':
         for w in range(0, 12):
             data_file = path + wl_props["file_template"].format(w)
             X, y = dataset_manager.read_svm_light_bool_data_to_sparse(data_file)
-            y = np.vectorize(lambda t: 1 if t == 2 else -1)(y) # Only for A_vs_M
-#             y = np.vectorize(lambda t: 1 if t == 2 else t)(y) # Only for AM_vs_I and A_vs_I
+#             y = np.vectorize(lambda t: 1 if t == 2 else -1)(y) # Only for A_vs_M
+            y = np.vectorize(lambda t: 1 if t == 2 else t)(y) # Only for AM_vs_I and A_vs_I
             for n in range(1, 500):
                 prediction = PositiveNeighbors.cross_validate(X, y, n_neighbors=n, folds_count=10, approximate=False)
                 print w, n, prediction
                 fl.write("{0}, {1}, {2}\n".format(w, n, prediction))
                 fl.flush()
-                if prediction == 1.:
+                if prediction >= 0.9:
                     break
     
     print "Done"
