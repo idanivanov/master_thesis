@@ -34,7 +34,7 @@ if __name__ == '__main__':
                 print w, n, prediction
                 fl.write("{0}, {1}, {2}\n".format(w, n, prediction))
                 fl.flush()
-                if prediction >= 0.9:
+                if prediction >= 0.95:
                     break
     
     print "Done"
