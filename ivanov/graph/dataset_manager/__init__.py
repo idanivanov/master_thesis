@@ -103,15 +103,21 @@ def read_svm_light_bool_data(in_file):
                     props.append(int(prop[0]))
             yield target, props
 
-def read_svm_light_bool_data_to_sparse(in_file, records_count, input_dimensions):
+def read_svm_light_bool_data_to_sparse(in_file):
     data = read_svm_light_bool_data(in_file)
     
-    X = csr_matrix((records_count, input_dimensions), dtype=np.int8)
-    y = np.empty(records_count, dtype=np.int8)
+    y = []
+    X_row = []
+    X_col = []
     
     for i, (target, props) in enumerate(data):
-        y[i] = target
+        y.append(target)
         for prop in props:
-            X[i, prop] = 1
+            X_row.append(i)
+            X_col.append(prop)
     
-    return X, y
+    X_data = np.full((len(X_row),), 1, dtype=np.int8)
+    
+    X = csr_matrix((X_data, (X_row, X_col)), dtype=np.int8)
+    
+    return X, np.array(y)

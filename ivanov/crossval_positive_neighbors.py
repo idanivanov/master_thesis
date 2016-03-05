@@ -25,13 +25,11 @@ if __name__ == '__main__':
     
     with open(output_file, "w") as fl:
         for w in range(0, 12):
-            records_count = wl_props["examples_count"]
-            input_dimensions = wl_props["dim_wl_iter_{0}".format(w)]
             data_file = path + wl_props["file_template"].format(w)
-            X, y = dataset_manager.read_svm_light_bool_data_to_sparse(data_file, records_count, input_dimensions)
+            X, y = dataset_manager.read_svm_light_bool_data_to_sparse(data_file)
             y = np.vectorize(lambda t: 1 if t == 2 else -1)(y) # Only for A_vs_M
 #             y = np.vectorize(lambda t: 1 if t == 2 else t)(y) # Only for AM_vs_I and A_vs_I
-            for n in range(1, 40):
+            for n in range(1, 500):
                 prediction = PositiveNeighbors.cross_validate(X, y, n_neighbors=n, folds_count=10, approximate=False)
                 print w, n, prediction
                 fl.write("{0}, {1}, {2}\n".format(w, n, prediction))
