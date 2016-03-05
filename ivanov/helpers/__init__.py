@@ -169,9 +169,9 @@ svm_light_format_datasets = {
         "A-vs-I": {
             "examples_count": 41606,
             "file_template": "data/A_vs_I/svm_light_data_wl_{0}",
-            "dim_wl_iter_0": 346930,
-            "dim_wl_iter_1": 346931,
-            "dim_wl_iter_2": 346933,
+            "dim_wl_iter_0": 3198276,
+            "dim_wl_iter_1": 3198277,
+            "dim_wl_iter_2": 3198961,
             "dim_wl_iter_3": 3200095,
             "dim_wl_iter_4": 3200100,
             "dim_wl_iter_5": 3200105,

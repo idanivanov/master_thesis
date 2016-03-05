@@ -70,8 +70,8 @@ class PositiveNeighbors(object):
         fold_offset = 0
         fold_offset_end = 0
         
-        positive_y_train = np.full((np.shape(positive_X)[0] - fold_size,), positive_label)
-        negative_y = np.full((np.shape(negative_X)[0],), -1, dtype=np.int16)
+        positive_y_train = np.full((np.shape(positive_X)[0] - fold_size,), positive_label, dtype=np.int8)
+        negative_y = np.full((np.shape(negative_X)[0],), -1, dtype=np.int8)
         y_train = np.hstack((negative_y, positive_y_train))
         
         avg_prediction = 0.

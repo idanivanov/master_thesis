@@ -74,3 +74,8 @@ def plot_3d(data, x_axis, y_axis, z_axis, out_eps_file=None, azim=0., elev=0.):
         fig.savefig(out_eps_file, format='eps')
     
     plt.show()
+
+# models = [
+# ]
+# 
+# plot_3d(models, "infl_point", "wl_iterations", "auc", "auc", -90, 69)
