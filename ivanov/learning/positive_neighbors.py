@@ -39,20 +39,18 @@ class PositiveNeighbors(object):
         
         return self
     
-    def predict(self, X_test, y_test):
-        '''Compute the proportion of positive test examples which satisfy the
-        condition (to have at least one positive neighbor in the training data)
-        for the given number of nearest neighbors.
+    def predict(self, X_test):
+        '''Compute the proportion of test examples which satisfy the condition
+        (to have at least one positive neighbor in the training data) for the
+        given number of nearest neighbors.
         :param X_test: Input test data.
-        :param y_test: Target labels of the input test data.
-        :return: The proportion of positive test examples satisfying the condition
+        :return: The proportion of test examples satisfying the condition
         among all positive test examples.
         '''
-        positive_X = X_test[(y_test == self.positive_label),:]
-        neigh = self.nn.kneighbors(positive_X, return_distance=False)
+        neigh = self.nn.kneighbors(X_test, return_distance=False)
         neigh_targets = np.vectorize(lambda x: self.y[x])(neigh)
         have_positive_neighbors = np.apply_along_axis(lambda row: np.in1d(self.positive_label, row)[0], 1, neigh_targets)
-        prediction = float(np.sum(have_positive_neighbors)) / float(np.shape(positive_X)[0]) 
+        prediction = float(np.sum(have_positive_neighbors)) / float(np.shape(X_test)[0]) 
         return prediction
     
     @staticmethod
@@ -65,21 +63,26 @@ class PositiveNeighbors(object):
         :param approximate: If True will use and approximate nearest neighbor algorithm. Default is False.
         :param positive_label: The positive label in the input data. Default is 1.
         '''
-        fold_size = len(y) / folds_count
+        positive_X = X[(y == positive_label)]
+        negative_X = X[(y != positive_label)]
+        
+        fold_size = np.shape(positive_X)[0] / folds_count
         fold_offset = 0
         fold_offset_end = 0
+        
+        positive_y_train = np.full((np.shape(positive_X)[0] - fold_size,), positive_label)
+        negative_y = np.full((np.shape(negative_X)[0],), -1, dtype=np.int16)
+        y_train = np.hstack((negative_y, positive_y_train))
         
         avg_prediction = 0.
         
         for _ in range(folds_count):
             fold_offset_end += fold_size
-            X_train = vstack([X[:fold_offset], X[fold_offset_end:]])
-            y_train = np.hstack((y[:fold_offset], y[fold_offset_end:]))
-            X_test = X[fold_offset:fold_offset_end]
-            y_test = y[fold_offset:fold_offset_end]
+            X_train = vstack([negative_X, positive_X[:fold_offset], positive_X[fold_offset_end:]])
+            X_test = positive_X[fold_offset:fold_offset_end]
             pn = PositiveNeighbors(n_neighbors=n_neighbors, approximate=approximate, positive_label=positive_label)
             pn.fit(X_train, y_train)
-            avg_prediction += pn.predict(X_test, y_test)
+            avg_prediction += pn.predict(X_test)
             fold_offset = fold_offset_end
         
         avg_prediction /= float(folds_count)
