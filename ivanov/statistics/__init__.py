@@ -10,8 +10,8 @@ from ivanov.graph import dataset_manager
 from collections import Counter
 from itertools import imap
 import numpy as np
-import math
 import itertools
+import math
 
 def predict_target_majority(targets, default_negative_target=0):
     '''Majority election of target.
@@ -51,6 +51,7 @@ def prepare_target_with_predictions(svm_light_val_file, predictions_file):
     return real_targets, pred_targets
 
 def get_probabilities(pred_targets):
+    # deprecated
     def sigmoid(x):
         return 1 / (1 + math.exp(-x))
 
@@ -58,19 +59,17 @@ def get_probabilities(pred_targets):
     
     return targets_prob
 
-def prepare_target_with_probabilities(svm_light_val_file, predictions_file):
-    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
-    targets_prob = get_probabilities(pred_targets)
-    return real_targets, targets_prob
+def apply_threshold(pred_targets, threshold):
+    min_pred = min(pred_targets)
+    thr = ((max(pred_targets) - min_pred) * threshold) + min_pred
+    pred_targets_thr = map(lambda x: 1 if x >= thr else -1, pred_targets)
+    
+    return pred_targets_thr
 
 def all_scores(real_targets, pred_targets, threshold=0.5):
-    targets_prob = list(get_probabilities(pred_targets))
-    return all_scores_prob(real_targets, targets_prob, threshold)
-
-def all_scores_prob(real_targets, targets_prob, threshold=0.5):
-    pred_targets_thr = map(lambda x: 1 if x >= threshold else -1, targets_prob)
+    pred_targets_thr = apply_threshold(pred_targets, threshold)
     
-    auc = roc_auc_score(real_targets, targets_prob)
+    auc = roc_auc_score(real_targets, pred_targets)
     acc = accuracy_score(real_targets, pred_targets_thr)
     prec = precision_score(real_targets, pred_targets_thr)
     rec = recall_score(real_targets, pred_targets_thr)
@@ -80,31 +79,31 @@ def all_scores_prob(real_targets, targets_prob, threshold=0.5):
 def all_scores_from_files(svm_light_val_file, predictions_file, threshold=0.5):
     real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
     real_targets = list(real_targets)
-    pred_targets = pred_targets
+    pred_targets = list(pred_targets)
     
     return all_scores(real_targets, pred_targets, threshold)
 
 def roc_curve(svm_light_val_file, predictions_file):
-    real_targets, targets_prob = prepare_target_with_probabilities(svm_light_val_file, predictions_file)
-    return sk_roc_curve(real_targets, targets_prob)
+    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
+    return sk_roc_curve(real_targets, pred_targets)
 
 def auc(svm_light_val_file, predictions_file):
-    real_targets, targets_prob = prepare_target_with_probabilities(svm_light_val_file, predictions_file)
+    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
     real_targets = list(real_targets)
-    targets_prob = list(targets_prob)
-    return roc_auc_score(real_targets, targets_prob)
+    pred_targets = list(pred_targets)
+    return roc_auc_score(real_targets, pred_targets)
 
 def accuracy(svm_light_val_file, predictions_file, threshold=0.5):
-    real_targets, targets_prob = prepare_target_with_probabilities(svm_light_val_file, predictions_file)
-    pred_targets = map(lambda x: 1 if x >= threshold else -1, targets_prob)
-    return accuracy_score(real_targets, pred_targets)
+    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
+    pred_targets_thr = apply_threshold(pred_targets, threshold)
+    return accuracy_score(real_targets, pred_targets_thr)
 
 def precision(svm_light_val_file, predictions_file, threshold=0.5):
-    real_targets, targets_prob = prepare_target_with_probabilities(svm_light_val_file, predictions_file)
-    pred_targets = map(lambda x: 1 if x >= threshold else -1, targets_prob)
-    return precision_score(real_targets, pred_targets)
+    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
+    pred_targets_thr = apply_threshold(pred_targets, threshold)
+    return precision_score(real_targets, pred_targets_thr)
 
 def recall(svm_light_val_file, predictions_file, threshold=0.5):
-    real_targets, targets_prob = prepare_target_with_probabilities(svm_light_val_file, predictions_file)
-    pred_targets = map(lambda x: 1 if x >= threshold else -1, targets_prob)
-    return recall_score(real_targets, pred_targets)
+    real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
+    pred_targets_thr = apply_threshold(pred_targets, threshold)
+    return recall_score(real_targets, pred_targets_thr)
