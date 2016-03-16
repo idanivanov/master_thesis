@@ -7,7 +7,7 @@ Cross-validation for similar graphs mining.
 '''
 from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import CharacteristicMatrix
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
-from ivanov.statistics import all_scores_prob
+from ivanov.statistics import all_scores
 from ivanov import statistics
 import numpy as np
 import time
@@ -252,9 +252,9 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}):
             similar_targets = map(lambda c: train_targets[c], similar_cols)
             estimated_target_proba_i = statistics.predict_binary_target_proba(similar_targets)
             test_targets_proba[i] = estimated_target_proba_i
-        
-        return all_scores_prob(test_targets, test_targets_proba)
-        
+         
+        return all_scores(test_targets, test_targets_proba)
+    
     best_model = model_score([-1., -1., -1., -1.], base_model=base_model)
     
     models_file = open(output_dir + "models_sketch", "a")
