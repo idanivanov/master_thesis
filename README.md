@@ -11,3 +11,4 @@
 * codecs
 * RDFClosure
 * (py_ecc) ffield - http://web.mit.edu/~emin/www.old/source_code/py_ecc/
+* sklearn
