@@ -9,6 +9,6 @@
 * cPickle
 * unidecode
 * codecs
-* RDFClosure
+* RDFClosure - http://www.ivan-herman.net/Misc/2008/owlrl/Doc/RDFClosure-module.html
 * (py_ecc) ffield - http://web.mit.edu/~emin/www.old/source_code/py_ecc/
 * sklearn
