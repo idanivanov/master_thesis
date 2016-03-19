@@ -95,6 +95,15 @@ datasets = {
             data_path + "Mutagenicity/mutagenicity.txt"
         ]
     },
+    "mutagenicity-rdf": {
+        "files": [
+            data_path + "Mutagenicity_RDF/mutagenesis.owl"
+        ],
+        "compounds_targets": {
+            "sample-1": data_path + "Mutagenicity_RDF/compounds_targets_sample_1",
+            "sample-2": data_path + "Mutagenicity_RDF/compounds_targets_sample_2"
+        }
+    },
     "nci-hiv": {
         "files": [
             data_path + "NCI_HIV/AIDS99.txt"
