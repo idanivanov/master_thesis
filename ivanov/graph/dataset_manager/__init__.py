@@ -6,6 +6,7 @@ Created on Feb 4, 2016
 from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
     shingle_extraction
 from ivanov.graph.hypergraph import Hypergraph
+from ivanov.graph import rdf, algorithms
 from scipy.sparse import csr_matrix
 import networkx as nx
 import numpy as np
@@ -56,7 +57,63 @@ def read_chemical_compounts(in_file, process_compound_function=None):
                 yield ch_db_record
             i = (i + 1) % 3
 
-def build_svmlight_chemical_data(in_file, wl_iterations, output_dir):
+def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, process_compound_function=None):
+    def read_componds_and_targets():
+        with open(compounds_targets_file, "r") as ct_file:
+            for line in ct_file.readlines():
+                if line.startswith("#"):
+                    continue
+                elif line.startswith("$"):
+                    break
+                else:
+                    comp_id, target_label = tuple(line[:-1].split(" "))
+                    yield unicode(comp_id), int(target_label)
+    
+    full_graph, uri_node_map, type_color_map = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True)
+    
+    literal_colors = set()
+    for rdf_type in type_color_map:
+        # TODO: this condition is unsafe because it may remove not only literal colors
+        if rdf_type.startswith(u"http://www.w3.org/2001/XMLSchema#"):
+            literal_colors.add(type_color_map[rdf_type])
+    
+    for node in full_graph.nodes():
+        # remove all literals
+        if literal_colors & set(full_graph.node[node]["labels"]):
+            full_graph.remove_node(node)
+    
+    for node in full_graph.nodes_iter():
+        # remove the color of named individual type from all nodes where it occures
+        named_indiv_color = type_color_map[u"http://www.w3.org/2002/07/owl#NamedIndividual"]
+        if named_indiv_color in full_graph.node[node]["labels"]:
+            full_graph.node[node]["labels"].remove(named_indiv_color)
+
+    full_hypergraph = Hypergraph(full_graph)
+    
+    for comp_id, target_label in read_componds_and_targets():
+        node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
+        comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
+        comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
+        for node in comp_neighborhood_hypergraph.nodes_iter():
+            # remove isolated nodes
+            if len(comp_neighborhood_hypergraph.neighbors(node)) == 0:
+                comp_neighborhood_hypergraph.safe_remove_node(node)
+#         # get the immediate neighbors of the compound node in a separate graph
+#         r1_ball = algorithms.r_ball_hyper(full_hypergraph, node_id, 1, 0)
+        ch_db_record = (comp_id, [comp_neighborhood_hypergraph], target_label)
+        if process_compound_function:
+            process_compound_function(ch_db_record)
+        yield ch_db_record
+
+def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None):
+    if format_rdf:
+        assert type(in_files) is list
+        assert bool(compounds_targets_file)
+        assert bool(uri_prefix)
+    else:
+        if type(in_files) is list:
+            in_files = in_files[0]
+    
     files = []
     
     for i in range(wl_iterations + 1):
@@ -80,8 +137,11 @@ def build_svmlight_chemical_data(in_file, wl_iterations, output_dir):
             data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_vector, key=lambda x: x[0]))
             files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
             files[wl_it].flush()
-        
-    chem_database = read_chemical_compounts(in_file, process_compound)
+    
+    if format_rdf:
+        chem_database = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound)
+    else:
+        chem_database = read_chemical_compounts(in_files, process_compound)
     
     for i, _ in enumerate(chem_database):
         print i
