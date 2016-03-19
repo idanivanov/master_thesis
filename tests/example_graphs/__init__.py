@@ -128,9 +128,9 @@ gt_dummy_rball_10_r2_in.add_edge(6, 10, label = "0")
 # --------------------------------------------------------
 gt_dummy_colored_expected = nx.MultiDiGraph()
 gt_dummy_colored_expected.add_node("1", labels=["2"])
-gt_dummy_colored_expected.add_node("2", labels=["3", "4"])
+gt_dummy_colored_expected.add_node("2", labels=["0", "3"])
 gt_dummy_colored_expected.add_node("3", labels=["1"])
-gt_dummy_colored_expected.add_edge("1", "3", label="5")
+gt_dummy_colored_expected.add_edge("1", "3", label="4")
 # /-------------------------------------------------------
 
 # --------------------------------------------------------
