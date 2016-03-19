@@ -104,6 +104,13 @@ class Hypergraph(Serializable):
         self.bipartite_graph.remove_node(node)
         self.nodes_count -= 1
     
+    def safe_remove_node(self, node):
+        neighbors = set(self.neighbors(node))
+        node_set = set([node])
+        self.remove_node(node)
+        self.update_nodes_with_n_neighbors(node_set | neighbors)
+        self.nodes_with_more_labels -= node_set
+    
     def remove_nodes_from(self, nodes):
         for node in nodes:
             self.remove_node(node)
