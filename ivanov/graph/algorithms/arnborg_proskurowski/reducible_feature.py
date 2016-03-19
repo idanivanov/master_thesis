@@ -59,17 +59,17 @@ class ReducibleFeature(object):
                     yield list(comp)
         
         for path in get_distinct_paths(series_subgraph):
-                if len(path) < 2:
-                    neighbors = hypergraph.neighbors(path[0])
-                    yield ReducibleFeature(2, 1, path, neighbors)
-                else:
-                    source = path[0]
-                    target = path[-1]
-                    source_neighbors = hypergraph.neighbors(source)
-                    target_neighbors = hypergraph.neighbors(target)
-                    s = source_neighbors[0] if source_neighbors[1] == path[1] else source_neighbors[1]
-                    t = target_neighbors[0] if target_neighbors[1] == path[-2] else target_neighbors[1]
-                    yield ReducibleFeature(2, 1, path, [s, t])
+            if len(path) < 2:
+                neighbors = hypergraph.neighbors(path[0])
+                yield ReducibleFeature(2, 1, path, neighbors)
+            else:
+                source = path[0]
+                target = path[-1]
+                source_neighbors = hypergraph.neighbors(source)
+                target_neighbors = hypergraph.neighbors(target)
+                s = source_neighbors[0] if source_neighbors[1] == path[1] else source_neighbors[1]
+                t = target_neighbors[0] if target_neighbors[1] == path[-2] else target_neighbors[1]
+                yield ReducibleFeature(2, 1, path, [s, t])
     
     @staticmethod
     def extract_degree_3_features(hypergraph):
@@ -364,7 +364,11 @@ class ReducibleFeature(object):
                      
             return {"isolates": isolates, "conflicts": conflicts}
         
-        nodes_with_3_neighbors = map(lambda node: (node, hypergraph.neighbors(node)), hypergraph.nodes_with_3_neighbors)
+        def get_node_with_3_neighbors(node):
+            neighbors = hypergraph.neighbors(node)
+            assert len(neighbors) == 3
+            return node, neighbors
+        nodes_with_3_neighbors = map(get_node_with_3_neighbors, hypergraph.nodes_with_3_neighbors)
         
         triangles = get_triangles(nodes_with_3_neighbors)
         triangle_conflicts = get_triangle_conflicts(triangles)
