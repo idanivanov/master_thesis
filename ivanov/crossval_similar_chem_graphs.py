@@ -8,7 +8,7 @@ from ivanov.graph import dataset_manager
 from ivanov import helpers
 from itertools import imap
 
-dataset = "nci-hiv"
+dataset = "mutagenicity-rdf"
 wl_iter_range = range(0, 12)
 k_L_range = [
     (20, 1),    # inflection point ~0.
@@ -24,7 +24,7 @@ k_L_range = [
     (1, 10),    # inflection point 0.9
     (1, 20),    # inflection point ~1.
 ]
-p_range = range(3)
+p_range = range(10)
 infl_point_range = [0., 0.0000001, 0.1, 0.15, 0.2, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
 output_dir = "../output_chem/"
 
@@ -48,6 +48,17 @@ def crossval_big_dataset():
         best_model = crossval.d_fold_crossval(data, examples_count, folds_count, k_L_range, output_dir, base_model=base_model)
         print "Best model:", best_model
 
+def crossval_small_rdf_dataset():
+    in_files = helpers.datasets[dataset]["files"]
+    compounds_targets_file = helpers.datasets[dataset]["compounds_targets"]["sample-2"]
+    uri_prefix = "http://dl-learner.org/mutagenesis#"
+    graph_database = list(dataset_manager.prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix))
+#     best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=188)
+#     best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir)
+    best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir)
+    print "Best model:", best_model
+
 if __name__ == '__main__':
 #     crossval_small_dataset()
-    crossval_big_dataset()
+#     crossval_big_dataset()
+    crossval_small_rdf_dataset()
