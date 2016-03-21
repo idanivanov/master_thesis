@@ -114,6 +114,12 @@ class TestSimilarNodesMining(unittest.TestCase):
         shingles = shingle_extraction.extract_shingles(example_graphs.snm_dummy_feature)
         self.assertEqual(shingles_exp, list(shingles), "Wrong shingles were extracted from feature.")
     
+    def testWShingleExtraction(self):
+        text = "abcdabd"
+        shingles_exp = set(["ab", "bc", "cd", "da", "bd"])
+        shingles = shingle_extraction.extract_w_shingles(text, 2)
+        self.assertEqual(shingles_exp, shingles, "Wrong w-shingles were extracted from text.")
+    
     def testGetMinhashFingerprintNaive(self):
         a = int(6638699916324237062) # random number
         b = int(13296106891814937365) # random number

@@ -88,3 +88,17 @@ def extract_shingles(feature):
     for coloring in colorings:
         for parallel_edge_free_feature in parallel_edge_free_features:
             yield create_shingle(parallel_edge_free_feature, coloring)
+
+def extract_w_shingles(text, w):
+    '''Standard extraction of w-shingles from a string.
+    :param text: Input string.
+    :param w: Size of the sliding window.
+    :return: A set of w-shingles.
+    '''
+    shingles = set()
+    slides_count = len(text) - w
+    for i in range(slides_count + 1):
+        shingle = text[i : i + w]
+        shingles.add(shingle)
+    
+    return shingles
