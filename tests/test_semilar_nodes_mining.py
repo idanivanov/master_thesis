@@ -114,11 +114,24 @@ class TestSimilarNodesMining(unittest.TestCase):
         shingles = shingle_extraction.extract_shingles(example_graphs.snm_dummy_feature)
         self.assertEqual(shingles_exp, list(shingles), "Wrong shingles were extracted from feature.")
     
-    def testWShingleExtraction(self):
+    def testGetWShingles(self):
         text = "abcdabd"
         shingles_exp = set(["ab", "bc", "cd", "da", "bd"])
-        shingles = shingle_extraction.extract_w_shingles(text, 2)
+        shingles = shingle_extraction.get_w_shingles(text, 2)
         self.assertEqual(shingles_exp, shingles, "Wrong w-shingles were extracted from text.")
+    
+    def testWShinglesExtraction(self):
+        h1 = Hypergraph(example_graphs.w_shingles_graph_1)
+        h2 = Hypergraph(example_graphs.w_shingles_graph_2)
+        h1_shingles_exp = set([u'_1.0,', u'2;(wl', u',1)))', u'1.2),', u',a),b', u'))),w', u',(1.2', u'2),(1', u'(x,((', u'(0,1)', u';(x,(', u',((0,', u'2;(x,', u'))),a', u'(1.2;', u'0,((0', u'),(1.', u'.2;(x', u';(wl_', u'.2;(w', u',a),(', u'l_1.2', u'l_1.1', u'l_1.0', u')),a)', u'),a),', u'1;(1.', u'((0,1', u'_1.1)', u')),wl', u'1.0,(', u'(0.1;', u'_1.2)', u'wl_1.', u'1))),', u'0,1))', u'.2),(', u'0.1;(', u'2),wl', u'),wl_', u'.0,((', u'a),b)', u'x,((0', u'a),(1', u'.1;(1', u'(wl_1', u'1.2;(', u',wl_1', u';(1.2', u'.2),w'])
+        h2_shingles_exp = set([u'y,((1', u'2;(wl', u'1.4),', u',1)))', u'(1,0)', u'1.2),', u'_1.0,', u'))),w', u',(1.2', u'2),(1', u'(x,((', u'(0,1)', u'_1.4)', u';(x,(', u',((0,', u'2;(x,', u'))),a', u'(1.2;', u'))),c', u'0,((0', u'1,0))', u'),(1.', u'_1.5)', u',0)))', u'.2;(y', u';(wl_', u'.2;(w', u',a),(', u'l_1.5', u'l_1.4', u'l_1.3', u'l_1.2', u'c),b)', u'l_1.0', u')),a)', u'),a),', u'1;(1.', u'((0,1', u'3,((1', u',((1,', u'(y,((', u';(y,(', u'1.0,(', u'(0.1;', u'_1.2)', u'wl_1.', u'1))),', u'0,1))', u'.2),(', u'0.1;(', u'),wl_', u'.0,((', u'),c),', u'x,((0', u'1.3,(', u'a),(1', u',c),b', u'.4),w', u'4),wl', u'.2;(x', u'.1;(1', u'_1.3,', u'0))),', u'.3,((', u')),wl', u'(wl_1', u')),c)', u'1.2;(', u',wl_1', u'2;(y,', u';(1.2', u'((1,0'])
+        intersection_exp = set([u')),wl', u'_1.0,', u'.1;(1', u'1.0,(', u'2;(wl', u'_1.2)', u',1)))', u',wl_1', u'1.2),', u'wl_1.', u'1))),', u'0,1))', u'.2),(', u'))),w', u'0.1;(', u',(1.2', u'2),(1', u'.0,((', u'(x,((', u'(0,1)', u';(x,(', u'(0.1;', u',((0,', u'2;(x,', u'))),a', u'(1.2;', u'0,((0', u'),(1.', u'.2;(x', u';(wl_', u'a),(1', u'.2;(w', u',a),(', u'x,((0', u'l_1.2', u'l_1.0', u'(wl_1', u')),a)', u'),a),', u'1;(1.', u'((0,1', u'1.2;(', u'),wl_', u';(1.2'])
+        wl_state = None
+        h1_shingles, wl_state = shingle_extraction.extract_w_shingles(h1, wl_iterations=1, wl_state=wl_state)
+        h2_shingles, wl_state = shingle_extraction.extract_w_shingles(h2, wl_iterations=1, wl_state=wl_state)
+        self.assertEqual(h1_shingles_exp, h1_shingles, "Wrong w-shingles were extracted from hypergraph.")
+        self.assertEqual(h2_shingles_exp, h2_shingles, "Wrong w-shingles were extracted from hypergraph.")
+        self.assertEqual(intersection_exp, h1_shingles & h2_shingles, "The intersection of the two sets of w-shingles is incorrect.")
     
     def testGetMinhashFingerprintNaive(self):
         a = int(6638699916324237062) # random number
@@ -154,7 +167,7 @@ class TestSimilarNodesMining(unittest.TestCase):
         ch_matrix_jaccard_sim = ch_matrix.compute_jaccard_similarity_matrix()
         equality = (self.ch_matrix_jaccard_sim_exp == ch_matrix_jaccard_sim).all()
         self.assertTrue(equality, "The computed Jaccard similarity matrix is wrong.")
-
+    
     def testSimilarNodesMining(self):
         dummy_hypergraph = Hypergraph(example_graphs.snm_dummy_graph)
         rballs_database, _ = similar_nodes_mining.extract_rballs_database(dummy_hypergraph, r_in=3, r_out=2, r_all=0)

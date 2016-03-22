@@ -162,7 +162,7 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     yield raw_feature.as_subgraph(hypergraph)
 
 def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
-    def get_features_lists_generator(wl_state):
+    def get_features_lists_generator():
         for record_id, element_hypergraphs, target in graph_database:
             # process the hypergraphs representing one element of the database
             features = []
@@ -172,7 +172,7 @@ def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
             yield record_id, features, target
     
     state = {"wl_state": None}
-    features_lists = get_features_lists_generator(state)
+    features_lists = get_features_lists_generator()
     
     if iterator:
         return features_lists

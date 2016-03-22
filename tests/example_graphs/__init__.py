@@ -1344,3 +1344,23 @@ snm_dummy_graph_features_2[-1].add_node(10, labels=["G"])
 snm_dummy_graph_features_2[-1].add_node(11, labels=["G"])
 snm_dummy_graph_features_2[-1].add_edge(10, 11, label="n")
 # /-------------------------------------------------------
+
+# --------------------------------------------------------
+# w-shingles extraction example graphs
+
+w_shingles_graph_1 = nx.MultiDiGraph()
+w_shingles_graph_1.add_node(1, labels=["b"])
+w_shingles_graph_1.add_node(2, labels=["a"])
+w_shingles_graph_1.add_node(3, labels=["a"])
+w_shingles_graph_1.add_edge(1, 2, label="x")
+w_shingles_graph_1.add_edge(1, 3, label="x")
+
+w_shingles_graph_2 = nx.MultiDiGraph()
+w_shingles_graph_2.add_node(1, labels=["b"])
+w_shingles_graph_2.add_node(2, labels=["a"])
+w_shingles_graph_2.add_node(3, labels=["a"])
+w_shingles_graph_2.add_node(4, labels=["c"])
+w_shingles_graph_2.add_edge(1, 2, label="x")
+w_shingles_graph_2.add_edge(1, 3, label="x")
+w_shingles_graph_2.add_edge(4, 1, label="y")
+# /-------------------------------------------------------
