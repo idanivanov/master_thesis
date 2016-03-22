@@ -33,6 +33,19 @@ class CharacteristicMatrix(Serializable):
                         self.sparse_matrix[fp] = set()
                     self.sparse_matrix[fp].add(i)
     
+    def build_with_w_shingles(self, w_shingle_lists):
+        self.sparse_matrix = {}
+        i = -1
+        for _, record_w_shingles, _ in w_shingle_lists:
+            i += 1
+            if self.print_progress:
+                print "Ch.Mat.: Processing column", i, "of", self.cols_count
+            fingerprints = fingerprint.get_fingerprints(record_w_shingles)
+            for fp in fingerprints:
+                if not self.sparse_matrix.has_key(fp):
+                    self.sparse_matrix[fp] = set()
+                self.sparse_matrix[fp].add(i)
+    
     def build_from_records(self, records):
         self.target_values = []
         self.sparse_matrix = {}
@@ -115,7 +128,7 @@ class CharacteristicMatrix(Serializable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, graph_database=None, cols_count=None, wl_iterations=0, print_progress=False, records=None):
+    def __init__(self, graph_database=None, cols_count=None, wl_iterations=0, print_progress=False, records=None, w_shingles=False, window_size=5):
         '''A sparse binary matrix M having records as columns and fingerprints as rows.
         M(i, j)=1 iff record j has a shingle with fingerprint i.
         :param graph_database: A list of tuples where each tuple has the form
@@ -125,19 +138,32 @@ class CharacteristicMatrix(Serializable):
         the field target_values is a list of target labels for the record.
         :param wl_iterations: Number of Weisfeiler-Lahman iterations to be
         performed (before a graph becomes 'stable').
+        :param w_shingles: If False (default), shingles are canonical representations
+        of features extracted from the graph by Arnborg & Proskurowski. If True, shingles
+        are the standard Broder's w-shingles from the canonical representation of the graphs.
+        :param windows_size: The size of the sliding window for the w-shingles.
         '''
         self.cols_count = cols_count
         self.print_progress = print_progress
         self.wl_iterations = wl_iterations
         
         if graph_database:
-            if isinstance(graph_database, list):
-                feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+            if w_shingles:
+                if isinstance(graph_database, list):
+                    shingle_lists, self.wl_state = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations, iterator=False, window_size=window_size)
+                else:
+                    self.wl_state = None
+                    shingle_lists = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations)
+                
+                self.build_with_w_shingles(shingle_lists)
             else:
-                self.wl_state = None
-                feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
-            
-            self.build(feature_lists)
+                if isinstance(graph_database, list):
+                    feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+                else:
+                    self.wl_state = None
+                    feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
+                
+                self.build(feature_lists)
         else:
             assert records
             self.build_from_records(records)
