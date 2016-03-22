@@ -106,7 +106,7 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             process_compound_function(ch_db_record)
         yield ch_db_record
 
-def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None, w_shingles = False):
+def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None, w_shingles=False, window_size=5):
     if format_rdf:
         assert type(in_files) is list
         assert bool(compounds_targets_file)
@@ -125,52 +125,31 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     
     def process_compound(chem_record):
         print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
-        fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(chem_record[1][0], wl_iterations, state["wl_state"])
+        if w_shingles:
+            extr_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(chem_record[1][0], wl_iterations, state["wl_state"], window_size=window_size)
+        else:
+            extr_iter = feature_extraction.extract_features_for_each_wl_iter(chem_record[1][0], wl_iterations, state["wl_state"])
         record_data_vector = set()
-        for wl_it, new_features, state["wl_state"] in fea_ext_iter:
-            for feature in new_features:
-                shingles = shingle_extraction.extract_shingles(feature)
-                for shingle in shingles:
-                    if shingle not in shingle_id_map:
-                        shingle_id_map[shingle] = state["next_shingle_id"]
-                        state["next_shingle_id"] += 1
-                    record_data_vector.add((shingle_id_map[shingle], 1))
-            data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_vector, key=lambda x: x[0]))
-            files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
-            files[wl_it].flush()
-    
-    def process_compound_w_shingles(chem_record):
-        print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
-        record_data_vector = set()
-        ch_graph = chem_record[1][0]
-        for wl_it in range(wl_iterations + 1):
-            if wl_it == 1:
-                ch_graph, state["wl_state"] = weisfeiler_lehman.init(ch_graph, state["wl_state"])
-            if wl_it >= 1:
-                ch_graph, state["wl_state"] = weisfeiler_lehman.iterate(ch_graph, state["wl_state"], wl_it)
-            
-            canon_str = arnborg_proskurowski.get_canonical_representation(ch_graph)
-            if canon_str == u"Tree-width > 3":
-                # TODO: For now skip graphs with tw > 3
-                return
+        for wl_it, new_features_or_shingles, state["wl_state"] in extr_iter:
+            shingles = []
+            if w_shingles:
+                shingles = new_features_or_shingles
             else:
-                # TODO: for now keep the size of the window 5
-                shingles = shingle_extraction.extract_w_shingles(canon_str, 5)
-                for shingle in shingles:
-                    if shingle not in shingle_id_map:
-                        shingle_id_map[shingle] = state["next_shingle_id"]
-                        state["next_shingle_id"] += 1
-                    record_data_vector.add((shingle_id_map[shingle], 1))
+                for feature in new_features_or_shingles:
+                    shingles += shingle_extraction.extract_shingles(feature)
+            for shingle in shingles:
+                if shingle not in shingle_id_map:
+                    shingle_id_map[shingle] = state["next_shingle_id"]
+                    state["next_shingle_id"] += 1
+                record_data_vector.add((shingle_id_map[shingle], 1))
             data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_vector, key=lambda x: x[0]))
             files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
             files[wl_it].flush()
-    
-    process_compund_function = process_compound_w_shingles if w_shingles else process_compound
     
     if format_rdf:
-        chem_database = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compund_function)
+        chem_database = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound)
     else:
-        chem_database = read_chemical_compounts(in_files, process_compund_function)
+        chem_database = read_chemical_compounts(in_files, process_compound)
     
     for i, _ in enumerate(chem_database):
         print i
