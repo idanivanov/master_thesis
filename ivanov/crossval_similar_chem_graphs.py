@@ -26,15 +26,18 @@ k_L_range = [
 ]
 p_range = range(30)
 infl_point_range = [0., 0.0000001, 0.1, 0.15, 0.2, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31, 0.32, 0.33, 0.34, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
+window_size_range = range(1, 20)
 output_dir = "../output_chem/"
 
 def crossval_small_dataset(w_shingles):
     in_file = helpers.datasets[dataset]["files"][0]
     graph_database = list(dataset_manager.read_chemical_compounts(in_file))
-#     best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=188, w_shingles=w_shingles)
-    best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, w_shingles=w_shingles)
-#     best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, w_shingles=w_shingles)
-    print "Best model:", best_model
+    for window_size in window_size_range:
+        base_model = {"window_size": window_size}
+#         best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=188, base_model=base_model, w_shingles=w_shingles, window_size=window_size)
+        best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model=base_model, w_shingles=w_shingles, window_size=window_size)
+#         best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model=base_model, w_shingles=w_shingles, window_size=window_size)
+        print "Best model:", best_model
 
 def crossval_big_dataset():
     path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/svm/nci_hiv/data/A_vs_M/"
