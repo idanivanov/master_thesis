@@ -431,7 +431,7 @@ class ReducibleFeature(object):
         else:
             direction = [] # TODO: an empty direction may cause problems
         
-        hypergraph.remove_edges_from(reducible_edges)
+        hypergraph.remove_edges_from(reducible_edges, unsafe=True)
         if len(separator) > 0:
             hypergraph.remove_nodes_from(reducibles)
             if len(separator) > 1:

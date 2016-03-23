@@ -60,7 +60,7 @@ def run_algorithm(graph, return_features=False, compute_string=True):
                 hypergraph.add_node_label(node, hypergraph.edge(self_loop)["labels"][0])
                 hypergraph.remove_edge(self_loop)
         else:
-            hypergraph.remove_edges_from(self_loops)
+            hypergraph.remove_edges_from(self_loops, unsafe=True)
         
         # rule 0.1
         if compute_string:
@@ -101,10 +101,10 @@ def run_algorithm(graph, return_features=False, compute_string=True):
                 minimal_label = possible_labels[0]["label"]
                 minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
                 direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
-                hypergraph.remove_edges_from(edges_group)
+                hypergraph.remove_edges_from(edges_group, unsafe=True)
                 hypergraph.add_edge(endpoints, direction, minimal_label)
             else:
-                hypergraph.remove_edges_from(edges_group)
+                hypergraph.remove_edges_from(edges_group, unsafe=True)
                 hypergraph.add_edge(endpoints, set(), "")
         
         hypergraph.reset_parallel_edges_groups()
@@ -176,7 +176,7 @@ def run_algorithm(graph, return_features=False, compute_string=True):
             minimal_label = possible_labels[0]["label"]
             minimal_perm_indices = filter(lambda i: possible_labels[i]["label"] == minimal_label, range(len(possible_labels)))
             direction = set([possible_labels[i]["perm"] for i in minimal_perm_indices])
-            hypergraph.remove_edges_from(hedges_group)
+            hypergraph.remove_edges_from(hedges_group, unsafe=True)
             hypergraph.add_edge(endpoints, direction, u"(3;{0})".format(minimal_label))
         
         hypergraph.reset_parallel_hedges_groups()

@@ -100,7 +100,7 @@ class Hypergraph(Serializable):
         assert node.startswith(u"n_")
         
         connected_edges = self.bipartite_graph.neighbors(node)
-        self.remove_edges_from(connected_edges)
+        self.remove_edges_from(connected_edges, unsafe=True)
         self.bipartite_graph.remove_node(node)
         self.nodes_count -= 1
     
@@ -131,9 +131,24 @@ class Hypergraph(Serializable):
         if edge_id in self.self_loops:
             self.self_loops.remove(edge_id)
     
-    def remove_edges_from(self, edge_ids):
-        for edge_id in list(edge_ids):
-            self.remove_edge(edge_id)
+    def safe_remove_edge(self, edge_id):
+        edge_endpoints = set(self.endpoints(edge_id))
+        self.remove_edge(edge_id)
+        
+        # update nodes with n neighbors
+        self.update_nodes_with_n_neighbors(edge_endpoints)
+    
+    def remove_edges_from(self, edge_ids, unsafe=False):
+        if unsafe:
+            for edge_id in list(edge_ids):
+                self.remove_edge(edge_id)
+        else:
+            affected_nodes = set()
+            for edge_id in list(edge_ids):
+                affected_nodes |= set(self.endpoints(edge_id))
+                self.remove_edge(edge_id)
+            # update nodes with n neighbors
+            self.update_nodes_with_n_neighbors(affected_nodes)
     
     def has_edge(self, u, v, dir_code=0):
         assert u.startswith(u"n_") and v.startswith(u"n_")
