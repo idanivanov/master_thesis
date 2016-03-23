@@ -41,7 +41,7 @@ def crossval_small_dataset(shingles_type):
     for drop_proba in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         new_graph_database = []
         for record in graph_database:           
-            reduced_graph = algorithms.drop_edges_by_probability(record[1][0], 0.5)
+            reduced_graph = algorithms.drop_edges_by_probability(record[1][0], drop_proba)
             new_record = (record[0], [record[1][0], reduced_graph], record[2])
             new_graph_database.append(new_record)
         base_model = {"drop_proba": drop_proba}
