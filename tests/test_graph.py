@@ -73,6 +73,19 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(out_isomorphic, "Problem extracting r-ball with edge_dir=1.")
         self.assertTrue(in_isomorphic, "Problem extracting r-ball with edge_dir=-1.")
     
+    def testDropEdgesByProbability(self):
+        dummy_hypergraph = Hypergraph(example_graphs.gt_dummy_graph)
+        edges_count = dummy_hypergraph.number_of_edges()
+        for p in [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]:
+            new_hypergraph = algorithms.drop_edges_by_probability(dummy_hypergraph, p)
+            new_graph = algorithms.drop_edges_by_probability(example_graphs.gt_dummy_graph, p)
+            edges_prop_exp = ((1. - p) * edges_count) / float(edges_count)
+            edges_prop_hyper = float(new_hypergraph.number_of_edges()) / float(edges_count)
+            edges_prop = float(new_graph.number_of_edges()) / float(edges_count)
+            msg = "The proportion of edges remaining after being dropping deviate too much from the expected."
+            self.assertAlmostEquals(edges_prop_exp, edges_prop_hyper, delta=0.2, msg=msg)
+            self.assertAlmostEquals(edges_prop_exp, edges_prop, delta=0.2, msg=msg)
+    
     def testRDFToNxGraphConvertionWithColoring(self):
         dummy_colored, _ = rdf.convert_rdf_to_nx_graph(["test_files/dummy.rdf"], test_mode=True)
         isomorphic = algorithms.isomorphic(example_graphs.gt_dummy_colored_expected, dummy_colored)

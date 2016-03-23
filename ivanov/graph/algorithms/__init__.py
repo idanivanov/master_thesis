@@ -7,6 +7,7 @@ Created on Nov 21, 2015
 from ivanov.graph.algorithms import arnborg_proskurowski
 from ivanov.graph.hypergraph import Hypergraph
 import networkx as nx
+import random
 import copy
 
 def r_ball(graph, center, r, edge_dir=0):
@@ -94,3 +95,14 @@ def isomorphic(graph1, graph2):
     if g1_tw != -1 and g1_tw == g2_tw and g1_canon_str == g2_canon_str:
         return True
     return False
+
+def drop_edges_by_probability(graph, probability):
+    new_graph = graph.copy()
+    edges_to_remove = []
+    for edge in new_graph.edges_iter():
+        r = random.uniform(0, 1)
+        if r <= probability:
+            edges_to_remove.append(edge)
+    
+    new_graph.remove_edges_from(edges_to_remove)
+    return new_graph
