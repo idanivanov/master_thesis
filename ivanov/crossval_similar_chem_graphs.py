@@ -4,7 +4,7 @@ Created on Feb 4, 2016
 @author: Ivan Ivanov
 '''
 from ivanov.graph.algorithms.similar_graphs_mining import crossval
-from ivanov.graph import dataset_manager
+from ivanov.graph import dataset_manager, algorithms
 from ivanov import helpers
 from itertools import imap
 
@@ -32,11 +32,20 @@ output_dir = "../output_chem/"
 def crossval_small_dataset(shingles_type):
     in_file = helpers.datasets[dataset]["files"][0]
     graph_database = list(dataset_manager.read_chemical_compounts(in_file))
-    for window_size in window_size_range:
-        base_model = {"window_size": window_size}
+#     for window_size in window_size_range:
+#         base_model = {"window_size": window_size}
 #         best_model = crossval.loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, cols_count=188, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
-        best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
+#         best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
 #         best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
+    
+    for drop_proba in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+        new_graph_database = []
+        for record in graph_database:           
+            reduced_graph = algorithms.drop_edges_by_probability(record[1][0], 0.5)
+            new_record = (record[0], [record[1][0], reduced_graph], record[2])
+            new_graph_database.append(new_record)
+        base_model = {"drop_proba": drop_proba}
+        best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model=base_model)
         print "Best model:", best_model
 
 def crossval_big_dataset():
