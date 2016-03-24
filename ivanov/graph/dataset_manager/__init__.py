@@ -126,32 +126,33 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
     
     def process_compound(chem_record):
-        def process_shingles(shingles):
+        def process_shingles(shingles, record_data_full_vector):
             for shingle in shingles:
                 if shingle not in shingle_id_map:
                     shingle_id_map[shingle] = state["next_shingle_id"]
                     state["next_shingle_id"] += 1
                 record_data_full_vector.add((shingle_id_map[shingle], 1))
         
-        print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
+        print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
         record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
-        
-        if sh_type >= 0:
-            record_data_full_vector = set()
-            fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(chem_record[1][0], wl_iterations, state["wl_state"])
-            for wl_it, new_features, state["wl_state"] in fea_ext_iter:
-                for feature in new_features:
-                    shingles = shingle_extraction.extract_shingles(feature)
-                    process_shingles(shingles)
-                record_data_wl_vectors[wl_it] |= record_data_full_vector
-        
-        if sh_type <= 0:
-            # TODO: should we exclude records with tree-width > 3?
-            record_data_full_vector = set()
-            w_shingles_ext_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(chem_record[1][0], wl_iterations, state["wl_state"], window_size=window_size)
-            for wl_it, new_w_shingles, state["wl_state"] in w_shingles_ext_iter:
-                process_shingles(new_w_shingles)
-                record_data_wl_vectors[wl_it] |= record_data_full_vector
+
+        for record_graph in chem_record[1]:
+            if sh_type >= 0:
+                record_data_full_vector = set()
+                fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"])
+                for wl_it, new_features, state["wl_state"] in fea_ext_iter:
+                    for feature in new_features:
+                        shingles = shingle_extraction.extract_shingles(feature)
+                        process_shingles(shingles, record_data_full_vector)
+                    record_data_wl_vectors[wl_it] |= record_data_full_vector
+            
+            if sh_type <= 0:
+                # TODO: should we exclude records with tree-width > 3?
+                record_data_full_vector = set()
+                w_shingles_ext_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"], window_size=window_size)
+                for wl_it, new_w_shingles, state["wl_state"] in w_shingles_ext_iter:
+                    process_shingles(new_w_shingles, record_data_full_vector)
+                    record_data_wl_vectors[wl_it] |= record_data_full_vector
         
         for wl_it in range(wl_iterations + 1):
             data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
