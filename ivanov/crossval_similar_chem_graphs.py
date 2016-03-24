@@ -38,6 +38,7 @@ def crossval_small_dataset(shingles_type):
 #         best_model = crossval.loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
 #         best_model = crossval.loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model=base_model, shingles_type=shingles_type, window_size=window_size)
     
+    # TODO: drop-edges method is just for test
     for drop_proba in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
         new_graph_database = []
         for record in graph_database:           
