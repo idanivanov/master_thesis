@@ -12,18 +12,39 @@ import time
 
 # irred_poly_64_list = [64, 60, 59, 57, 56, 55, 54, 53, 52, 51, 50, 48, 45, 44, 41, 37, 36, 34, 33, 31, 29, 27, 26, 23, 20, 19, 18, 11, 8, 5, 3, 1, 0]
 # irred_poly_64_bin = [1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1]
-irred_poly_64_int = int(30633610468600151985)
+# irred_poly_64_int = int(30633610468600151985)
+
+# irred_poly_32_list = [32, 31, 30, 26, 24, 23, 21, 19, 15, 14, 13, 11, 10, 6, 3, 2, 0]
+# irred_poly_32_bin = [1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1]
+# irred_poly_32_int = int(5979908935)
+
+# irred_poly_24_list = [24, 23, 18, 15, 14, 12, 11, 10, 8, 7, 5, 4, 3, 1, 0]
+# irred_poly_24_bin = [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1]
+# irred_poly_24_int = int(29062723)
+
+# irred_poly_16_list = [16, 13, 12, 11, 9, 7, 5, 4, 3, 2, 0]
+# irred_poly_16_bin = [1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1]
+# irred_poly_16_int = int(96953)
+
+irred_polys = {
+    64: int(30633610468600151985),
+    32: int(5979908935),
+    24: int(29062723),
+    16: int(96953)
+}
 
 max_fingerprint = int(18446744073709551616) # 2^64
 
-def rabin_fingerprint(shingle_binary):
+def rabin_fingerprint(shingle_binary, size=64):
     '''Calculates Rabin's fingerprint of a binary array.
     :param binary_array: A list of binary values.
+    :param size: Size of the fingerprint in bits. Possible
+    sizes are 64 (default), 32, 24 and 16.
     :return Rabin's fingerprint of the shingle as integer.
     '''
-    galois_field = FField(64)
+    galois_field = FField(size)
     divident_degree = galois_field.FindDegree(shingle_binary)
-    _, fingerprint = galois_field.FullDivision(shingle_binary, irred_poly_64_int, divident_degree, 64)
+    _, fingerprint = galois_field.FullDivision(shingle_binary, irred_polys[size], divident_degree, size)
     return np.uint64(fingerprint)
 
 # TODO: is little- or big-endian better?
@@ -46,10 +67,10 @@ def string_bytes_to_int(string_value, big_endian=True):
     
     return int_value
 
-def get_fingerprints(shingles):
+def get_fingerprints(shingles, size=64):
     for shingle in shingles:
         shingle_binary = string_bytes_to_int(shingle)
-        yield rabin_fingerprint(shingle_binary)
+        yield rabin_fingerprint(shingle_binary, size)
 
 def get_minhash_fingerprint_naive(feature, h, cached_shingles_dict=None):
     '''Get naively the fingerprint of the shingle which has minimal
