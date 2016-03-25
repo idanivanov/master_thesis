@@ -4,7 +4,7 @@ Created on Feb 4, 2016
 @author: Ivan Ivanov
 '''
 from ivanov.graph.algorithms.similar_graphs_mining import feature_extraction,\
-    shingle_extraction
+    shingle_extraction, fingerprint
 from ivanov.graph.algorithms import arnborg_proskurowski, weisfeiler_lehman
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf, algorithms
@@ -106,8 +106,8 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             process_compound_function(ch_db_record)
         yield ch_db_record
 
-def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None,
-                                 uri_prefix=None, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
+def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None,
+                                 shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=False):
     if format_rdf:
         assert type(in_files) is list
         assert bool(compounds_targets_file)
@@ -121,24 +121,29 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     for i in range(wl_iterations + 1):
         files.append(open(output_dir + "svm_light_data_wl_{0}".format(i), "w"))
     
-    shingle_id_map = {}
     state = {"wl_state": None}
-    if accumulate_wl_shingles:
-        state["next_shingle_id"] = 1
-    else:
-        for i in range(wl_iterations + 1):
-            state["wl_{0}_next_shingle_id".format(i)] = 1
+    if not fingerprints:
+        shingle_id_map = {}
+        if accumulate_wl_shingles:
+            state["next_shingle_id"] = 1
+        else:
+            for i in range(wl_iterations + 1):
+                state["wl_{0}_next_shingle_id".format(i)] = 1
     
     sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
     
     def process_compound(chem_record):
         def process_shingles(shingles, record_data_vector, wl_it):
             next_shingle_id_key = "next_shingle_id" if accumulate_wl_shingles else "wl_{0}_next_shingle_id".format(wl_it)
-            for shingle in shingles:
-                if shingle not in shingle_id_map:
-                    shingle_id_map[shingle] = state[next_shingle_id_key]
-                    state[next_shingle_id_key] += 1
-                record_data_vector.add((shingle_id_map[shingle], 1))
+            if not fingerprints:
+                for shingle in shingles:
+                    if shingle not in shingle_id_map:
+                        shingle_id_map[shingle] = state[next_shingle_id_key]
+                        state[next_shingle_id_key] += 1
+                    record_data_vector.add((shingle_id_map[shingle], 1))
+            else:
+                shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
+                record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
         
         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
         record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
