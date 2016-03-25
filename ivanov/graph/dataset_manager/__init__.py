@@ -106,7 +106,8 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             process_compound_function(ch_db_record)
         yield ch_db_record
 
-def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None, shingles_type="features", window_size=5):
+def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None,
+                                 uri_prefix=None, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
     if format_rdf:
         assert type(in_files) is list
         assert bool(compounds_targets_file)
@@ -121,38 +122,50 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
         files.append(open(output_dir + "svm_light_data_wl_{0}".format(i), "w"))
     
     shingle_id_map = {}
-    state = {"wl_state": None, "next_shingle_id": 1}
+    state = {"wl_state": None}
+    if accumulate_wl_shingles:
+        state["next_shingle_id"] = 1
+    else:
+        for i in range(wl_iterations + 1):
+            state["wl_{0}_next_shingle_id".format(i)] = 1
     
     sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
     
     def process_compound(chem_record):
-        def process_shingles(shingles, record_data_full_vector):
+        def process_shingles(shingles, record_data_vector, wl_it):
+            next_shingle_id_key = "next_shingle_id" if accumulate_wl_shingles else "wl_{0}_next_shingle_id".format(wl_it)
             for shingle in shingles:
                 if shingle not in shingle_id_map:
-                    shingle_id_map[shingle] = state["next_shingle_id"]
-                    state["next_shingle_id"] += 1
-                record_data_full_vector.add((shingle_id_map[shingle], 1))
+                    shingle_id_map[shingle] = state[next_shingle_id_key]
+                    state[next_shingle_id_key] += 1
+                record_data_vector.add((shingle_id_map[shingle], 1))
         
         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
         record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
 
         for record_graph in chem_record[1]:
             if sh_type >= 0:
-                record_data_full_vector = set()
+                if accumulate_wl_shingles:
+                    record_data_vector = set()
                 fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"])
                 for wl_it, new_features, state["wl_state"] in fea_ext_iter:
+                    if not accumulate_wl_shingles:
+                        record_data_vector = set()
                     for feature in new_features:
                         shingles = shingle_extraction.extract_shingles(feature)
-                        process_shingles(shingles, record_data_full_vector)
-                    record_data_wl_vectors[wl_it] |= record_data_full_vector
+                        process_shingles(shingles, record_data_vector, wl_it)
+                    record_data_wl_vectors[wl_it] |= record_data_vector
             
             if sh_type <= 0:
                 # TODO: should we exclude records with tree-width > 3?
-                record_data_full_vector = set()
+                if accumulate_wl_shingles:
+                    record_data_vector = set()
                 w_shingles_ext_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"], window_size=window_size)
                 for wl_it, new_w_shingles, state["wl_state"] in w_shingles_ext_iter:
-                    process_shingles(new_w_shingles, record_data_full_vector)
-                    record_data_wl_vectors[wl_it] |= record_data_full_vector
+                    if not accumulate_wl_shingles:
+                        record_data_vector = set()
+                    process_shingles(new_w_shingles, record_data_vector, wl_it)
+                    record_data_wl_vectors[wl_it] |= record_data_vector
         
         for wl_it in range(wl_iterations + 1):
             data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))

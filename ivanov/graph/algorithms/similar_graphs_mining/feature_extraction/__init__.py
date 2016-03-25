@@ -13,15 +13,15 @@ import networkx as nx
 import itertools
 import sys
 
-def extract_features(hypergraph, wl_iterations=0, wl_state=None):
+def extract_features(hypergraph, wl_iterations=0, wl_state=None, accumulate_wl_shingles=True):
     features = []
     
-    for _, new_features, wl_state in extract_features_for_each_wl_iter(hypergraph, wl_iterations, wl_state):
+    for _, new_features, wl_state in extract_features_for_each_wl_iter(hypergraph, wl_iterations, wl_state, accumulate_wl_shingles):
         features += new_features
     
     return features, wl_state
 
-def extract_features_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None):
+def extract_features_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None, accumulate_wl_shingles=True):
     raw_features = arnborg_proskurowski.get_reduced_features(hypergraph)
 #     if tw == -1:
 #         # TODO: How to handle graphs with larger tree-width?
@@ -36,18 +36,9 @@ def extract_features_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None
 #             old_hypergraph = hypergraph
             hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
         
-        new_features = [process_raw_feature(raw_feature, hypergraph) for raw_feature in raw_features]
-        
-#         # NOTE: we should do all iterations, regardless if the graph is stable
-#         if i >= 1:
-#             # TODO: This way we extract features for the current WL iteration, although the labels may be stable
-#             # This approach is good when all the labels are distinct, but if there was no refinement
-#             # in the last WL iteration the extracted features will not be semantically different
-#             # from the ones extracted in the previous iteration.
-#             if weisfeiler_lehman.is_stable(old_hypergraph, hypergraph, i):
-#                 break
-    
-        yield i, itertools.chain(*new_features), wl_state
+        if i == wl_iterations or accumulate_wl_shingles:
+            new_features = [process_raw_feature(raw_feature, hypergraph) for raw_feature in raw_features]
+            yield i, itertools.chain(*new_features), wl_state
 
 def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     '''Turns a raw feature to a usable feature or a collection of features, depending on
@@ -161,13 +152,13 @@ def process_raw_feature(raw_feature, hypergraph, max_nodes=6):
     # fixed or pattern/dynamic with <= max_nodes number of nodes
     yield raw_feature.as_subgraph(hypergraph)
 
-def get_feature_lists(graph_database, wl_iterations=0, iterator=True):
+def get_feature_lists(graph_database, wl_iterations=0, iterator=True, accumulate_wl_shingles=True):
     def get_features_lists_generator():
         for record_id, element_hypergraphs, target in graph_database:
             # process the hypergraphs representing one element of the database
             features = []
             for hypergraph in element_hypergraphs:
-                new_features, state["wl_state"] = extract_features(hypergraph, wl_iterations, state["wl_state"])
+                new_features, state["wl_state"] = extract_features(hypergraph, wl_iterations, state["wl_state"], accumulate_wl_shingles)
                 features += new_features
             yield record_id, features, target
     

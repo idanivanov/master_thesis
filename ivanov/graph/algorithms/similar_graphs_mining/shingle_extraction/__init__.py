@@ -103,15 +103,15 @@ def get_w_shingles(text, w):
     
     return shingles
 
-def extract_w_shingles(hypergraph, wl_iterations=0, wl_state=None, window_size=5):
+def extract_w_shingles(hypergraph, wl_iterations=0, wl_state=None, window_size=5, accumulate_wl_shingles=True):
     shingles = set()
     
-    for _, new_shingles, wl_state in extract_w_shingles_for_each_wl_iter(hypergraph, wl_iterations, wl_state, window_size):
+    for _, new_shingles, wl_state in extract_w_shingles_for_each_wl_iter(hypergraph, wl_iterations, wl_state, window_size, accumulate_wl_shingles=accumulate_wl_shingles):
         shingles |= new_shingles
     
     return shingles, wl_state
 
-def extract_w_shingles_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None, window_size=5):
+def extract_w_shingles_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=None, window_size=5, accumulate_wl_shingles=True):
     for i in range(wl_iterations + 1):
         if i == 1:
             hypergraph, wl_state = weisfeiler_lehman.init(hypergraph, wl_state)
@@ -120,18 +120,19 @@ def extract_w_shingles_for_each_wl_iter(hypergraph, wl_iterations=0, wl_state=No
 #             old_hypergraph = hypergraph
             hypergraph, wl_state = weisfeiler_lehman.iterate(hypergraph, wl_state, i)
         
-        canon_str = arnborg_proskurowski.get_canonical_representation(hypergraph)
-        if canon_str == u"Tree-width > 3":
-            # TODO: How to handle graphs with larger tree-width?
-            # for now ignore the graph
-            raise StopIteration
-        
-        new_shingles = get_w_shingles(canon_str, window_size)
-        
-        yield i, new_shingles, wl_state
+        if i == wl_iterations or accumulate_wl_shingles:
+            canon_str = arnborg_proskurowski.get_canonical_representation(hypergraph)
+            if canon_str == u"Tree-width > 3":
+                # TODO: How to handle graphs with larger tree-width?
+                # for now ignore the graph
+                raise StopIteration
+            
+            new_shingles = get_w_shingles(canon_str, window_size)
+            
+            yield i, new_shingles, wl_state
 
 
-def get_w_shingle_lists(graph_database, wl_iterations=0, iterator=True, window_size=5):
+def get_w_shingle_lists(graph_database, wl_iterations=0, iterator=True, window_size=5, accumulate_wl_shingles=True):
     '''Extract w-shingles for all graphs in the graph database
     '''
     def get_shingle_lists_generator():
@@ -139,7 +140,7 @@ def get_w_shingle_lists(graph_database, wl_iterations=0, iterator=True, window_s
             # process the hypergraphs representing one element of the database
             shingles = set()
             for hypergraph in element_hypergraphs:
-                new_shingles, state["wl_state"] = extract_w_shingles(hypergraph, wl_iterations, state["wl_state"], window_size)
+                new_shingles, state["wl_state"] = extract_w_shingles(hypergraph, wl_iterations, state["wl_state"], window_size, accumulate_wl_shingles=accumulate_wl_shingles)
                 shingles |= new_shingles
             if shingles:
                 # TODO: for now return only records which have shingles

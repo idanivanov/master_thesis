@@ -128,7 +128,7 @@ class CharacteristicMatrix(Serializable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __init__(self, graph_database=None, cols_count=None, wl_iterations=0, print_progress=False, records=None, shingles_type="features", window_size=5):
+    def __init__(self, graph_database=None, cols_count=None, wl_iterations=0, print_progress=False, records=None, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
         '''A sparse binary matrix M having records as columns and fingerprints as rows.
         M(i, j)=1 iff record j has a shingle with fingerprint i.
         :param graph_database: A list of tuples where each tuple has the form
@@ -145,6 +145,8 @@ class CharacteristicMatrix(Serializable):
         canonical representation of the graphs;
         - "all" - use both features and w-shingles.
         :param windows_size: The size of the sliding window for the w-shingles.
+        :param accumulate_wl_shingles: It True (default), will accumulate the shingles
+        from all W&L iterations.
         '''
         self.cols_count = cols_count
         self.print_progress = print_progress
@@ -155,19 +157,19 @@ class CharacteristicMatrix(Serializable):
             
             if sh_type >= 0:
                 if isinstance(graph_database, list):
-                    feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False)
+                    feature_lists, self.wl_state = feature_extraction.get_feature_lists(graph_database, wl_iterations, iterator=False, accumulate_wl_shingles=accumulate_wl_shingles)
                 else:
                     self.wl_state = None
-                    feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations)
+                    feature_lists = feature_extraction.get_feature_lists(graph_database, wl_iterations, accumulate_wl_shingles=accumulate_wl_shingles)
                 
                 self.build(feature_lists)
             
             if sh_type <= 0:
                 if isinstance(graph_database, list):
-                    shingle_lists, self.wl_state = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations, iterator=False, window_size=window_size)
+                    shingle_lists, self.wl_state = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations, iterator=False, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles)
                 else:
                     self.wl_state = None
-                    shingle_lists = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations)
+                    shingle_lists = shingle_extraction.get_w_shingle_lists(graph_database, wl_iterations, accumulate_wl_shingles=accumulate_wl_shingles)
                 
                 self.build_with_w_shingles(shingle_lists, initial_sparse_matrix=self.sparse_matrix if not sh_type else {})
         else:

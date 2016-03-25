@@ -115,7 +115,7 @@ def loo_crossval_sketch(graph_database, wl_iter_range, k_L_range, output_dir, ba
     
     return best_model
 
-def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_function, output_dir, base_model={}, shingles_type="features", window_size=5):
+def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_function, output_dir, base_model={}, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -126,7 +126,7 @@ def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_fun
     models_file = open(output_dir + "models_naive", "a")
     
     for wl_iterations in wl_iter_range:
-        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations, shingles_type=shingles_type, window_size=window_size)
+        ch_matrix = CharacteristicMatrix(graph_database, cols_count, wl_iterations=wl_iterations, shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles)
         jaccard_similarity_matrix = ch_matrix.compute_jaccard_similarity_matrix()
         for p in param_2_range:
             avg_quality = 0.
@@ -148,7 +148,7 @@ def loo_crossval_naive(graph_database, wl_iter_range, param_2_range, quality_fun
     
     return best_model
 
-def loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model={}, shingles_type="features", window_size=5):
+def loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, output_dir, base_model={}, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -175,9 +175,9 @@ def loo_crossval_threshold(graph_database, wl_iter_range, infl_point_range, outp
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, wl_iter_range, infl_point_range, quality, output_dir, base_model, shingles_type, window_size)
+    return loo_crossval_naive(graph_database, wl_iter_range, infl_point_range, quality, output_dir, base_model, shingles_type, window_size, accumulate_wl_shingles=accumulate_wl_shingles)
 
-def loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model={}, shingles_type="features", window_size=5):
+def loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_model={}, shingles_type="features", window_size=5, accumulate_wl_shingles=True):
     '''Similar to loo_crossval_sketch but computes directly the Jaccard
     similarities between the columns in the characteristic matrix,
     without using a sketch matrix. Not applicable for big datasets.
@@ -195,7 +195,7 @@ def loo_crossval_pnn(graph_database, wl_iter_range, p_range, output_dir, base_mo
         else:
             return int(true_target_i == estimated_target_i) # zero-one loss
     
-    return loo_crossval_naive(graph_database, wl_iter_range, p_range, quality_pnn, output_dir, base_model, shingles_type, window_size)
+    return loo_crossval_naive(graph_database, wl_iter_range, p_range, quality_pnn, output_dir, base_model, shingles_type, window_size, accumulate_wl_shingles=accumulate_wl_shingles)
 
 def d_folds(d, sketch_matrix, cols_count, quality_function, targets):
     def aggregate_scores(aggr_score, current_score):
