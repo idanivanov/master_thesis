@@ -145,7 +145,8 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
                 shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
                 record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
         
-        print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
+#         print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
+#         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
         record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
 
         for record_graph in chem_record[1]:
