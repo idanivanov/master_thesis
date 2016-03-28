@@ -229,6 +229,8 @@ def run_algorithm(graph, return_features=False, compute_string=True):
         if return_features:
             features += new_features
         
+#         hypergraph.visualize()
+        
         # no need to check if modified here to continue, just go to the next rule after
         rule_0(hypergraph, compute_string)
 

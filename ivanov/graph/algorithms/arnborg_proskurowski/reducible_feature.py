@@ -280,9 +280,25 @@ class ReducibleFeature(object):
                             continue
                      
                     elif reducible_degree == 3:
-                        # Rule 5.2.5
-                        conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule=5))
-                        continue
+                        if reducible_subgraph.number_of_nodes() == 6 and reducible_subgraph.number_of_edges() == 9:
+                            # Rule 5.2.5 (Prism)
+                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule=5))
+                            continue
+                        else:
+                            # TODO: The explanation in the paper for this case is not clear.
+                            # For now extract all possible square configurations from the reducible subgraph.
+                            # If there are no squares, the graph is regarded as having tree-width > 3.
+                            squares = filter(lambda cycle: len(cycle) == 4, nx.cycle_basis(reducible_subgraph))
+                            if squares:
+                                for square in squares:
+                                    sq_neigh = set()
+                                    for sq_node in square:
+                                        neigh = nxext.get_all_neighbors(reducible_subgraph, sq_node)
+                                        sq_neigh |= set(neigh)
+                                    if len(sq_neigh) == 2:
+                                        conflicts.append(ReducibleFeature(5, 2, square, sq_neigh, subsubrule = 3, subsubsubrule = 3))
+                                        reducible_subgraph.remove_nodes_from(square)
+                            continue
                  
                 else:
                     if 1 in reducible_degrees:
