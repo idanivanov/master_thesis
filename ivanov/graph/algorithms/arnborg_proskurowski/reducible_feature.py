@@ -191,130 +191,150 @@ class ReducibleFeature(object):
             return raw_conflicts, isolates
         
         def get_triangle_conflicts(triangles):
-            raw_conflicts, isolates = get_raw_conflicts_and_isolates(triangles)
-            conflicts = []
-             
-            isolates = map(lambda isolate: ReducibleFeature(4, 1, isolate[0], isolate[1]), isolates)
-             
-            # Identify conflicts
-            for raw_conflict in raw_conflicts:
-                conflict_subgraph = nx.Graph(hypergraph.subgraph(raw_conflict[0] | raw_conflict[1]))
-                nodes_in_subgraph = conflict_subgraph.number_of_nodes()
-                len_reducible = len(raw_conflict[0])
-                len_periphery = len(raw_conflict[1])
-#                 NxExtensions.visualize_graph(conflict_subgraph)
-                 
-                # Rule 5.1 - Diamonds
-                if nodes_in_subgraph == 4:
-                    if len_periphery == 2:
-                        periphery_list = list(raw_conflict[1])
-                        if not conflict_subgraph.has_edge(periphery_list[0], periphery_list[1]):
-                            # Rule 5.1.2
-                            conflicts.append(ReducibleFeature(5, 1, raw_conflict[0], raw_conflict[1], subsubrule = 2))
-                            continue
-                    # Rule 5.1.1
-                    conflicts.append(ReducibleFeature(5, 1, raw_conflict[0], raw_conflict[1], subsubrule = 1))
-                    continue
-                 
-                # reducible_subgraph = H (from rule 5.2 in the paper of A&P)
-                reducible_subgraph = conflict_subgraph.subgraph(raw_conflict[0])
-                reducible_degrees = set(reducible_subgraph.degree().values())
-                 
-                if len(reducible_degrees) == 1:
-                    reducible_degree = next(iter(reducible_degrees))
+            def _identify_conflicts_and_isolates(raw_conflicts, raw_isolates):
+                conflicts = []
+                isolates = map(lambda isolate: ReducibleFeature(4, 1, isolate[0], isolate[1]), raw_isolates)
+                
+                # Identify conflicts (and possible isolates)
+                for raw_conflict in raw_conflicts:
+                    conflict_subgraph = nx.Graph(hypergraph.subgraph(raw_conflict[0] | raw_conflict[1]))
+                    nodes_in_subgraph = conflict_subgraph.number_of_nodes()
+                    len_reducible = len(raw_conflict[0])
+                    len_periphery = len(raw_conflict[1])
+    #                 NxExtensions.visualize_graph(conflict_subgraph)
                      
-                    if reducible_degree == 1:
-                        # Rule 5.2.1
-                        if len_reducible == 2:
-                            if len(raw_conflict[1]) == 4:
-                                # TODO: we skip the 4-vertex separator case. Is this correct?
+                    # Rule 5.1 - Diamonds (or isolates)
+                    if nodes_in_subgraph == 4:
+                        if len_periphery == 3:
+                            if conflict_subgraph.number_of_edges() >= 4:
+                                # Rule 4.1 (isolate triangle)
+                                isolates.append(ReducibleFeature(4, 1, raw_conflict[0], raw_conflict[1]))
                                 continue
-                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 1))
-                            continue
-                        else:
-                            sys.stderr.write("\n[ReducibleFeature] Unrecognized feature containing only nodes of degree 1.")
-                     
-                    elif reducible_degree == 2:
-                        # Rule 5.2.3
-                        t_edges = []
-                        three_cliques = filter(lambda clique: len(clique) == 3, nx.find_cliques_recursive(conflict_subgraph))
-                        subgraph_H = conflict_subgraph.subgraph(raw_conflict[0])
-                        all_H_edges = map(lambda edge: set([edge[0], edge[1]]), subgraph_H.edges_iter())
-                        for clique in three_cliques:
-                            new_t_edges = map(lambda edge: set([edge[0], edge[1]]), combinations(set(clique) & raw_conflict[0], 2))
-                            t_edges += filter(lambda edge: edge not in t_edges, new_t_edges)
-                        f_edges = filter(lambda edge: edge not in t_edges, all_H_edges)
-                        def filter_A_vertices(node):
-                            neighbors = conflict_subgraph.neighbors(node)
-                            has_t = False
-                            has_f = False
-                            for neighbor in neighbors:
-                                edge = set([node, neighbor])
-                                if edge in t_edges:
-                                    has_t = True
-                                    if has_f:
-                                        break
-                                elif edge in f_edges:
-                                    has_f = True
-                                    if has_t:
-                                        break
-                            if has_t and has_f:
-                                return True
                             else:
-                                return False
-                        A = set(filter(filter_A_vertices, raw_conflict[0]))
-                        if not A:
-                            # Rule 5.2.3.1
-                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 3, subsubsubrule = 1))
-                            continue
-                        elif len(A) == len_reducible:
-                            # Rule 5.2.3.3
-                            if len(raw_conflict[0]) == 4:
-                                # if we have more than 4 reducible nodes the feature is not safely reducible
-                                conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 3, subsubsubrule = 3))
-                            continue
-                        else:
-                            # Rule 5.2.3.2
-                            # TODO: Problem: In the paper this case is presented with reducible nodes which are not adjacent. Are they still in conflict?
-                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 3, subsubsubrule = 2))
-                            continue
-                     
-                    elif reducible_degree == 3:
-                        if reducible_subgraph.number_of_nodes() == 6 and reducible_subgraph.number_of_edges() == 9:
-                            # Rule 5.2.5 (Prism)
-                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule=5))
-                            continue
-                        else:
-                            # TODO: The explanation in the paper for this case is not clear.
-                            # For now extract all possible square configurations from the reducible subgraph.
-                            # If there are no squares, the graph is regarded as having tree-width > 3.
-                            squares = filter(lambda cycle: len(cycle) == 4, nx.cycle_basis(reducible_subgraph))
-                            if squares:
-                                for square in squares:
-                                    sq_neigh = set()
-                                    for sq_node in square:
-                                        neigh = nxext.get_all_neighbors(reducible_subgraph, sq_node)
-                                        sq_neigh |= set(neigh)
-                                    if len(sq_neigh) == 2:
-                                        conflicts.append(ReducibleFeature(5, 2, square, sq_neigh, subsubrule = 3, subsubsubrule = 3))
-                                        reducible_subgraph.remove_nodes_from(square)
-                            continue
-                 
-                else:
-                    if 1 in reducible_degrees:
-                        # Rule 5.2.2
-                        conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 2))
+                                sys.stderr.write("\n[ReducibleFeature] Unrecognized triangle conflict containing 1 reducible node and < 4 edges.")
+                        elif len_periphery == 2:
+                            periphery_list = list(raw_conflict[1])
+                            if not conflict_subgraph.has_edge(periphery_list[0], periphery_list[1]):
+                                # Rule 5.1.2
+                                conflicts.append(ReducibleFeature(5, 1, raw_conflict[0], raw_conflict[1], subsubrule = 2))
+                                continue
+                        # Rule 5.1.1
+                        conflicts.append(ReducibleFeature(5, 1, raw_conflict[0], raw_conflict[1], subsubrule = 1))
                         continue
+                     
+                    # reducible_subgraph = H (from rule 5.2 in the paper of A&P)
+                    reducible_subgraph = conflict_subgraph.subgraph(raw_conflict[0])
+                    reducible_degrees = set(reducible_subgraph.degree().values())
+                     
+                    if len(reducible_degrees) == 1:
+                        reducible_degree = next(iter(reducible_degrees))
+                         
+                        if reducible_degree == 1:
+                            # Rule 5.2.1
+                            if len_reducible == 2:
+                                if len(raw_conflict[1]) == 4:
+                                    # TODO: we skip the 4-vertex separator case. Is this correct?
+                                    continue
+                                conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 1))
+                                continue
+                            else:
+                                sys.stderr.write("\n[ReducibleFeature] Unrecognized feature containing only nodes of degree 1.")
+                         
+                        elif reducible_degree == 2:
+                            # Rule 5.2.3
+                            t_edges = []
+                            three_cliques = filter(lambda clique: len(clique) == 3, nx.find_cliques_recursive(conflict_subgraph))
+                            subgraph_H = conflict_subgraph.subgraph(raw_conflict[0])
+                            all_H_edges = map(lambda edge: set([edge[0], edge[1]]), subgraph_H.edges_iter())
+                            for clique in three_cliques:
+                                new_t_edges = map(lambda edge: set([edge[0], edge[1]]), combinations(set(clique) & raw_conflict[0], 2))
+                                t_edges += filter(lambda edge: edge not in t_edges, new_t_edges)
+                            f_edges = filter(lambda edge: edge not in t_edges, all_H_edges)
+                            def filter_A_vertices(node):
+                                neighbors = conflict_subgraph.neighbors(node)
+                                has_t = False
+                                has_f = False
+                                for neighbor in neighbors:
+                                    edge = set([node, neighbor])
+                                    if edge in t_edges:
+                                        has_t = True
+                                        if has_f:
+                                            break
+                                    elif edge in f_edges:
+                                        has_f = True
+                                        if has_t:
+                                            break
+                                if has_t and has_f:
+                                    return True
+                                else:
+                                    return False
+                            A = set(filter(filter_A_vertices, raw_conflict[0]))
+                            if not A:
+                                # Rule 5.2.3.1
+                                conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 3, subsubsubrule = 1))
+                                continue
+                            elif len(A) == len_reducible:
+                                # Rule 5.2.3.3
+                                if len(raw_conflict[0]) == 4:
+                                    # if we have more than 4 reducible nodes the feature is not safely reducible
+                                    conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 3, subsubsubrule = 3))
+                                continue
+                            else:
+                                # Rule 5.2.3.2
+                                # TODO: Problem: In the paper this case is presented with reducible nodes which are not adjacent. Are they still in conflict?
+                                non_A_nodes = raw_conflict[0] - A
+                                non_A_reducible_subgraph = conflict_subgraph.subgraph(non_A_nodes)
+                                raw_sub_conflicts = []
+                                for comp in nx.connected_components(non_A_reducible_subgraph):
+                                    comp_separator = itertools.chain(*map(lambda n: nxext.get_all_neighbors(conflict_subgraph, n), comp))
+                                    comp_separator = set(comp_separator) - comp
+                                    raw_sub_conflicts.append((comp, comp_separator))
+                                sub_conflicts_and_isolates = _identify_conflicts_and_isolates(raw_sub_conflicts, [])
+                                for sub_isolate in sub_conflicts_and_isolates["isolates"]:
+                                    isolates.append(sub_isolate)
+                                for sub_conflict in sub_conflicts_and_isolates["conflicts"]:
+                                    conflicts.append(sub_conflict)
+                                continue
+                         
+                        elif reducible_degree == 3:
+                            if reducible_subgraph.number_of_nodes() == 6 and reducible_subgraph.number_of_edges() == 9:
+                                # Rule 5.2.5 (Prism)
+                                conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule=5))
+                                continue
+                            else:
+                                # TODO: The explanation in the paper for this case is not clear.
+                                # For now extract all possible square configurations from the reducible subgraph.
+                                # If there are no squares, the graph is regarded as having tree-width > 3.
+                                squares = filter(lambda cycle: len(cycle) == 4, nx.cycle_basis(reducible_subgraph))
+                                if squares:
+                                    for square in squares:
+                                        sq_neigh = set()
+                                        for sq_node in square:
+                                            neigh = nxext.get_all_neighbors(reducible_subgraph, sq_node)
+                                            sq_neigh |= set(neigh)
+                                        if len(sq_neigh) == 2:
+                                            conflicts.append(ReducibleFeature(5, 2, square, sq_neigh, subsubrule = 3, subsubsubrule = 3))
+                                            reducible_subgraph.remove_nodes_from(square)
+                                continue
                      
                     else:
-                        # Rule 5.2.4
-                        conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 4))
-                        continue
-                 
-                sys.stderr.write("\n[ReducibleFeature] The conflicting triangles {0} were not handled by any rule.".format(raw_conflicts))
-                conflicts.append(ReducibleFeature(5, 0, raw_conflict[0], raw_conflict[1]))
+                        if 1 in reducible_degrees:
+                            # Rule 5.2.2
+                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 2))
+                            continue
+                         
+                        else:
+                            # Rule 5.2.4
+                            conflicts.append(ReducibleFeature(5, 2, raw_conflict[0], raw_conflict[1], subsubrule = 4))
+                            continue
                      
-            return {"isolates": isolates, "conflicts": conflicts}
+                    sys.stderr.write("\n[ReducibleFeature] The conflicting triangles {0} were not handled by any rule.".format(raw_conflicts))
+                    conflicts.append(ReducibleFeature(5, 0, raw_conflict[0], raw_conflict[1]))
+                         
+                return {"isolates": isolates, "conflicts": conflicts}
+            
+            raw_conflicts, raw_isolates = get_raw_conflicts_and_isolates(triangles)
+            return _identify_conflicts_and_isolates(raw_conflicts, raw_isolates)
         
         def get_buddy_conflicts(buddies):
             raw_conflicts, isolates = get_raw_conflicts_and_isolates(buddies)
@@ -784,16 +804,17 @@ class ReducibleFeature(object):
                     _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template, compute_string)
                     new_edges |= _new_edges
                 elif self.subsubsubrule == 2:
-                    # TODO: this reduction may not be correct for all cases
-                    assert len(self.peripheral_nodes) <= 3
-                    if compute_string:
-                        label_template = u"(5.2.3.2;{0})"
-                        perms = permutations(self.reducible_nodes | self.peripheral_nodes)
-                    else:
-                        perms = None
-                        label_template = None
-                    _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template, compute_string)
-                    new_edges |= _new_edges
+#                     # TODO: this reduction is not correct for all cases
+#                     assert len(self.peripheral_nodes) <= 3
+#                     if compute_string:
+#                         label_template = u"(5.2.3.2;{0})"
+#                         perms = permutations(self.reducible_nodes | self.peripheral_nodes)
+#                     else:
+#                         perms = None
+#                         label_template = None
+#                     _new_edges = ReducibleFeature.degree_3_reduction(hypergraph, self.reducible_nodes, self.peripheral_nodes, perms, label_template, compute_string)
+#                     new_edges |= _new_edges
+                    sys.stderr.write("\n[ReducibleFeature] Error: There is not reduction available for rule 5.2.3.2 because this rule disassembles the features into sub-features of different rules.")
                 elif self.subsubsubrule == 3:
                     # square
                     assert len(self.reducible_nodes) == 4
