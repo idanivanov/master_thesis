@@ -5,6 +5,7 @@ Created on Nov 21, 2015
 '''
 
 from rdflib.term import URIRef, BNode, Literal
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph as RDFGraph
 from RDFClosure import convert_graph
 from rdflib import RDF, RDFS, OWL
@@ -33,6 +34,9 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
     assert type(in_files) in [list, set]
     
     rdf_graph = read_graph(in_files)
+    return convert_rdf_graph_to_nx_graph(rdf_graph, labels=labels, discard_classes=discard_classes, test_mode=test_mode, return_colors=return_colors)
+
+def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=True, test_mode=False, return_colors=False):
     nx_graph = nx.MultiDiGraph()
     
     if test_mode:
@@ -188,3 +192,205 @@ def extend_inferred_knowledge(in_files, out_file):
     options = Options()
     options.sources = in_files
     convert_graph(options, destination=out_file)
+
+def sparql_query(query, base_rdf_graph=None, sparql_endpoint="http://localhost:3030/ds/query", return_new_node_uris=False):
+    def to_rdflib_term(term_dict):
+        term_type = term_dict[u'type']
+        if term_type == u'uri':
+            return rdflib.URIRef(term_dict[u'value'])
+        elif term_type == u'literal':
+            if u'xml:lang' in term_dict:
+                return rdflib.Literal(term_dict[u'value'], lang=term_dict[u'xml:lang'])
+            else:
+                return rdflib.Literal(term_dict[u'value'])
+        elif term_type == u'typed-literal':
+            return rdflib.Literal(term_dict[u'value'], datatype=term_dict[u'datatype'])
+        elif term_type == u'bnode':
+            return rdflib.BNode(term_dict[u'value'])
+        else:
+            print "RDF term of unknown type:", term_dict
+            exit(1)
+    sparql = SPARQLWrapper(sparql_endpoint)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    rdf_data = sparql.query().convert()
+    if base_rdf_graph:
+        rdf_graph = base_rdf_graph
+    else:
+        rdf_graph = RDFGraph()
+    
+    if return_new_node_uris:
+        new_node_uris = set()
+    
+    for triple in rdf_data[u"results"][u"bindings"]:
+        s = to_rdflib_term(triple[u's'])
+        p = to_rdflib_term(triple[u'p'])
+        o = to_rdflib_term(triple[u'o'])
+        rdf_graph.add((s, p, o))
+        
+        if return_new_node_uris:
+            new_node_uris.add(triple[u's'][u'value'])
+            if triple[u'o'][u'type'] in [u'uri', u'bnode']:
+                new_node_uris.add(triple[u'o'][u'value'])
+    
+    if return_new_node_uris:
+        return 0, rdf_graph, new_node_uris
+    else:
+        return 0, rdf_graph
+
+def quary_r_ball(center_node_uri, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query", ignore_type_paths=True, include_types=True):
+    '''Does the same as ivanov.graph.algorithms.r_ball but using an RDF graph and with a SPARQL query.
+    :param center_node_uri: the center node of the r-ball
+    :param r: radius of the r-ball (in hops)
+    :param edge_dir: the direction of edges to be considered (0 - all edges, 1 - only outgoing, -1 - only incoming)
+    :param sparql_endpoint: URL of the SPARQL end-point. Default is http://localhost:3030/ds/query (for Apache Jena Fuseki)
+    :param ignore_type_paths: (default True) ignore all rdf:type edges when extracting the r-ball (rdf:type information
+    can be extracted additionally if include_types=True)
+    :param include_types: (default True) include the types of each node in the r-ball
+    :return: the tuple (query_status, rdf_r_ball)
+    '''
+    def build_rball_query(center, max_depth, level = 0, direction_sequence = []):
+        # recursively builds the query for extracting the r-ball
+        query = u""
+
+        if level > 0:
+            query += u" UNION "
+        
+        if edge_dir >= 0:
+            query += u"{{?s ?p ?o."
+            if ignore_type_paths:
+                filter_types = filter_type_paths(level)
+            if level > 0:
+                for i in range(0, level):
+                    s = u""
+                    o = u""
+                    if direction_sequence[i]:
+                        if i == 0:
+                            s = center
+                            o = u"?o0"
+                        else:
+                            if direction_sequence[i - 1]:
+                                s = u"?o%d" % (i - 1)
+                                o = u"?o%d" % i
+                            else:
+                                s = u"?s%d" % (i - 1)
+                                o = u"?o%d" % i
+                        if i == level - 1:
+                            o = u"?s"
+                    else:
+                        if i == 0:
+                            s = u"?s0"
+                            o = center
+                        else:
+                            if direction_sequence[i - 1]:
+                                s = u"?s%d" % i
+                                o = u"?o%d" % (i - 1)
+                            else:
+                                s = u"?s%d" % i
+                                o = u"?s%d" % (i - 1)
+                        if i == level - 1:
+                            s = u"?s"
+                    
+                    query += u" {0} ?p{1} {2}.".format(s, i, o)
+                
+                if ignore_type_paths:
+                    query += u" FILTER({0})".format(filter_types)
+            else:
+                if ignore_type_paths:
+                    query += u" FILTER(?s = {0} && {1})".format(center, filter_types)
+                else:
+                    query += u" FILTER(?s = {0})".format(center)
+            query += u"}"
+            if level < max_depth:
+                query += build_rball_query(center, max_depth, level + 1, direction_sequence + [True])
+            
+            query += u"}"
+        
+        if edge_dir == 0:
+            query += u" UNION "
+        
+        if edge_dir <= 0:
+            query += u"{{?s ?p ?o."
+            if ignore_type_paths:
+                filter_types = filter_type_paths(level)
+            if level > 0:
+                for i in range(0, level):
+                    s = u""
+                    o = u""
+                    if direction_sequence[i]:
+                        if i == 0:
+                            s = center
+                            o = u"?o0"
+                        else:
+                            if direction_sequence[i - 1]:
+                                s = u"?o%d" % (i - 1)
+                                o = u"?o%d" % i
+                            else:
+                                s = u"?s%d" % (i - 1)
+                                o = u"?o%d" % i
+                        if i == level - 1:
+                            o = u"?o"
+                    else:
+                        if i == 0:
+                            s = u"?s0"
+                            o = center
+                        else:
+                            if direction_sequence[i - 1]:
+                                s = u"?s%d" % i
+                                o = u"?o%d" % (i - 1)
+                            else:
+                                s = u"?s%d" % i
+                                o = u"?s%d" % (i - 1)
+                        if i == level - 1:
+                            s = u"?o"
+                    
+                    query += u" {0} ?p{1} {2}.".format(s, i, o)
+                
+                if ignore_type_paths:   
+                    query += u" FILTER({0})".format(filter_types)
+            else:
+                if ignore_type_paths:
+                    query += u" FILTER(?o = {0} && {1})".format(center, filter_types)
+                else:
+                    query += u" FILTER(?o = {0})".format(center)
+            query += u"}"
+            if level < max_depth:
+                query += build_rball_query(center, max_depth, level + 1, direction_sequence + [False])
+
+            query += u"}"
+        
+        return query
+    
+    def filter_type_paths(level):
+        conditions = []
+        conditions.append(u"?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+        for i in range(0, level):
+            conditions.append(u"?p{0} != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>".format(i))
+        return u" && ".join(conditions)
+    
+    def build_extract_types_query(node_uris):
+        query = u"SELECT DISTINCT ?s ?p ?o WHERE {"
+        block_template = u"{{ ?s ?p ?o FILTER(?s = <{0}> && ?p = <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>) }}"
+        blocks = map(lambda uri: block_template.format(uri), node_uris)
+        query += u" UNION ".join(blocks)
+        query += u"}"
+        return query
+    
+    query_list_prefix = u"SELECT DISTINCT ?s ?p ?o WHERE {"
+    query_list = query_list_prefix + build_rball_query("<" + center_node_uri + ">", r - 1) + "}"
+    if include_types:
+        status, rdf_graph, node_uris = sparql_query(query_list, sparql_endpoint=sparql_endpoint, return_new_node_uris=True)
+        node_uris = list(node_uris)
+        batch_size = 20
+        offset = 0
+        for _ in range(len(node_uris) / batch_size + 2): # split in batches of 20 to make queries smaller
+            offset_end = offset + batch_size
+            node_uris_batch = node_uris[offset : offset_end]
+            if node_uris_batch:
+                extract_types_query = build_extract_types_query(node_uris_batch)
+                status, rdf_graph = sparql_query(extract_types_query, base_rdf_graph=rdf_graph, sparql_endpoint=sparql_endpoint)
+            offset = offset_end
+    else:
+        status, rdf_graph = sparql_query(query_list, sparql_endpoint=sparql_endpoint)
+    
+    return status, rdf_graph
