@@ -22,7 +22,7 @@ def read_graph(in_files, file_format=None):
     
     return rdf_graph
 
-def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False, return_colors=False):
+def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False, return_colors=False, base_colors=None, next_color_id=None):
     '''Converts an RDFLib graph to a Networkx graph.
     :param in_files: Files containing the RDF data.
     :param labels (optional): Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
@@ -30,13 +30,17 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
     predicate (all rdf:type edges will be removed); "uris" - each node/edge has as label the URI that identifies it in the RDF graph.
     :param discard_classes (optional): If true, will not include any RDF class as a node in the Networkx graph.
     :param test_mode: Used for unit testing. If True sorts the nodes in the graph by URIs.
+    :param return_colors: (default False) If True, includes the colors mapping as part of the result.
+    :param base_colors: A pre-difined mapping of RDF types to color id's to be used and extended.
+    :param next_color_id: An integer with which the new color id's will start.
+    :return: (nx_graph, uri_node_map[, colors, next_color_id])
     '''
     assert type(in_files) in [list, set]
     
     rdf_graph = read_graph(in_files)
-    return convert_rdf_graph_to_nx_graph(rdf_graph, labels=labels, discard_classes=discard_classes, test_mode=test_mode, return_colors=return_colors)
+    return convert_rdf_graph_to_nx_graph(rdf_graph, labels=labels, discard_classes=discard_classes, test_mode=test_mode, return_colors=return_colors, base_colors=base_colors, next_color_id=next_color_id)
 
-def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=True, test_mode=False, return_colors=False):
+def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=True, test_mode=False, return_colors=False, base_colors=None, next_color_id=None):
     nx_graph = nx.MultiDiGraph()
     
     if test_mode:
@@ -62,13 +66,17 @@ def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=Tr
             nx_graph.add_edge(s_id, o_id, label=unicode(p))
     else:
         thing_uri = u"http://www.w3.org/2002/07/owl#Thing"
-        colors = {
-            thing_uri: "0",
-#             u"bnode": "1", # TODO: is the bnode color needed?
-#             u"literal": "2", # TODO: is the literal color needed?
-            u"http://www.w3.org/2001/XMLSchema#string": "1" # default literal type
-        }
-        color_id = 2
+        if base_colors:
+            colors = base_colors
+            color_id = next_color_id
+        else:
+            colors = {
+                thing_uri: "0",
+#                 u"bnode": "1", # TODO: is the bnode color needed?
+#                 u"literal": "2", # TODO: is the literal color needed?
+                u"http://www.w3.org/2001/XMLSchema#string": "1" # default literal type
+            }
+            color_id = 2
         
         if discard_classes:
             all_classes = get_all_classes(rdf_graph)
@@ -135,7 +143,7 @@ def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=Tr
             nx_graph.add_edge(s_id, o_id, label=colors[p_raw])
     
     if return_colors:
-        return nx_graph, uri_node_map, colors
+        return nx_graph, uri_node_map, colors, color_id
     else:
         return nx_graph, uri_node_map
 
