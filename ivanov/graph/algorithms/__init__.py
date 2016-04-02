@@ -74,7 +74,7 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0, center_default_color=False):
     
     rball = Hypergraph()
     if center_default_color:
-        # the center node's default color is 0 ("unknown")
+        # the center node's default color is 0 ("owl:Thing")
         rball.add_node(center, attr_dict={"labels": ["0"]})
     else:
         rball.add_node(center, attr_dict=copy.deepcopy(hypergraph.node[center]))

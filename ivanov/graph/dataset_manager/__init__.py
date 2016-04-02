@@ -9,6 +9,7 @@ from ivanov.graph.algorithms import arnborg_proskurowski, weisfeiler_lehman
 from ivanov.graph.hypergraph import Hypergraph
 from ivanov.graph import rdf, algorithms
 from scipy.sparse import csr_matrix
+from ivanov import inout
 import networkx as nx
 import numpy as np
 import itertools
@@ -190,6 +191,31 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
         f.close()
     
     print "Done."
+
+def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query"):
+    '''Extract r-balls around the given entry nodes from the graph on the server using SPARQL queries.
+    :param entries: the entry nodes (resources, URI/IRIs) which will serve as center nodes of the r-balls
+    :param output_dir: the directory for writing the output files
+    :param r: radius of the r-balls
+    :param edge_dir: the direction of edges to be considered (0 - all edges, 1 - only outgoing, -1 - only incoming)
+    :param sparql_endpoint: URL of the SPARQL end-point. Default is http://localhost:3030/ds/query (for Apache Jena Fuseki)
+    '''
+    colors = None
+    next_color_id = None
+    
+    for i, entry_uri in enumerate(entries):
+        query_status, rdf_r_ball = rdf.quary_r_ball(entry_uri, r, edge_dir, sparql_endpoint, ignore_type_paths=True, include_types=True)
+        assert not query_status
+        r_ball, uri_nodes_map, colors, next_color_id = rdf.convert_rdf_graph_to_nx_graph(rdf_r_ball, return_colors=True, base_colors=colors, next_color_id=next_color_id)
+        center_node = uri_nodes_map[entry_uri]
+        target_labels = list(r_ball.node[center_node]["labels"])
+        # Make he center node of color 0 (owl:Thing)
+        # The original colors of the center node serve as target labels of the r-ball
+        r_ball.node[center_node]["labels"] = ["0"]
+        hyper_r_ball = Hypergraph(r_ball)
+        print i, r_ball.number_of_nodes(), entry_uri, target_labels
+        graph_database_record = (entry_uri, [hyper_r_ball], target_labels) 
+        inout.save_to_file(graph_database_record, output_dir + "r_ball_{0}".format(i))
 
 def read_svm_light_bool_data(in_file):
     with open(in_file) as in_f:

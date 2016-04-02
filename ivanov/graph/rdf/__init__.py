@@ -388,6 +388,7 @@ def quary_r_ball(center_node_uri, r, edge_dir, sparql_endpoint="http://localhost
     query_list = query_list_prefix + build_rball_query("<" + center_node_uri + ">", r - 1) + "}"
     if include_types:
         status, rdf_graph, node_uris = sparql_query(query_list, sparql_endpoint=sparql_endpoint, return_new_node_uris=True)
+        node_uris.add(center_node_uri) # just in case the query result was empty
         node_uris = list(node_uris)
         batch_size = 20
         offset = 0
