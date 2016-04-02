@@ -39,6 +39,7 @@ def model_score(score, k=-1, L=-1, infl_point=-1, base_model = {}):
         "accuracy": score[1],
         "precision": score[2],
         "recall": score[3],
+        "F1": score[4],
         "k": k,
         "L": L,
         "infl_point": infl_point
@@ -215,7 +216,7 @@ def d_folds(d, sketch_matrix, cols_count, quality_function, targets):
     fold_offset = 0
     fold_offset_end = 0
     # score: AUC, accuracy, precision, recall
-    avg_score = [0., 0., 0., 0.]
+    avg_score = [0., 0., 0., 0., 0.]
     
     for _ in range(d):
         fold_offset_end += fold_size
@@ -260,17 +261,19 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}, m
                 target_proportions = statistics.get_multilabel_target_proportions(similar_targets, np.shape(similar_cols)[0])
                 targets_pred = filter(lambda target: target_proportions[target] > multilabel_prediction_threshold, target_proportions)
                 test_targets_pred.append(targets_pred)
+                # TODO: print targets here to observe the behavior
             else:
                 estimated_target_proba_i = statistics.predict_binary_target_proba(similar_targets)
                 test_targets_proba[i] = estimated_target_proba_i
         
         if multilabel:
-            # TODO: for now just accuracy
-            return [-1., statistics.multi_label_accuracy(test_targets, test_targets_pred), -1., -1.]
+            # TODO: compute also AUC?
+            acc, prec, recall, f1 = statistics.multi_label_scores(test_targets, test_targets_pred)
+            return -1., acc, prec, recall, f1
         else:
             return all_scores(test_targets, test_targets_proba)
     
-    best_model = model_score([-1., -1., -1., -1.], base_model=base_model)
+    best_model = model_score([-1., -1., -1., -1., -1.], base_model=base_model)
     
     models_file = open(output_dir + "models_sketch", "a")
     

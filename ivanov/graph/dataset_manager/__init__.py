@@ -216,6 +216,8 @@ def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, 
     def read_entries(nodes_in_file):
         with open(nodes_in_file) as in_fl:
             for line in in_fl.readlines():
+                if line.startswith("#"):
+                    continue
                 yield line[:-1] # remove new line character from end
     
     entries = read_entries(entries_file)
@@ -232,6 +234,29 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
     colors = None
     next_color_id = None
     
+    nodes_count_distribution = {}
+    type_distribution = {}
+    def update_stats(nodes_count, target_labels, colors):
+        def get_target_uri_map():
+            target_uri_map = {}
+            for uri in colors:
+                if colors[uri] in target_labels:
+                    target_uri_map[colors[uri]] = uri
+                    if len(target_uri_map) == len(target_labels):
+                        break
+            return target_uri_map
+        
+        if nodes_count not in nodes_count_distribution:
+            nodes_count_distribution[nodes_count] = 0
+        nodes_count_distribution[nodes_count] += 1
+        
+        target_uri_map = get_target_uri_map()
+        for target in target_uri_map:
+            type_uri = target_uri_map[target]
+            if type_uri not in type_distribution:
+                type_distribution[type_uri] = 0
+            type_distribution[type_uri] += 1
+    
     for i, entry_uri in enumerate(entries):
         query_status, rdf_r_ball = rdf.quary_r_ball(entry_uri, r, edge_dir, sparql_endpoint, ignore_type_paths=True, include_types=True)
         assert not query_status
@@ -242,9 +267,13 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
         # The original colors of the center node serve as target labels of the r-ball
         r_ball.node[center_node]["labels"] = ["0"]
         hyper_r_ball = Hypergraph(r_ball)
-        print i, r_ball.number_of_nodes(), entry_uri, target_labels
+        nodes_count = r_ball.number_of_nodes()
+        print i, nodes_count, entry_uri, target_labels
+        update_stats(nodes_count, target_labels, colors)
         graph_database_record = (entry_uri, [hyper_r_ball], target_labels) 
         inout.save_to_file(graph_database_record, output_dir + "r_ball_{0}".format(i))
+    
+    return nodes_count_distribution, type_distribution
 
 def build_multilabel_svm_light_data_from_graph_database(graph_database, wl_iterations, output_dir, shingles_type="features",
                                                         window_size=5, accumulate_wl_shingles=True, fingerprints=False):
