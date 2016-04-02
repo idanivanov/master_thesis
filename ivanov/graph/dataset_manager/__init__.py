@@ -107,6 +107,60 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             process_compound_function(ch_db_record)
         yield ch_db_record
 
+def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=True):
+    sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
+    files = state["files"]
+    wl_state = state["wl_state"]
+    shingle_id_map = state["shingle_id_map"]
+    
+    def process_shingles(shingles, record_data_vector, wl_it):
+        next_shingle_id_key = "next_shingle_id" if accumulate_wl_shingles else "wl_{0}_next_shingle_id".format(wl_it)
+        if not fingerprints:
+            for shingle in shingles:
+                if shingle not in shingle_id_map:
+                    shingle_id_map[shingle] = wl_state[next_shingle_id_key]
+                    wl_state[next_shingle_id_key] += 1
+                record_data_vector.add((shingle_id_map[shingle], 1))
+        else:
+            shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
+            record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
+    
+#         print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
+#         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
+    record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
+
+    for record_graph in record[1]:
+        if sh_type >= 0:
+            if accumulate_wl_shingles:
+                record_data_vector = set()
+            fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(record_graph, wl_iterations, wl_state["wl_state"])
+            for wl_it, new_features, wl_state["wl_state"] in fea_ext_iter:
+                if not accumulate_wl_shingles:
+                    record_data_vector = set()
+                for feature in new_features:
+                    shingles = shingle_extraction.extract_shingles(feature)
+                    process_shingles(shingles, record_data_vector, wl_it)
+                record_data_wl_vectors[wl_it] |= record_data_vector
+        
+        if sh_type <= 0:
+            # TODO: should we exclude records with tree-width > 3?
+            if accumulate_wl_shingles:
+                record_data_vector = set()
+            w_shingles_ext_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(record_graph, wl_iterations, wl_state["wl_state"], window_size=window_size)
+            for wl_it, new_w_shingles, wl_state["wl_state"] in w_shingles_ext_iter:
+                if not accumulate_wl_shingles:
+                    record_data_vector = set()
+                process_shingles(new_w_shingles, record_data_vector, wl_it)
+                record_data_wl_vectors[wl_it] |= record_data_vector
+    
+    for wl_it in range(wl_iterations + 1):
+        if binary_target_labels:
+            data_instance = (record[2] if record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
+        else:
+            data_instance = (",".join(record[2]), sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
+        files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
+        files[wl_it].flush()
+
 def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None,
                                  shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=False):
     if format_rdf:
@@ -122,62 +176,25 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     for i in range(wl_iterations + 1):
         files.append(open(output_dir + "svm_light_data_wl_{0}".format(i), "w"))
     
-    state = {"wl_state": None}
+    wl_state = {"wl_state": None}
+    shingle_id_map = {}
     if not fingerprints:
-        shingle_id_map = {}
         if accumulate_wl_shingles:
-            state["next_shingle_id"] = 1
+            wl_state["next_shingle_id"] = 1
         else:
             for i in range(wl_iterations + 1):
-                state["wl_{0}_next_shingle_id".format(i)] = 1
+                wl_state["wl_{0}_next_shingle_id".format(i)] = 1
     
-    sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
+    state = {
+        "files": files,
+        "wl_state": wl_state,
+        "shingle_id_map": shingle_id_map
+    }
     
     def process_compound(chem_record):
-        def process_shingles(shingles, record_data_vector, wl_it):
-            next_shingle_id_key = "next_shingle_id" if accumulate_wl_shingles else "wl_{0}_next_shingle_id".format(wl_it)
-            if not fingerprints:
-                for shingle in shingles:
-                    if shingle not in shingle_id_map:
-                        shingle_id_map[shingle] = state[next_shingle_id_key]
-                        state[next_shingle_id_key] += 1
-                    record_data_vector.add((shingle_id_map[shingle], 1))
-            else:
-                shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
-                record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
-        
-#         print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
-#         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
-        record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
-
-        for record_graph in chem_record[1]:
-            if sh_type >= 0:
-                if accumulate_wl_shingles:
-                    record_data_vector = set()
-                fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"])
-                for wl_it, new_features, state["wl_state"] in fea_ext_iter:
-                    if not accumulate_wl_shingles:
-                        record_data_vector = set()
-                    for feature in new_features:
-                        shingles = shingle_extraction.extract_shingles(feature)
-                        process_shingles(shingles, record_data_vector, wl_it)
-                    record_data_wl_vectors[wl_it] |= record_data_vector
-            
-            if sh_type <= 0:
-                # TODO: should we exclude records with tree-width > 3?
-                if accumulate_wl_shingles:
-                    record_data_vector = set()
-                w_shingles_ext_iter = shingle_extraction.extract_w_shingles_for_each_wl_iter(record_graph, wl_iterations, state["wl_state"], window_size=window_size)
-                for wl_it, new_w_shingles, state["wl_state"] in w_shingles_ext_iter:
-                    if not accumulate_wl_shingles:
-                        record_data_vector = set()
-                    process_shingles(new_w_shingles, record_data_vector, wl_it)
-                    record_data_wl_vectors[wl_it] |= record_data_vector
-        
-        for wl_it in range(wl_iterations + 1):
-            data_instance = (chem_record[2] if chem_record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
-            files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
-            files[wl_it].flush()
+        process_record(chem_record, wl_iterations, state, binary_target_labels=True,
+                       shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles,
+                       fingerprints=fingerprints)
     
     if format_rdf:
         chem_database = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound)
@@ -225,6 +242,33 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
         print i, r_ball.number_of_nodes(), entry_uri, target_labels
         graph_database_record = (entry_uri, [hyper_r_ball], target_labels) 
         inout.save_to_file(graph_database_record, output_dir + "r_ball_{0}".format(i))
+
+def build_multilabel_svm_light_data_from_graph_database(graph_database, wl_iterations, output_dir, shingles_type="features",
+                                                        window_size=5, accumulate_wl_shingles=True, fingerprints=False):
+    files = []
+    
+    for i in range(wl_iterations + 1):
+        files.append(open(output_dir + "multilabel_svm_light_data_wl_{0}".format(i), "w"))
+    
+    wl_state = {"wl_state": None}
+    shingle_id_map = {}
+    if not fingerprints:
+        if accumulate_wl_shingles:
+            wl_state["next_shingle_id"] = 1
+        else:
+            for i in range(wl_iterations + 1):
+                wl_state["wl_{0}_next_shingle_id".format(i)] = 1
+    
+    state = {
+        "files": files,
+        "wl_state": wl_state,
+        "shingle_id_map": shingle_id_map
+    }
+    
+    for record in graph_database:
+        process_record(record, wl_iterations, state, binary_target_labels=False,
+                       shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles,
+                       fingerprints=fingerprints)
 
 def read_svm_light_bool_data(in_file):
     with open(in_file) as in_f:
