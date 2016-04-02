@@ -13,6 +13,9 @@ import numpy as np
 import itertools
 import math
 
+def avg(l):
+    return sum(l) / len(l)
+
 def predict_target_majority(targets, default_negative_target=0):
     '''Majority election of target.
     :param similar_targets: A list of either integers or lists. Each element may have multiple target values.
@@ -40,6 +43,12 @@ def predict_binary_target_proba(targets, positive_target=1):
         return predict_proba
     else:
         return 0.
+
+def get_multilabel_target_proportions(targets, examples_count):
+    '''Get the proportions of each target appearing among the given number of examples.
+    '''
+    target_counts = Counter(targets)
+    return {target: float(target_counts[target]) / examples_count for target in target_counts}
 
 def prepare_target_with_predictions(svm_light_val_file, predictions_file):
     val_data = dataset_manager.read_svm_light_bool_data(svm_light_val_file)
@@ -107,3 +116,13 @@ def recall(svm_light_val_file, predictions_file, threshold=0.5):
     real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
     pred_targets_thr = apply_threshold(pred_targets, threshold)
     return recall_score(real_targets, pred_targets_thr)
+
+def multi_label_accuracy(y_true, y_pred):
+    accuracies = []
+    for y_t, y_p in itertools.izip(y_true, y_pred):
+        y_t_s = set(y_t)
+        y_p_s = set(y_p)
+        inter = float(len(y_t_s & y_p_s))
+        union = float(len(y_t_s | y_p_s))
+        accuracies.append(inter / union)
+    return avg(accuracies)
