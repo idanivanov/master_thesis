@@ -125,8 +125,11 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
             shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
             record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
     
-#         print "Record ID: {0}, Target: {1}".format(chem_record[0], chem_record[2])
-#         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(chem_record[0], chem_record[2], window_size)
+    if sh_type > 0:
+        print "Record ID: {0}, Target: {1}".format(record[0], record[2])
+    else:
+        print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(record[0], record[2], window_size)
+    
     record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
 
     for record_graph in record[1]:
@@ -265,7 +268,8 @@ def build_multilabel_svm_light_data_from_graph_database(graph_database, wl_itera
         "shingle_id_map": shingle_id_map
     }
     
-    for record in graph_database:
+    for i, record in enumerate(graph_database):
+        print i
         process_record(record, wl_iterations, state, binary_target_labels=False,
                        shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles,
                        fingerprints=fingerprints)
@@ -274,13 +278,15 @@ def read_svm_light_bool_data(in_file):
     with open(in_file) as in_f:
         for line in in_f:
             elem = line.split(" ")
-            target = int(elem[0])
+            targets = map(lambda l: int(l), elem[0].split(","))
             props = []
             for e in elem[1:]:
+                if e == "\n":
+                    break
                 prop = e.split(":")
                 if float(prop[1]) > 0.:
                     props.append(int(prop[0]))
-            yield target, props
+            yield targets, props
 
 def read_svm_light_bool_data_to_sparse(in_file):
     data = read_svm_light_bool_data(in_file)
