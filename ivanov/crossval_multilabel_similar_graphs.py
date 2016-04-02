@@ -7,12 +7,14 @@ Created on Apr 2, 2016
 from ivanov.graph.algorithms.similar_graphs_mining import crossval
 from ivanov.graph import dataset_manager
 
-def crossval_multilabel_dataset(path_to_data, examples_count, folds_count, wl_iter_range, k_L_range, prediction_threshold_range, output_dir):
+def crossval_multilabel_dataset(path_to_data, examples_count, folds_count, wl_iter_range, k_L_range, prediction_threshold_range, output_dir, window_size=None):
     data_file = path_to_data + "multilabel_svm_light_data_wl_{0}"
     for prediction_threshold in prediction_threshold_range:
         for wl_iterations in wl_iter_range:
             data = dataset_manager.read_svm_light_bool_data(data_file.format(wl_iterations))
             base_model = {"wl_iterations": wl_iterations, "pred_threshold": prediction_threshold}
+            if window_size:
+                base_model["w"] = window_size
             best_model = crossval.d_fold_crossval(data, examples_count, folds_count, k_L_range, output_dir, base_model=base_model, multilabel=True, multilabel_prediction_threshold=prediction_threshold)
             print "Best model:", best_model
 
@@ -42,4 +44,4 @@ if __name__ == '__main__':
     ]
     
     for w in window_size_range:
-        crossval_multilabel_dataset(path_to_data.format(w), examples_count, folds_count, wl_iter_range, k_L_range, prediction_threshold, output_dir)
+        crossval_multilabel_dataset(path_to_data.format(w), examples_count, folds_count, wl_iter_range, k_L_range, prediction_threshold, output_dir, window_size=w)
