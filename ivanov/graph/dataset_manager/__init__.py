@@ -192,6 +192,15 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     
     print "Done."
 
+def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query"):
+    def read_entries(nodes_in_file):
+        with open(nodes_in_file) as in_fl:
+            for line in in_fl.readlines():
+                yield line[:-1] # remove new line character from end
+    
+    entries = read_entries(entries_file)
+    return extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint)
+
 def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query"):
     '''Extract r-balls around the given entry nodes from the graph on the server using SPARQL queries.
     :param entries: the entry nodes (resources, URI/IRIs) which will serve as center nodes of the r-balls
