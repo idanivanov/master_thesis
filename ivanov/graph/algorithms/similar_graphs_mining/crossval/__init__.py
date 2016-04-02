@@ -9,6 +9,7 @@ from ivanov.graph.algorithms.similar_graphs_mining.characteristic_matrix import 
 from ivanov.graph.algorithms.similar_graphs_mining.sketch_matrix import SketchMatrix
 from ivanov.statistics import all_scores
 from ivanov import statistics
+from timeit import itertools
 import numpy as np
 import time
 
@@ -231,7 +232,7 @@ def d_folds(d, sketch_matrix, cols_count, quality_function, targets):
     
     return avg_score
 
-def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}):
+def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}, multilabel=False, multilabel_prediction_threshold=0.4):
     '''Cross-validation in d-folds.
     :param data: Input data, where each record is a tuple of the form (target, props), where props is a sparse vector.
     :param cols_count: Number of records in data.
@@ -239,21 +240,35 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}):
     :param k_L_range: A range of (k, L) tuples for the sketch matrix to be considered in the cross-validation.
     :param output_dir: A local directory, that will be used to save the sketch matrices of all models.
     :param base_model: A base model that is going to be extended by the new parameters.
+    :param multilabel: (default False) If True, a record may have multiple different integer target labels.
+    If False, the target labels are binary.
     :return: The best model as a dictionary.
     '''
     def quality(sketch_matrix, train_sketch, test_sketch, train_targets, test_targets):
         k = sketch_matrix.k
         L = sketch_matrix.L
         train_cols_count = np.shape(train_sketch)[1]
-        test_targets_proba = np.empty(len(test_targets))
+        if multilabel:
+            test_targets_pred = []
+        else:
+            test_targets_proba = np.empty(len(test_targets))
         for i in range(np.shape(test_sketch)[1]):
             col_i = test_sketch[:, i : i + 1]
             similar_cols = SketchMatrix._get_similar_columns(col_i, train_sketch, k, L, train_cols_count)
-            similar_targets = map(lambda c: train_targets[c], similar_cols)
-            estimated_target_proba_i = statistics.predict_binary_target_proba(similar_targets)
-            test_targets_proba[i] = estimated_target_proba_i
-         
-        return all_scores(test_targets, test_targets_proba)
+            similar_targets = itertools.chain(*map(lambda c: train_targets[c], similar_cols))
+            if multilabel:
+                target_proportions = statistics.get_multilabel_target_proportions(similar_targets, np.shape(similar_cols)[0])
+                targets_pred = filter(lambda target: target_proportions[target] > multilabel_prediction_threshold, target_proportions)
+                test_targets_pred.append(targets_pred)
+            else:
+                estimated_target_proba_i = statistics.predict_binary_target_proba(similar_targets)
+                test_targets_proba[i] = estimated_target_proba_i
+        
+        if multilabel:
+            # TODO: for now just accuracy
+            return [-1., statistics.multi_label_accuracy(test_targets, test_targets_pred), -1., -1.]
+        else:
+            return all_scores(test_targets, test_targets_proba)
     
     best_model = model_score([-1., -1., -1., -1.], base_model=base_model)
     

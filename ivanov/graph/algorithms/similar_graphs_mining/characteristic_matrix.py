@@ -50,9 +50,9 @@ class CharacteristicMatrix(Serializable):
         self.target_values = []
         self.sparse_matrix = {}
         i = -1
-        for target, record_props in records:
+        for targets, record_props in records:
             i += 1
-            self.target_values.append(target)
+            self.target_values.append(targets)
             if self.print_progress:
                 print "Ch.Mat.: Processing column", i, "of", self.cols_count
             for prop in record_props:
