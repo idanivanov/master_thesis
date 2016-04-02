@@ -16,6 +16,9 @@ import math
 def avg(l):
     return sum(l) / len(l)
 
+def F1(precision, recall):
+    return (2. * precision * recall) / (precision + recall) if precision and recall else 0.
+
 def predict_target_majority(targets, default_negative_target=0):
     '''Majority election of target.
     :param similar_targets: A list of either integers or lists. Each element may have multiple target values.
@@ -83,7 +86,7 @@ def all_scores(real_targets, pred_targets, threshold=0.5):
     prec = precision_score(real_targets, pred_targets_thr)
     rec = recall_score(real_targets, pred_targets_thr)
     
-    return auc, acc, prec, rec
+    return auc, acc, prec, rec, F1(prec, rec)
 
 def all_scores_from_files(svm_light_val_file, predictions_file, threshold=0.5):
     real_targets, pred_targets = prepare_target_with_predictions(svm_light_val_file, predictions_file)
@@ -117,12 +120,24 @@ def recall(svm_light_val_file, predictions_file, threshold=0.5):
     pred_targets_thr = apply_threshold(pred_targets, threshold)
     return recall_score(real_targets, pred_targets_thr)
 
-def multi_label_accuracy(y_true, y_pred):
+def multi_label_scores(y_true, y_pred):
+    '''Compute accuracy, precision, recall and F1 score for multi-label predictions.
+    '''
     accuracies = []
+    precisions = []
+    recalls = []
+    f1 = []
     for y_t, y_p in itertools.izip(y_true, y_pred):
         y_t_s = set(y_t)
         y_p_s = set(y_p)
+        t = float(len(y_t_s))
+        p = float(len(y_p_s))
         inter = float(len(y_t_s & y_p_s))
         union = float(len(y_t_s | y_p_s))
+        precision = inter / p if p else 1.
+        recall = inter / t if t else 1.
         accuracies.append(inter / union)
-    return avg(accuracies)
+        precisions.append(precision)
+        recalls.append(recall)
+        f1.append(F1(precision, recall))
+    return avg(accuracies), avg(precisions), avg(recalls), avg(f1)
