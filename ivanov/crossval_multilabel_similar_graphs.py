@@ -9,8 +9,8 @@ from ivanov.graph import dataset_manager
 
 def crossval_multilabel_dataset(path_to_data, examples_count, folds_count, wl_iter_range, k_L_range, prediction_threshold_range, output_dir, window_size=None):
     data_file = path_to_data + "multilabel_svm_light_data_wl_{0}"
-    for prediction_threshold in prediction_threshold_range:
-        for wl_iterations in wl_iter_range:
+    for wl_iterations in wl_iter_range:
+        for prediction_threshold in prediction_threshold_range:
             data = dataset_manager.read_svm_light_bool_data(data_file.format(wl_iterations))
             base_model = {"wl_iterations": wl_iterations, "pred_threshold": prediction_threshold}
             if window_size:
@@ -20,8 +20,10 @@ def crossval_multilabel_dataset(path_to_data, examples_count, folds_count, wl_it
 
 if __name__ == '__main__':
     
-    path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/data_1_all_balls/data_w_{0}/"
-    output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/"
+#     path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/data_1_in_balls/data_w_{0}/"
+#     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/"
+    path_to_data = "/home/stud/ivanovi/Thesis/dbpedia/dbp_online/data_2_in_balls/data_w_{0}/"
+    output_dir = "/home/stud/ivanovi/Thesis/dbpedia/dbp_online/dbpedia/"
     examples_count = 10000
     folds_count = 10
     
