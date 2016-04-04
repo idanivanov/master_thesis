@@ -257,11 +257,23 @@ def d_fold_crossval(data, cols_count, d, k_L_range, output_dir, base_model={}, m
             col_i = test_sketch[:, i : i + 1]
             similar_cols = SketchMatrix._get_similar_columns(col_i, train_sketch, k, L, train_cols_count)
             similar_targets = itertools.chain(*map(lambda c: train_targets[c], similar_cols))
+#             similar_targets = list(itertools.chain(*map(lambda c: train_targets[c], similar_cols)))
             if multilabel:
                 target_proportions = statistics.get_multilabel_target_proportions(similar_targets, np.shape(similar_cols)[0])
                 targets_pred = filter(lambda target: target_proportions[target] > multilabel_prediction_threshold, target_proportions)
                 test_targets_pred.append(targets_pred)
-                # TODO: print targets here to observe the behavior
+#                 print "Col:", i, ", Target:", test_targets[i], ", Est. target: ", targets_pred
+#                 print "Similar cols:", similar_cols
+#                 print "Similar targets:", similar_targets
+#                 print "--------------------------------------"
+#                 _acc, _prec, _recall, _f1 = statistics.multi_label_scores([test_targets[i]], [targets_pred])
+#                 fp = open(output_dir + "classification_sketch", "a")
+#                 fp.write("Col: {0}, Target: {1}, Est. target: {2}\n".format(i, test_targets[i], targets_pred))
+#                 fp.write("Accuracy: {0}, Precision: {1}, Recall: {2}, F1: {3}\n".format(_acc, _prec, _recall, _f1))
+#                 fp.write("Similar cols: {0}\n".format(list(similar_cols)))
+#                 fp.write("Similar targets: {0}\n".format(similar_targets))
+#                 fp.write("--------------------------------------\n")
+#                 fp.close()
             else:
                 estimated_target_proba_i = statistics.predict_binary_target_proba(similar_targets)
                 test_targets_proba[i] = estimated_target_proba_i

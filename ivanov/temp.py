@@ -5,6 +5,7 @@ Created on Mar 18, 2016
 '''
 from ivanov.graph import dataset_manager, rdf, nxext
 from ivanov import helpers, inout
+from ivanov.graph.algorithms import arnborg_proskurowski
 
 if __name__ == '__main__':
 #     dataset = "mutagenicity-rdf"
@@ -35,26 +36,38 @@ if __name__ == '__main__':
 #         dataset_manager.build_svmlight_chemical_data(in_files, 3, output_dir.format(w), shingles_type="w-shingles", window_size=w, fingerprints=True)
     
     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/dbp_online/2_in_balls/"
-    entries_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/dbpedia/dbpedia_ascii_resources_sample_10000"
+    entries_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/6_Results/dbpedia/dbpedia_bounded_in_degree_resources_sample_10000"
     radius = 2
     edge_dir = -1
-      
+         
     # SPARQL end-points:
     # "http://dbpedia.org/sparql"
     # "http://localhost:3030/ds/query"
-      
-    nodes_count_distribution, type_distribution = dataset_manager.extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, radius, edge_dir, sparql_endpoint="http://dbpedia.org/sparql")
-    print nodes_count_distribution
-    print type_distribution
     
+    nodes_count_distribution, type_distribution = dataset_manager.extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, radius, edge_dir, sparql_endpoint="http://dbpedia.org/sparql")
+    with open("nc", "w") as f:
+        f.write(str(nodes_count_distribution))
+        f.write(str(type_distribution))
+    print "Done"
+
 #     def read_r_balls_database(r_balls_directory, r_balls_count):
 #         for i in range(r_balls_count):
 #             record = inout.load_from_file(r_balls_directory + "r_ball_{0}".format(i))
 #             yield record
-#      
-#     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/data_1_in_balls/data_w_{0}/"
-#     r_balls_directory = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/1_in_balls/"
+#       
+#     r_balls_directory = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/dbp_local/1_in_balls/"
+#     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/dbp_local/data_1_in_balls/data_w_{0}/"
 #     for w in [5, 10]:
 #         r_balls_database = read_r_balls_database(r_balls_directory, 10000)
 #         dataset_manager.build_multilabel_svm_light_data_from_graph_database(r_balls_database, 4, output_dir.format(w), shingles_type="w-shingles",
 #                 window_size=w, accumulate_wl_shingles=True, fingerprints=False)
+    
+#     r_balls_database = read_r_balls_database(r_balls_directory, 10000)
+#     with open("tw_2_in_balls", "w") as f:
+#         for i, record in enumerate(r_balls_database):
+#             r_id, r_graphs, _ = record
+#             tw = arnborg_proskurowski.get_treewidth(r_graphs[0])
+#             line = "{0} {1}\n".format(r_id, tw)
+#             print i, line
+#             f.write(line)
+#     print "Done"

@@ -270,7 +270,7 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
         nodes_count = r_ball.number_of_nodes()
         print i, nodes_count, entry_uri, target_labels
         update_stats(nodes_count, target_labels, colors)
-        graph_database_record = (entry_uri, [hyper_r_ball], target_labels) 
+        graph_database_record = (entry_uri, [hyper_r_ball], target_labels)
         inout.save_to_file(graph_database_record, output_dir + "r_ball_{0}".format(i))
     
     return nodes_count_distribution, type_distribution
