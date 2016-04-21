@@ -71,7 +71,7 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
                     comp_id, target_label = tuple(line[:-1].split(" "))
                     yield unicode(comp_id), int(target_label)
     
-    full_graph, uri_node_map, type_color_map = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True)
+    full_graph, uri_node_map, type_color_map, _ = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True)
     
     literal_colors = set()
     for rdf_type in type_color_map:
@@ -84,11 +84,13 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
         if literal_colors & set(full_graph.node[node]["labels"]):
             full_graph.remove_node(node)
     
-    for node in full_graph.nodes_iter():
-        # remove the color of named individual type from all nodes where it occures
-        named_indiv_color = type_color_map[u"http://www.w3.org/2002/07/owl#NamedIndividual"]
-        if named_indiv_color in full_graph.node[node]["labels"]:
-            full_graph.node[node]["labels"].remove(named_indiv_color)
+    # remove the color of named individual type from all nodes where it occurs
+    named_indiv_uri = u"http://www.w3.org/2002/07/owl#NamedIndividual"
+    if named_indiv_uri in type_color_map:
+        named_indiv_color = type_color_map[named_indiv_uri]
+        for node in full_graph.nodes_iter():
+            if named_indiv_color in full_graph.node[node]["labels"]:
+                full_graph.node[node]["labels"].remove(named_indiv_color)
 
     full_hypergraph = Hypergraph(full_graph)
     
