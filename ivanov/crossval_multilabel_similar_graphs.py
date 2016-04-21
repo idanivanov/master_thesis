@@ -20,8 +20,8 @@ def crossval_multilabel_dataset(path_to_data, examples_count, folds_count, wl_it
 
 if __name__ == '__main__':
     
-#     path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/data_1_in_balls/data_w_{0}/"
-#     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/"
+#     path_to_data = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/dbp_local/data_1_in_balls/data_w_{0}/"
+#     output_dir = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/dbp_local/"
     path_to_data = "/home/stud/ivanovi/Thesis/dbpedia/dbp_local/data_1_in_balls/data_w_{0}/"
     output_dir = "/home/stud/ivanovi/Thesis/dbpedia/dbp_local/"
     examples_count = 10000
