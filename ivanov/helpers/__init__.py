@@ -104,6 +104,22 @@ datasets = {
             "sample-2": data_path + "Mutagenicity_RDF/compounds_targets_sample_2"
         }
     },
+    "carcinogenesis-rdf-owl": {
+        "files": [
+            data_path + "Carcinogenesis_RDF/carcinogenesis.owl"
+        ],
+        "compounds_targets": {
+            "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
+        }
+    },
+    "carcinogenesis-rdf-ttl": {
+        "files": [
+            data_path + "Carcinogenesis_RDF/carcinogenesis.ttl"
+        ],
+        "compounds_targets": {
+            "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
+        }
+    },
     "nci-hiv": {
         "files": [
             data_path + "NCI_HIV/AIDS99.txt"
