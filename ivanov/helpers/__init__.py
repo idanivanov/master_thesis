@@ -110,7 +110,9 @@ datasets = {
         ],
         "compounds_targets": {
             "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
-        }
+        },
+        "positives-file" : data_path + "Carcinogenesis_RDF/pos.txt",
+        "negatives-file" : data_path + "Carcinogenesis_RDF/neg.txt",
     },
     "carcinogenesis-rdf-ttl": {
         "files": [
@@ -118,7 +120,9 @@ datasets = {
         ],
         "compounds_targets": {
             "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
-        }
+        },
+        "positives-file" : data_path + "Carcinogenesis_RDF/pos.txt",
+        "negatives-file" : data_path + "Carcinogenesis_RDF/neg.txt",
     },
     "nci-hiv": {
         "files": [

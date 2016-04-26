@@ -59,8 +59,8 @@ def read_chemical_compounts(in_file, process_compound_function=None):
                 yield ch_db_record
             i = (i + 1) % 3
 
-def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, process_compound_function=None):
-    def read_componds_and_targets():
+def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, process_compound_function=None, compounts_and_targets=None, sort_rdf_nodes_before_processing=False):
+    def read_compounds_and_targets():
         with open(compounds_targets_file, "r") as ct_file:
             for line in ct_file.readlines():
                 if line.startswith("#"):
@@ -71,7 +71,7 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
                     comp_id, target_label = tuple(line[:-1].split(" "))
                     yield unicode(comp_id), int(target_label)
     
-    full_graph, uri_node_map, type_color_map, _ = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True)
+    full_graph, uri_node_map, type_color_map, _ = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True, test_mode=sort_rdf_nodes_before_processing)
     
     literal_colors = set()
     for rdf_type in type_color_map:
@@ -94,7 +94,10 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
 
     full_hypergraph = Hypergraph(full_graph)
     
-    for comp_id, target_label in read_componds_and_targets():
+    if not compounts_and_targets:
+        compounts_and_targets = read_compounds_and_targets()
+    
+    for comp_id, target_label in compounts_and_targets:
         node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
         comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
         comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
@@ -109,7 +112,7 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             process_compound_function(ch_db_record)
         yield ch_db_record
 
-def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=True):
+def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=True, save_just_last_wl_it=False):
     sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
     files = state["files"]
     wl_state = state["wl_state"]
@@ -163,8 +166,14 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
             data_instance = (record[2] if record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
         else:
             data_instance = (",".join(record[2]), sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
-        files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
-        files[wl_it].flush()
+        
+        if not save_just_last_wl_it:
+            files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
+            files[wl_it].flush()
+    
+    if save_just_last_wl_it:
+        files[0].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
+        files[0].flush()
 
 def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None,
                                  shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=False):
@@ -211,6 +220,62 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
         
     for f in files:
         f.close()
+    
+    print "Done."
+
+def build_sml_bench_vectors_from_rdf_chemical_data(in_files, wl_iterations, output_file_name, positives_file, negatives_file, uri_prefix="",
+                                                   shingles_type="w-shingles", window_size=5, accumulate_wl_shingles=True, fingerprints=False,
+                                                   sort_rdf_nodes_before_processing=False):
+    '''Extracts shingles from a chemical data-set and saves them
+    to an output file in a binary sparse vector format which is compatible
+    with SVMlight and other implementations of SVM. Only one file is saved
+    for the defined parameters of the shingle extraction.
+    '''
+    assert type(in_files) is list
+    
+    def read_compounds_and_targets():
+        with open(negatives_file, "r") as neg_file:
+            for line in neg_file.readlines():
+                if line.startswith("$"):
+                    break
+                if not line.startswith("#"):
+                    yield unicode(line[:-1]), -1
+        with open(positives_file, "r") as pos_file:
+            for line in pos_file.readlines():
+                if line.startswith("$"):
+                    break
+                if not line.startswith("#"):
+                    yield unicode(line[:-1]), 1
+    
+    out_file = open(output_file_name, "w")
+    
+    wl_state = {"wl_state": None}
+    shingle_id_map = {}
+    if not fingerprints:
+        if accumulate_wl_shingles:
+            wl_state["next_shingle_id"] = 1
+        else:
+            for i in range(wl_iterations + 1):
+                wl_state["wl_{0}_next_shingle_id".format(i)] = 1
+    
+    state = {
+        "files": [out_file],
+        "wl_state": wl_state,
+        "shingle_id_map": shingle_id_map
+    }
+    
+    def process_compound(chem_record):
+        process_record(chem_record, wl_iterations, state, binary_target_labels=True,
+                       shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles,
+                       fingerprints=fingerprints, save_just_last_wl_it=True)
+    
+    chem_database = prepare_rdf_chemical_data(in_files, None, uri_prefix, process_compound, read_compounds_and_targets(),
+                                              sort_rdf_nodes_before_processing=sort_rdf_nodes_before_processing)
+    
+    for i, _ in enumerate(chem_database):
+        print i
+        
+    out_file.close()
     
     print "Done."
 
