@@ -226,9 +226,9 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
 def build_sml_bench_vectors_from_rdf_chemical_data(in_files, wl_iterations, output_file_name, positives_file, negatives_file, uri_prefix="",
                                                    shingles_type="w-shingles", window_size=5, accumulate_wl_shingles=True, fingerprints=False,
                                                    sort_rdf_nodes_before_processing=True):
-    '''Extracts shingles from a chemical data-set and saves them
-    to an output file in a binary sparse vector format which is compatible
-    with SVMlight and other implementations of SVM. Only one file is saved
+    '''Extracts shingles of the records from a chemical data-set and saves them
+    to an output file in a sparse binary vector format which is compatible
+    with SVMlight and other implementations of SVM. Exactly one file is saved
     for the defined parameters of the shingle extraction.
     '''
     assert type(in_files) is list
