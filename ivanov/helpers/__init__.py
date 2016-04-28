@@ -100,8 +100,8 @@ datasets = {
             data_path + "Mutagenicity_RDF/mutagenesis.owl"
         ],
         "compounds_targets": {
-            "sample-1": data_path + "Mutagenicity_RDF/compounds_targets_sample_1",
-            "sample-2": data_path + "Mutagenicity_RDF/compounds_targets_sample_2"
+            "sample-188": data_path + "Mutagenicity_RDF/compounds_targets_sample_188",
+            "sample-42": data_path + "Mutagenicity_RDF/compounds_targets_sample_42"
         }
     },
     "carcinogenesis-rdf-owl": {
