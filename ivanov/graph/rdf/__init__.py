@@ -44,10 +44,12 @@ def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=Tr
     nx_graph = nx.MultiDiGraph()
     
     if test_mode:
+        # sort all RDF elements so the color ID's are consistent in multiple passes
         nodes = sorted(list(rdf_graph.all_nodes()))
+        triples = sorted(list(rdf_graph.triples((None, None, None))))
     else:
         nodes = rdf_graph.all_nodes()
-    triples = rdf_graph.triples((None, None, None))
+        triples = rdf_graph.triples((None, None, None))
     
     node_id = 0
     uri_node_map = {}
