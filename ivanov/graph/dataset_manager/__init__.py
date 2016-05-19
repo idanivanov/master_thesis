@@ -282,7 +282,8 @@ def build_sml_bench_vectors_from_rdf_chemical_data(in_files, wl_iterations, outp
     
     print "Done."
 
-def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query", entries_count_expected=-1):
+def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query",
+                                                      entries_count_expected=-1, sort_rdf_nodes_before_processing=True):
     def read_entries(nodes_in_file):
         with open(nodes_in_file) as in_fl:
             for line in in_fl.readlines():
@@ -291,9 +292,10 @@ def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, 
                 yield line[:-1] # remove new line character from end
     
     entries = read_entries(entries_file)
-    return extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint, entries_count_expected)
+    return extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint, entries_count_expected, sort_rdf_nodes_before_processing)
 
-def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query", entries_count_expected=-1):
+def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query",
+                                   entries_count_expected=-1, sort_rdf_nodes_before_processing=True):
     '''Extract r-balls around the given entry nodes from the graph on the server using SPARQL queries.
     :param entries: the entry nodes (resources, URI/IRIs) which will serve as center nodes of the r-balls
     :param output_dir: the directory for writing the output files
@@ -301,6 +303,7 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
     :param edge_dir: the direction of edges to be considered (0 - all edges, 1 - only outgoing, -1 - only incoming)
     :param sparql_endpoint: URL of the SPARQL end-point. Default is http://localhost:3030/ds/query (for Apache Jena Fuseki)
     :param entries_count_expected: Expected number of entries to process.
+    :param sort_rdf_nodes_before_processing: Used to yield the same colors in multiple runs. 
     '''
     colors = None
     next_color_id = None
@@ -333,7 +336,8 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
     for i, entry_uri in enumerate(entries):
         query_status, rdf_r_ball = rdf.quary_r_ball(entry_uri, r, edge_dir, sparql_endpoint, ignore_type_paths=True, include_types=True)
         assert not query_status
-        r_ball, uri_nodes_map, colors, next_color_id = rdf.convert_rdf_graph_to_nx_graph(rdf_r_ball, return_colors=True, base_colors=colors, next_color_id=next_color_id)
+        r_ball, uri_nodes_map, colors, next_color_id = rdf.convert_rdf_graph_to_nx_graph(rdf_r_ball, test_mode=sort_rdf_nodes_before_processing,
+                                                                                         return_colors=True, base_colors=colors, next_color_id=next_color_id)
         center_node = uri_nodes_map[entry_uri]
         target_labels = list(r_ball.node[center_node]["labels"])
         # Make he center node of color 0 (owl:Thing)
