@@ -14,6 +14,7 @@ import networkx as nx
 import numpy as np
 import itertools
 import codecs
+import time
 
 def read_chemical_compounts(in_file, process_compound_function=None):
     '''Read a dataset of chemical compound graphs (e.g. Mutagenicity).
@@ -281,7 +282,7 @@ def build_sml_bench_vectors_from_rdf_chemical_data(in_files, wl_iterations, outp
     
     print "Done."
 
-def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query"):
+def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query", entries_count_expected=-1):
     def read_entries(nodes_in_file):
         with open(nodes_in_file) as in_fl:
             for line in in_fl.readlines():
@@ -290,15 +291,16 @@ def extract_rballs_from_rdf_server_using_entries_file(entries_file, output_dir, 
                 yield line[:-1] # remove new line character from end
     
     entries = read_entries(entries_file)
-    return extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint)
+    return extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint, entries_count_expected)
 
-def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query"):
+def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endpoint="http://localhost:3030/ds/query", entries_count_expected=-1):
     '''Extract r-balls around the given entry nodes from the graph on the server using SPARQL queries.
     :param entries: the entry nodes (resources, URI/IRIs) which will serve as center nodes of the r-balls
     :param output_dir: the directory for writing the output files
     :param r: radius of the r-balls
     :param edge_dir: the direction of edges to be considered (0 - all edges, 1 - only outgoing, -1 - only incoming)
     :param sparql_endpoint: URL of the SPARQL end-point. Default is http://localhost:3030/ds/query (for Apache Jena Fuseki)
+    :param entries_count_expected: Expected number of entries to process.
     '''
     colors = None
     next_color_id = None
@@ -326,6 +328,8 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
                 type_distribution[type_uri] = 0
             type_distribution[type_uri] += 1
     
+    start_time = time.time()
+    
     for i, entry_uri in enumerate(entries):
         query_status, rdf_r_ball = rdf.quary_r_ball(entry_uri, r, edge_dir, sparql_endpoint, ignore_type_paths=True, include_types=True)
         assert not query_status
@@ -337,7 +341,14 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
         r_ball.node[center_node]["labels"] = ["0"]
         hyper_r_ball = Hypergraph(r_ball)
         nodes_count = r_ball.number_of_nodes()
-        print i, nodes_count, entry_uri, target_labels
+        if i % 10 == 0: # print every 100 records
+            elapsed_time = time.time() - start_time
+            if entries_count_expected == -1 or i == 0:
+                time_est = "Elapsed time: {0:.2f}s".format(elapsed_time)
+            else:
+                time_left = (elapsed_time / i) * (entries_count_expected - i) 
+                time_est = "Time left: {0:.2f}s".format(time_left)
+            print i, time_est, nodes_count, entry_uri, target_labels
         update_stats(nodes_count, target_labels, colors)
         graph_database_record = (entry_uri, [hyper_r_ball], target_labels)
         inout.save_to_file(graph_database_record, output_dir + "r_ball_{0}".format(i))
