@@ -64,7 +64,7 @@ class Hypergraph(Serializable):
         return self.bipartite_graph.has_node(node)
     
     def nodes_iter(self):
-        return filter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 0, self.bipartite_graph.nodes_iter())
+        return itertools.ifilter(lambda node: self.bipartite_graph.node[node]["bipartite"] == 0, self.bipartite_graph.nodes_iter())
         
     def nodes(self):
         return list(self.nodes_iter())
