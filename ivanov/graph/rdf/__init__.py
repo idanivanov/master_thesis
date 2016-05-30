@@ -203,7 +203,8 @@ def extend_inferred_knowledge(in_files, out_file):
     options.sources = in_files
     convert_graph(options, destination=out_file)
 
-def sparql_query(query, base_rdf_graph=None, sparql_endpoint="http://localhost:3030/ds/query", return_new_node_uris=False):
+def sparql_query(query, base_rdf_graph=None, sparql_endpoint="http://localhost:3030/ds/query", return_new_node_uris=False,
+                 s_default=None, p_default=None, o_default=None):
     def to_rdflib_term(term_dict):
         term_type = term_dict[u'type']
         if term_type == u'uri':
@@ -233,15 +234,29 @@ def sparql_query(query, base_rdf_graph=None, sparql_endpoint="http://localhost:3
         new_node_uris = set()
     
     for triple in rdf_data[u"results"][u"bindings"]:
-        s = to_rdflib_term(triple[u's'])
-        p = to_rdflib_term(triple[u'p'])
-        o = to_rdflib_term(triple[u'o'])
+        if u's' in triple:
+            s = to_rdflib_term(triple[u's'])
+        else:
+            s = rdflib.URIRef(s_default)
+        
+        if u'p' in triple:
+            p = to_rdflib_term(triple[u'p'])
+        else:
+            p = rdflib.URIRef(p_default)
+        
+        if u'o' in triple:
+            o = to_rdflib_term(triple[u'o'])
+        else:
+            o = rdflib.URIRef(o_default)
+        
         rdf_graph.add((s, p, o))
         
         if return_new_node_uris:
-            new_node_uris.add(triple[u's'][u'value'])
-            if triple[u'o'][u'type'] in [u'uri', u'bnode']:
-                new_node_uris.add(triple[u'o'][u'value'])
+            if u's' in triple:
+                new_node_uris.add(triple[u's'][u'value'])
+            if u'o' in triple:
+                if triple[u'o'][u'type'] in [u'uri', u'bnode']:
+                    new_node_uris.add(triple[u'o'][u'value'])
     
     if return_new_node_uris:
         return 0, rdf_graph, new_node_uris
@@ -392,9 +407,9 @@ def quary_r_ball(center_node_uri, r, edge_dir, sparql_endpoint="http://localhost
         status, rdf_graph, node_uris = sparql_query(query_list, sparql_endpoint=sparql_endpoint, return_new_node_uris=True)
         node_uris.add(center_node_uri) # just in case the query result was empty
         node_uris = list(node_uris)
-        batch_size = 20
+        batch_size = 100
         offset = 0
-        for _ in range(len(node_uris) / batch_size + 2): # split in batches of 20 to make queries smaller
+        for _ in range(len(node_uris) / batch_size + 2): # split in batches of 100 to make queries smaller
             offset_end = offset + batch_size
             node_uris_batch = node_uris[offset : offset_end]
             if node_uris_batch:
@@ -403,5 +418,41 @@ def quary_r_ball(center_node_uri, r, edge_dir, sparql_endpoint="http://localhost
             offset = offset_end
     else:
         status, rdf_graph = sparql_query(query_list, sparql_endpoint=sparql_endpoint)
+    
+    return status, rdf_graph
+
+def quary_2_in_ball(center_node_uri, sparql_endpoint="http://localhost:3030/ds/query"):
+    def build_extract_types_query(node_uris):
+        query = u"SELECT DISTINCT ?s ?p ?o WHERE {"
+        block_template = u"{{ ?s ?p ?o FILTER(?s = <{0}> && ?p = <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>) }}"
+        blocks = map(lambda uri: block_template.format(uri), node_uris)
+        query += u" UNION ".join(blocks)
+        query += u"}"
+        return query
+    
+    query = u"SELECT ?s ?p WHERE {{?s ?p <{0}> FILTER(?p != <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>)}}"
+    
+    # extract neighborhood around center
+    status, rdf_graph, node_uris = sparql_query(query.format(center_node_uri), sparql_endpoint=sparql_endpoint, return_new_node_uris=True,
+                                                o_default=center_node_uri)
+    
+    # extract neighborhood around neighbors of the center
+    for node_uri in list(node_uris):
+        status, rdf_graph, new_node_uris = sparql_query(query.format(node_uri), base_rdf_graph=rdf_graph, sparql_endpoint=sparql_endpoint,
+                                                        return_new_node_uris=True, o_default=node_uri)
+        node_uris |= new_node_uris
+    
+    node_uris.add(center_node_uri) # just in case the query result was empty
+    
+    node_uris = list(node_uris)
+    batch_size = 100
+    offset = 0
+    for _ in range(len(node_uris) / batch_size + 2): # split in batches of 100 to make queries smaller
+        offset_end = offset + batch_size
+        node_uris_batch = node_uris[offset : offset_end]
+        if node_uris_batch:
+            extract_types_query = build_extract_types_query(node_uris_batch)
+            status, rdf_graph = sparql_query(extract_types_query, base_rdf_graph=rdf_graph, sparql_endpoint=sparql_endpoint)
+        offset = offset_end
     
     return status, rdf_graph
