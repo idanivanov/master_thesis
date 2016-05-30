@@ -102,7 +102,7 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
         node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
         comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
         comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
-        for node in comp_neighborhood_hypergraph.nodes_iter():
+        for node in list(comp_neighborhood_hypergraph.nodes_iter()):
             # remove isolated nodes
             if len(comp_neighborhood_hypergraph.neighbors(node)) == 0:
                 comp_neighborhood_hypergraph.safe_remove_node(node)
@@ -334,10 +334,18 @@ def extract_rballs_from_rdf_server(entries, output_dir, r, edge_dir, sparql_endp
     start_time = time.time()
     
     for i, entry_uri in enumerate(entries):
+#         # TODO: specific case of 2-in-balls
+#         query_status, rdf_r_ball = rdf.quary_2_in_ball(entry_uri, sparql_endpoint)
         query_status, rdf_r_ball = rdf.quary_r_ball(entry_uri, r, edge_dir, sparql_endpoint, ignore_type_paths=True, include_types=True)
         assert not query_status
         r_ball, uri_nodes_map, colors, next_color_id = rdf.convert_rdf_graph_to_nx_graph(rdf_r_ball, test_mode=sort_rdf_nodes_before_processing,
                                                                                          return_colors=True, base_colors=colors, next_color_id=next_color_id)
+        if entry_uri not in uri_nodes_map:
+            # in case the r-ball is empty
+            node_id = 0
+            r_ball.add_node(node_id, labels=["0"])
+            uri_nodes_map[entry_uri] = node_id
+        
         center_node = uri_nodes_map[entry_uri]
         target_labels = list(r_ball.node[center_node]["labels"])
         # Make he center node of color 0 (owl:Thing)
