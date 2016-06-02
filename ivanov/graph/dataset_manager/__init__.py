@@ -60,7 +60,9 @@ def read_chemical_compounts(in_file, process_compound_function=None):
                 yield ch_db_record
             i = (i + 1) % 3
 
-def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, process_compound_function=None, compounts_and_targets=None, sort_rdf_nodes_before_processing=False):
+def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, process_compound_function=None,
+                              compounds_and_targets=None, sort_rdf_nodes_before_processing=False,
+                              rdf_colors_state=None):
     def read_compounds_and_targets():
         with open(compounds_targets_file, "r") as ct_file:
             for line in ct_file.readlines():
@@ -72,46 +74,61 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
                     comp_id, target_label = tuple(line[:-1].split(" "))
                     yield unicode(comp_id), int(target_label)
     
-    full_graph, uri_node_map, type_color_map, _ = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True, test_mode=sort_rdf_nodes_before_processing)
+    def chem_database_generator(full_graph, uri_node_map, type_color_map, compounds_and_targets):
+        literal_colors = set()
+        for rdf_type in type_color_map:
+            # TODO: this condition is unsafe because it may remove not only literal colors
+            if rdf_type.startswith(u"http://www.w3.org/2001/XMLSchema#"):
+                literal_colors.add(type_color_map[rdf_type])
+        
+        for node in full_graph.nodes():
+            # remove all literals
+            if literal_colors & set(full_graph.node[node]["labels"]):
+                full_graph.remove_node(node)
+        
+        # remove the color of named individual type from all nodes where it occurs
+        named_indiv_uri = u"http://www.w3.org/2002/07/owl#NamedIndividual"
+        if named_indiv_uri in type_color_map:
+            named_indiv_color = type_color_map[named_indiv_uri]
+            for node in full_graph.nodes_iter():
+                if named_indiv_color in full_graph.node[node]["labels"]:
+                    full_graph.node[node]["labels"].remove(named_indiv_color)
     
-    literal_colors = set()
-    for rdf_type in type_color_map:
-        # TODO: this condition is unsafe because it may remove not only literal colors
-        if rdf_type.startswith(u"http://www.w3.org/2001/XMLSchema#"):
-            literal_colors.add(type_color_map[rdf_type])
+        full_hypergraph = Hypergraph(full_graph)
+        
+        if not compounds_and_targets:
+            compounds_and_targets = read_compounds_and_targets()
+        
+        for comp_id, target_label in compounds_and_targets:
+            node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
+            comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
+            comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
+            for node in list(comp_neighborhood_hypergraph.nodes_iter()):
+                # remove isolated nodes
+                if len(comp_neighborhood_hypergraph.neighbors(node)) == 0:
+                    comp_neighborhood_hypergraph.safe_remove_node(node)
+    #         # get the immediate neighbors of the compound node in a separate graph
+    #         r1_ball = algorithms.r_ball_hyper(full_hypergraph, node_id, 1, 0)
+            ch_db_record = (comp_id, [comp_neighborhood_hypergraph], target_label)
+            if process_compound_function:
+                process_compound_function(ch_db_record)
+            yield ch_db_record
     
-    for node in full_graph.nodes():
-        # remove all literals
-        if literal_colors & set(full_graph.node[node]["labels"]):
-            full_graph.remove_node(node)
+    if rdf_colors_state:
+        rdf_base_colors = rdf_colors_state['colors']
+        rdf_next_color_id = rdf_colors_state['next_color_id']
+    else:
+        rdf_base_colors = None
+        rdf_next_color_id = None
     
-    # remove the color of named individual type from all nodes where it occurs
-    named_indiv_uri = u"http://www.w3.org/2002/07/owl#NamedIndividual"
-    if named_indiv_uri in type_color_map:
-        named_indiv_color = type_color_map[named_indiv_uri]
-        for node in full_graph.nodes_iter():
-            if named_indiv_color in full_graph.node[node]["labels"]:
-                full_graph.node[node]["labels"].remove(named_indiv_color)
-
-    full_hypergraph = Hypergraph(full_graph)
+    full_graph, uri_node_map, type_color_map, next_color_id = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True,
+                                                                                          test_mode=sort_rdf_nodes_before_processing,
+                                                                                          base_colors=rdf_base_colors, next_color_id=rdf_next_color_id)
     
-    if not compounts_and_targets:
-        compounts_and_targets = read_compounds_and_targets()
+    chem_database = chem_database_generator(full_graph, uri_node_map, type_color_map, compounds_and_targets)
+    new_rdf_colors_state = {'colors': type_color_map, 'next_color_id': next_color_id}
     
-    for comp_id, target_label in compounts_and_targets:
-        node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
-        comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
-        comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
-        for node in list(comp_neighborhood_hypergraph.nodes_iter()):
-            # remove isolated nodes
-            if len(comp_neighborhood_hypergraph.neighbors(node)) == 0:
-                comp_neighborhood_hypergraph.safe_remove_node(node)
-#         # get the immediate neighbors of the compound node in a separate graph
-#         r1_ball = algorithms.r_ball_hyper(full_hypergraph, node_id, 1, 0)
-        ch_db_record = (comp_id, [comp_neighborhood_hypergraph], target_label)
-        if process_compound_function:
-            process_compound_function(ch_db_record)
-        yield ch_db_record
+    return chem_database, new_rdf_colors_state
 
 def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=True, save_just_last_wl_it=False):
     sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
@@ -178,7 +195,7 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
 
 def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None,
                                  shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=False,
-                                 sort_rdf_nodes_before_processing=True):
+                                 sort_rdf_nodes_before_processing=True, state_input_file=None, state_output_file=None):
     if format_rdf:
         assert type(in_files) is list
         assert bool(compounds_targets_file)
@@ -192,20 +209,25 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     for i in range(wl_iterations + 1):
         files.append(open(output_dir + "svm_light_data_wl_{0}".format(i), "w"))
     
-    wl_state = {"wl_state": None}
-    shingle_id_map = {}
-    if not fingerprints:
-        if accumulate_wl_shingles:
-            wl_state["next_shingle_id"] = 1
-        else:
-            for i in range(wl_iterations + 1):
-                wl_state["wl_{0}_next_shingle_id".format(i)] = 1
-    
-    state = {
-        "files": files,
-        "wl_state": wl_state,
-        "shingle_id_map": shingle_id_map
-    }
+    if state_input_file:
+        state = inout.load_from_file(state_input_file)
+        state['files'] = files
+    else:
+        wl_state = {"wl_state": None}
+        shingle_id_map = {}
+        if not fingerprints:
+            if accumulate_wl_shingles:
+                wl_state["next_shingle_id"] = 1
+            else:
+                for i in range(wl_iterations + 1):
+                    wl_state["wl_{0}_next_shingle_id".format(i)] = 1
+        
+        state = {
+            "files": files,
+            "wl_state": wl_state,
+            "shingle_id_map": shingle_id_map,
+            "rdf_colors": {'colors': None, 'next_color_id': None}
+        }
     
     def process_compound(chem_record):
         process_record(chem_record, wl_iterations, state, binary_target_labels=True,
@@ -213,8 +235,9 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
                        fingerprints=fingerprints)
     
     if format_rdf:
-        chem_database = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound,
-                                                  sort_rdf_nodes_before_processing=sort_rdf_nodes_before_processing)
+        chem_database, state['rdf_colors'] = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound,
+                                                  sort_rdf_nodes_before_processing=sort_rdf_nodes_before_processing,
+                                                  rdf_colors_state=state['rdf_colors'])
     else:
         chem_database = read_chemical_compounts(in_files, process_compound)
     
@@ -223,6 +246,10 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
         
     for f in files:
         f.close()
+    del state['files']
+    
+    if state_output_file:
+        inout.save_to_file(state, state_output_file)
     
     print "Done."
 

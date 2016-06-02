@@ -22,7 +22,8 @@ def read_graph(in_files, file_format=None):
     
     return rdf_graph
 
-def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False, return_colors=False, base_colors=None, next_color_id=None):
+def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False, return_colors=False,
+                            base_colors=None, next_color_id=None):
     '''Converts an RDFLib graph to a Networkx graph.
     :param in_files: Files containing the RDF data.
     :param labels (optional): Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
