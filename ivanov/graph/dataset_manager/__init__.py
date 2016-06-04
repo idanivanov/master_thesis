@@ -15,6 +15,7 @@ import numpy as np
 import itertools
 import codecs
 import time
+import json
 
 def read_chemical_compounts(in_file, process_compound_function=None):
     '''Read a dataset of chemical compound graphs (e.g. Mutagenicity).
@@ -130,8 +131,19 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
     
     return chem_database, new_rdf_colors_state
 
-def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=True, save_just_last_wl_it=False):
-    sh_type = 0 if shingles_type == "all" else -1 if shingles_type == "w-shingles" else 1 # default "features"
+def process_record(record, wl_iterations, state, binary_target_labels=True, shingles_type="no-shingles", window_size=5, accumulate_wl_shingles=True, fingerprints=True, save_just_last_wl_it=False):
+    def get_sh_type(shingles_type):
+        if shingles_type == 'all':
+            # includes both w-shingles and features
+            return 3
+        elif shingles_type == 'w-shingles':
+            return 2
+        elif shingles_type == 'features':
+            return 1
+        else: # default 'no-shingles', which means that the whole canonical representations will be returned
+            return 0
+    
+    sh_type = get_sh_type(shingles_type)
     files = state["files"]
     wl_state = state["wl_state"]
     shingle_id_map = state["shingle_id_map"]
@@ -148,15 +160,19 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
             shingle_ids = set(fingerprint.get_fingerprints(shingles, size=24))
             record_data_vector |= set(map(lambda shingle_id: (shingle_id, 1), shingle_ids))
     
-    if sh_type > 0:
+    if sh_type < 2:
         print "Record ID: {0}, Target: {1}".format(record[0], record[2])
     else:
         print "Record ID: {0}, Target: {1}, Window-Size: {2}".format(record[0], record[2], window_size)
     
-    record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
+    if sh_type != 0:
+        record_data_wl_vectors = {i: set() for i in range(wl_iterations + 1)}
+    else: # for 'no-shingles'
+        record_canon_repr = [] # a list containing the canonical representations for each WL iteration
 
     for record_graph in record[1]:
-        if sh_type >= 0:
+        if sh_type == 1 or sh_type == 3:
+            # for 'features' or 'all'
             if accumulate_wl_shingles:
                 record_data_vector = set()
             fea_ext_iter = feature_extraction.extract_features_for_each_wl_iter(record_graph, wl_iterations, wl_state["wl_state"])
@@ -168,7 +184,8 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
                     process_shingles(shingles, record_data_vector, wl_it)
                 record_data_wl_vectors[wl_it] |= record_data_vector
         
-        if sh_type <= 0:
+        elif sh_type == 2 or sh_type == 3:
+            # for 'w-shingles' and 'all'
             # TODO: should we exclude records with tree-width > 3?
             if accumulate_wl_shingles:
                 record_data_vector = set()
@@ -178,16 +195,35 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
                     record_data_vector = set()
                 process_shingles(new_w_shingles, record_data_vector, wl_it)
                 record_data_wl_vectors[wl_it] |= record_data_vector
+        
+        elif sh_type == 0:
+            # for 'no-shingles'
+            record_canon_representations_iter = shingle_extraction.extract_canon_repr_for_each_wl_iter(record_graph, wl_iterations, wl_state["wl_state"])
+            for _, canon_repr, wl_state["wl_state"] in record_canon_representations_iter:
+                # just collect the canonical representations for each WL iteration
+                record_canon_repr.append('"' + canon_repr + '"')
     
     for wl_it in range(wl_iterations + 1):
-        if binary_target_labels:
-            data_instance = (record[2] if record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
-        else:
-            data_instance = (",".join(record[2]), sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
+        if sh_type != 0:
+            if binary_target_labels:
+                data_instance = (record[2] if record[2] > 0 else -1, sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
+            else:
+                data_instance = (",".join(record[2]), sorted(record_data_wl_vectors[wl_it], key=lambda x: x[0]))
         
-        if not save_just_last_wl_it:
-            files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
-            files[wl_it].flush()
+            if not save_just_last_wl_it:
+                files[wl_it].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
+                files[wl_it].flush()
+        
+        else: # for 'no-shingles'
+            if binary_target_labels:
+                target = record[2] if record[2] > 0 else -1
+            else:
+                target = ",".join(record[2])
+            data = '[' + ','.join(record_canon_repr[:wl_it + 1]) + ']'
+            
+            if not save_just_last_wl_it:
+                files[wl_it].write("{0} {1}\n".format(target, data))
+                files[wl_it].flush()
     
     if save_just_last_wl_it:
         files[0].write("{0} {1}\n".format(data_instance[0], " ".join(["{0}:{1}".format(f, v) for f, v in data_instance[1]])))
@@ -454,3 +490,12 @@ def read_svm_light_bool_data_to_sparse(in_file):
     X = csr_matrix((X_data, (X_row, X_col)), dtype=np.int8)
     
     return X, np.array(y)
+
+def read_canonical_representations_data(in_file):
+    with open(in_file) as in_f:
+        for line in in_f:
+            elem = line.split(" ")
+            assert len(elem) == 2
+            targets = map(lambda l: int(l), elem[0].split(","))
+            canon_representations = json.loads(elem[1])
+            yield targets, canon_representations
