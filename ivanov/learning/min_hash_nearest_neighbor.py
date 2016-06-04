@@ -87,7 +87,8 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         '''
         Fit the model by creating a min-hashing sketch of the input data.
         Parameters:
-            X - A list of strings. Each element defines one training example
+            X - A list of lists of strings (i.e. each record is represented by
+                a list of strings). Each element defines one training example
                 identified by its list index.
             y - A binary matrix representing the labels of each example in `X`.
                 Row i of `y` corresponds to example i in `X`. Columns of `y`
@@ -95,9 +96,11 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
                 Each record may have multiple labels.
         '''
         if type(X) is not list:
-            raise ValueError("`X` must be a list of strings.")
-        if type(X[0]) is not str:
-            raise ValueError("`X` must be a list of strings.")
+            raise ValueError("`X` must be a list of lists of strings.")
+        if type(X[0]) is not list:
+            raise ValueError("`X` must be a list of lists of strings.")
+        if type(X[0][0]) is not str:
+            raise ValueError("`X` must be a list of lists of strings.")
         if type(y) is not np.ndarray:
             raise ValueError("`y` must be a binary matrix of type numpy.ndarray.")
         if len(X) != np.shape(y)[0]:
@@ -113,7 +116,8 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         '''
         Predict the labels of the input examples.
         Parameters:
-            X - A list of strings. Each element defines one training example
+            X - A list of lists of strings (i.e. each record is represented by
+                a list of strings). Each element defines one test example
                 identified by its list index.
         
         Returns:
@@ -123,9 +127,11 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             Each record may have multiple labels.
         '''
         if type(X) is not list:
-            raise ValueError("`X` must be a list of strings.")
-        if type(X[0]) is not str:
-            raise ValueError("`X` must be a list of strings.")
+            raise ValueError("`X` must be a list of lists of strings.")
+        if type(X[0]) is not list:
+            raise ValueError("`X` must be a list of lists of strings.")
+        if type(X[0][0]) is not str:
+            raise ValueError("`X` must be a list of lists of strings.")
         
         y_pred = np.zeros((len(X), np.shape(self.y)[1]), dtype=np.int64)
         
@@ -143,17 +149,19 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         using w-shingling.
         
         Parameters:
-            x - A string representing an example.
+            x - A list of strings representing an example.
         
         Returns:
             A datasketch.MinHash object updated with
             the generated w-shingles.
         '''
-        # map string x to a set of shingles
-        x_shingles = MinHashNearestNeighbor.get_w_shingles(x, self.w)
         min_hash = MinHash(num_perm=self.k)
-        for shingle in x_shingles:
-            min_hash.update(shingle)
+        # we accumulate all shingles extracted from each string
+        for x_str in x:
+            # map string x_str to a set of shingles
+            x_shingles = MinHashNearestNeighbor.get_w_shingles(x_str, self.w)
+            for shingle in x_shingles:
+                min_hash.update(shingle)
         return min_hash
     
     def get_majority_labels(self, example_indices):
