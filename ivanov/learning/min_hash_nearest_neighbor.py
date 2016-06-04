@@ -17,40 +17,36 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         sklearn API: http://scikit-learn.org/stable/developers/contributing.html
         min-hashing implementation: https://github.com/ekzhu/datasketch
     '''
-    def __init__(self, w, k, threshold=None, L=None, label_majority_threshold=0.5, verbose=False):
+    def __init__(self, w=5, k=10, threshold=0.5, label_majority_threshold=0.5, verbose=False, random_state=1):
         '''
         Initialization of the MHNN classifier.
         
         Parameters:
-            w - Size of the sliding window for extracting w-shingles.
-            k - Number of permutations (hash functions).
+            w - (optional, default=5) Size of the sliding window for extracting w-shingles.
+            k - (optional, default=10) Number of permutations (hash functions).
             threshold - (optional, default=None) Jaccard similarity
                         threshold. Can be calculated using `k` and `L`.
-            L - (optional, default=None) Number of bands. Can be
-                calculated using `k` and `threshold`.
             label_majority_threshold - (optional, default=0.5) A threshold
                                        defining the proportion of examples that
                                        need to have a particular label so that
                                        this label will be considered a majority
                                        label.
             verbose - (optional, default=False) Enable verbose output.
+            random_state - (optional, default=1) The seed of the pseudo random
+                           number generator to be used by the min-hash.
         '''
-        if (threshold and L) or (not threshold and not L):
-            raise ValueError("Only `threshold` or only `L` must be provided.")
-        
         self.w = w
         self.k = k
         self.label_majority_threshold = label_majority_threshold
         self.verbose = verbose
+        self.random_state = random_state
+        self.threshold = threshold
         
-        if L:
-            self.L = L
-            self.threshold = MinHashNearestNeighbor.get_threshold(self.k, self.L)
-        else:
-            self.threshold = threshold
-            self.L = MinHashNearestNeighbor.get_L(self.k, self.threshold)
+        # L = Number of bands
+        self.L_ = MinHashNearestNeighbor.get_L(self.k, self.threshold)
         
-        self.lsh = MinHashLSH(threshold=self.threshold, num_perm=self.k)
+        # min-hashing index container
+        self.lsh_ = MinHashLSH(threshold=self.threshold, num_perm=self.k)
     
 #     # TODO: this implements fit for sparse matrix data. Not sure if it is useful.
 #     def fit(self, X, y):
@@ -99,10 +95,10 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             raise ValueError("`X` must be a list of lists of strings.")
         if type(X[0]) is not list:
             raise ValueError("`X` must be a list of lists of strings.")
-        if type(X[0][0]) is not str:
+        if type(X[0][0]) not in [str, unicode]:
             raise ValueError("`X` must be a list of lists of strings.")
-        if type(y) is not np.ndarray:
-            raise ValueError("`y` must be a binary matrix of type numpy.ndarray.")
+        if len(np.shape(y)) != 2:
+            raise ValueError("`y` must be a 2D binary matrix.")
         if len(X) != np.shape(y)[0]:
             raise ValueError("Inconsistent number of rows in `X` and `y`. They must be the same.")
         
@@ -110,7 +106,9 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         
         for i, x in enumerate(X):
             min_hash_i = self.get_min_hash(x)
-            self.lsh.insert(i, min_hash_i)
+            self.lsh_.insert(i, min_hash_i)
+        
+        return self
     
     def predict(self, X):
         '''
@@ -130,14 +128,14 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             raise ValueError("`X` must be a list of lists of strings.")
         if type(X[0]) is not list:
             raise ValueError("`X` must be a list of lists of strings.")
-        if type(X[0][0]) is not str:
+        if type(X[0][0]) not in [str, unicode]:
             raise ValueError("`X` must be a list of lists of strings.")
         
         y_pred = np.zeros((len(X), np.shape(self.y)[1]), dtype=np.int64)
         
         for i, x in enumerate(X):
             min_hash = self.get_min_hash(x)
-            x_similar_examples = self.lsh.query(min_hash)
+            x_similar_examples = self.lsh_.query(min_hash)
             y_pred_i = self.get_majority_labels(x_similar_examples)
             y_pred[i] = y_pred_i
         
@@ -155,7 +153,7 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             A datasketch.MinHash object updated with
             the generated w-shingles.
         '''
-        min_hash = MinHash(num_perm=self.k)
+        min_hash = MinHash(num_perm=self.k, seed=self.random_state)
         # we accumulate all shingles extracted from each string
         for x_str in x:
             # map string x_str to a set of shingles
@@ -177,6 +175,9 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             A single row binary matrix where column l is 1 if label l is a
             majority label among the provided examples.
         '''
+        if not example_indices:
+            return np.zeros((1, np.shape(self.y)[1]), dtype=np.int64)
+        
         y_filtered = self.y[example_indices]
         
         # find the proportions of label appearances
