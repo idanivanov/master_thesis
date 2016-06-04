@@ -17,13 +17,13 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
         sklearn API: http://scikit-learn.org/stable/developers/contributing.html
         min-hashing implementation: https://github.com/ekzhu/datasketch
     '''
-    def __init__(self, w=5, k=10, threshold=0.5, label_majority_threshold=0.5, verbose=False, random_state=1):
+    def __init__(self, w=5, num_perm=128, threshold=0.5, label_majority_threshold=0.5, verbose=False, random_state=1):
         '''
         Initialization of the MHNN classifier.
         
         Parameters:
             w - (optional, default=5) Size of the sliding window for extracting w-shingles.
-            k - (optional, default=10) Number of permutations (hash functions).
+            num_perm - (optional, default=128) Number of permutations (hash functions).
             threshold - (optional, default=None) Jaccard similarity
                         threshold. Can be calculated using `k` and `L`.
             label_majority_threshold - (optional, default=0.5) A threshold
@@ -36,17 +36,14 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
                            number generator to be used by the min-hash.
         '''
         self.w = w
-        self.k = k
+        self.num_perm = num_perm
         self.label_majority_threshold = label_majority_threshold
         self.verbose = verbose
         self.random_state = random_state
         self.threshold = threshold
         
-        # L = Number of bands
-        self.L_ = MinHashNearestNeighbor.get_L(self.k, self.threshold)
-        
         # min-hashing index container
-        self.lsh_ = MinHashLSH(threshold=self.threshold, num_perm=self.k)
+        self.lsh_ = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
     
 #     # TODO: this implements fit for sparse matrix data. Not sure if it is useful.
 #     def fit(self, X, y):
@@ -153,7 +150,7 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             A datasketch.MinHash object updated with
             the generated w-shingles.
         '''
-        min_hash = MinHash(num_perm=self.k, seed=self.random_state)
+        min_hash = MinHash(num_perm=self.num_perm, seed=self.random_state)
         # we accumulate all shingles extracted from each string
         for x_str in x:
             # map string x_str to a set of shingles
@@ -208,18 +205,4 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             shingles.add(shingle)
         
         return shingles
-    
-    @staticmethod
-    def get_L(k, threshold):
-        '''
-        Calculate which value of `L` leads to `threshold` given `k`.
-        '''
-        return int(round(pow((1. / (1. - threshold)), k)))
-    
-    @staticmethod
-    def get_threshold(k, L):
-        '''
-        Calculate `threshold` given `k` and `L` of the sketch.
-        '''
-        return 1. - pow(1. / float(L), 1. / float(k))
     
