@@ -35,15 +35,16 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             random_state - (optional, default=1) The seed of the pseudo random
                            number generator to be used by the min-hash.
         '''
-        self.w = w
-        self.num_perm = num_perm
-        self.label_majority_threshold = label_majority_threshold
-        self.verbose = verbose
-        self.random_state = random_state
-        self.threshold = threshold
+        parameters = {
+                        'w': w,
+                        'num_perm': num_perm,
+                        'label_majority_threshold': label_majority_threshold,
+                        'verbose': verbose,
+                        'random_state': random_state,
+                        'threshold': threshold
+                     }
         
-        # min-hashing index container
-        self.lsh_ = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
+        self.set_params(**parameters)
     
 #     # TODO: this implements fit for sparse matrix data. Not sure if it is useful.
 #     def fit(self, X, y):
@@ -137,6 +138,25 @@ class MinHashNearestNeighbor(BaseEstimator, ClassifierMixin):
             y_pred[i] = y_pred_i
         
         return y_pred
+    
+    def get_params(self, deep=True):
+        return {
+                'w': self.w,
+                'num_perm': self.num_perm,
+                'label_majority_threshold': self.label_majority_threshold,
+                'verbose': self.verbose,
+                'random_state': self.random_state,
+                'threshold': self.threshold
+                }
+    
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        
+        # initialize min-hashing index container
+        self.lsh_ = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
+        
+        return self
     
     def get_min_hash(self, x):
         '''

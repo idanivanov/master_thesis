@@ -26,21 +26,19 @@ def read_data(in_file):
 
 def score():
     in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls_1000/canon_repr/multilabel_svm_light_data_wl_{0}"
-    w = 4
-    k = 10
-    threshold = 0.6
-    wl_iterations = 0
+    w = 9
+    threshold = 0.8
+    wl_iterations = 1
+    label_majority_threshold = 0.4
     scoring = "f1_micro"
     
     print "Reading data..."
     X, y = read_data(in_file.format(wl_iterations))
     
-    mhnn = MinHashNearestNeighbor(w, k, threshold)
+    mhnn = MinHashNearestNeighbor(w=w, threshold=threshold, label_majority_threshold=label_majority_threshold)
     accuracy = cross_validation.cross_val_score(mhnn, X, y, cv=10, verbose=10, n_jobs=-1, scoring=scoring)
     
     print scoring + ": {0}, (+,-) {1}".format(accuracy.mean(), accuracy.std())
-    
-    print "Done."
 
 def do_grid_search():
     in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls_1000/canon_repr/multilabel_svm_light_data_wl_{0}"
@@ -66,8 +64,10 @@ def do_grid_search():
             best_params = grid_est.best_params_
             line = "{{'wl_it': {0}, 'minhash_params': {1}, '{3}': {2}}},\n".format(wl_iterations, best_params, best_result, scoring)
             out_file.write(line)
+            out_file.write("all: " + str(grid_est.grid_scores_))
             out_file.flush()
 
 if __name__ == '__main__':
     do_grid_search()
-    print "DOne."
+#     score()
+    print "Done."
