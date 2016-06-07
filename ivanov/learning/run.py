@@ -25,24 +25,28 @@ def read_data(in_file):
     return X, y
 
 def score():
-    in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls_1000/canon_repr/multilabel_svm_light_data_wl_{0}"
-    num_perm = 2048
+#     in_file = "/home/stud/ivanovi/Thesis/dbpedia/3.8/data_1_in_balls/canon_repr/multilabel_svm_light_data_wl_{0}"
+    in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls/canon_repr/multilabel_svm_light_data_wl_{0}"
+    num_perm = 128
     w = 10
-    threshold = 0.4
+    threshold = 0.5
     wl_iterations = 1
     label_majority_threshold = 0.5
-    scoring = "f1_micro"
+    scorings = ["accuracy", "f1_micro", "precision_micro", "recall_micro"]
     
     print "Reading data..."
     X, y = read_data(in_file.format(wl_iterations))
     
     mhnn = MinHashNearestNeighbor(num_perm=num_perm, w=w, threshold=threshold, label_majority_threshold=label_majority_threshold)
-    accuracy = cross_validation.cross_val_score(mhnn, X, y, cv=10, verbose=10, n_jobs=-1, scoring=scoring)
     
-    print scoring + ": {0}, (+,-) {1}".format(accuracy.mean(), accuracy.std())
+    for scoring in scorings:
+        print "Computing", scoring, "..."
+        score = cross_validation.cross_val_score(mhnn, X, y, cv=10, verbose=1, n_jobs=2, scoring=scoring)
+        print "'{0}': {1}, '{0}_std': {2},".format(scoring, score.mean(), score.std())
 
 def do_grid_search():
-    in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls_1000/canon_repr/multilabel_svm_light_data_wl_{0}"
+#     in_file = "/home/stud/ivanovi/Thesis/dbpedia/3.8/data_1_in_balls/canon_repr/multilabel_svm_light_data_wl_{0}"
+    in_file = "/media/ivan/204C66C84C669874/Uni-Bonn/Thesis/Main/5_Complete_Project/Workspace/master_thesis/output_rdf/dbpedia/3.8/data_1_in_balls/canon_repr/multilabel_svm_light_data_wl_{0}"
     out_file = "result_wl_{0}"
     
     wl_iter_range = [0, 1, 2, 3, 4]
@@ -74,6 +78,6 @@ def do_grid_search():
         out_file.write("all: " + str(all_scores))
 
 if __name__ == '__main__':
-    do_grid_search()
-#     score()
+#     do_grid_search()
+    score()
     print "Done."
