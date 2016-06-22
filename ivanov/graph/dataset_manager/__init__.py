@@ -82,9 +82,14 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
             if rdf_type.startswith(u"http://www.w3.org/2001/XMLSchema#"):
                 literal_colors.add(type_color_map[rdf_type])
         
+        bool_colors = filter(lambda x: x.startswith(u"http://www.w3.org/2001/XMLSchema#boolean"), type_color_map)
+        bool_colors = set(map(lambda x: type_color_map[x], bool_colors))
+        literal_colors -= bool_colors
+         
         for node in full_graph.nodes():
-            # remove all literals
-            if literal_colors & set(full_graph.node[node]["labels"]):
+            node_labels_set = set(full_graph.node[node]["labels"])
+            # remove all literals (except booleans)
+            if literal_colors & node_labels_set:
                 full_graph.remove_node(node)
         
         # remove the color of named individual type from all nodes where it occurs
@@ -97,22 +102,53 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
     
         full_hypergraph = Hypergraph(full_graph)
         
+#         ################
+#         # INFO: use this to remove the isMutagenic property when predicting mutagenicity
+#         is_mutag_color = type_color_map[u"http://dl-learner.org/carcinogenesis#isMutagenic"]
+#         edges_to_remove = []
+#         for edge in full_hypergraph.edges_iter():
+#             if is_mutag_color in full_hypergraph.edge(edge)['labels']:
+#                 edges_to_remove.append(edge)
+#         for edge in edges_to_remove:
+#             full_hypergraph.safe_remove_edge(edge)
+#         ################
+        
         if not compounds_and_targets:
             compounds_and_targets = read_compounds_and_targets()
+        
+        def remove_other_neighbors_of_bool_literals(hypergraph, center_node):
+            center_neighbors = hypergraph.neighbors(center_node)
+            bool_literals = filter(lambda n: set(hypergraph.node[n]['labels']) & bool_colors, center_neighbors)
+            for bool_literal in bool_literals:
+                bool_literal_neigbors = set(hypergraph.neighbors(bool_literal))
+                # exclude the center node from the removable nodes
+                bool_literal_neigbors.remove(center_node)
+                for neigh in bool_literal_neigbors:
+                    hypergraph.safe_remove_node(neigh)
         
         for comp_id, target_label in compounds_and_targets:
             node_id = u"n_{0}".format(uri_node_map[uri_prefix + comp_id])
             comp_neighborhood_hypergraph = algorithms.r_ball_hyper(full_hypergraph, node_id, 2, 0)
-            comp_neighborhood_hypergraph.safe_remove_node(node_id) # remove self
-            for node in list(comp_neighborhood_hypergraph.nodes_iter()):
-                # remove isolated nodes
-                if len(comp_neighborhood_hypergraph.neighbors(node)) == 0:
-                    comp_neighborhood_hypergraph.safe_remove_node(node)
-    #         # get the immediate neighbors of the compound node in a separate graph
-    #         r1_ball = algorithms.r_ball_hyper(full_hypergraph, node_id, 1, 0)
+            remove_other_neighbors_of_bool_literals(comp_neighborhood_hypergraph, node_id)
             ch_db_record = (comp_id, [comp_neighborhood_hypergraph], target_label)
             if process_compound_function:
                 process_compound_function(ch_db_record)
+#             ############
+#             def get_key(value, dictionary):
+#                 for key in dictionary:
+#                     if dictionary[key] == value:
+#                         return key
+#                 return None
+#             g = ch_db_record[1][0].copy()
+#             for n in g.node:
+#                 n_new_labels = []
+#                 for n_color in g.node[n]['labels']:
+#                     n_rdf_type = get_key(n_color, type_color_map)
+#                     n_rdf_type = n_rdf_type[n_rdf_type.find(u"#") + 1:]
+#                     n_new_labels.append(n_rdf_type)
+#                 g.node[n]['labels'] = n_new_labels
+#             g.visualize()
+#             ############
             yield ch_db_record
     
     if rdf_colors_state:
@@ -124,7 +160,8 @@ def prepare_rdf_chemical_data(rdf_files, compounds_targets_file, uri_prefix, pro
     
     full_graph, uri_node_map, type_color_map, next_color_id = rdf.convert_rdf_to_nx_graph(rdf_files, return_colors=True,
                                                                                           test_mode=sort_rdf_nodes_before_processing,
-                                                                                          base_colors=rdf_base_colors, next_color_id=rdf_next_color_id)
+                                                                                          base_colors=rdf_base_colors, next_color_id=rdf_next_color_id,
+                                                                                          encode_boolean_value_in_color=True)
     
     chem_database = chem_database_generator(full_graph, uri_node_map, type_color_map, compounds_and_targets)
     new_rdf_colors_state = {'colors': type_color_map, 'next_color_id': next_color_id}
