@@ -56,17 +56,28 @@ def r_ball_hyper(hypergraph, center, r, edge_dir=0, center_default_color=False):
     def recurse(u, i):
         visited_nodes.add(u)
         edges = hypergraph.edges_iter_dir(u, dir_code=edge_dir)
+        skip_edges = set()
         for edge in edges:
+            if edge in skip_edges:
+                continue
             endpoints = hypergraph.endpoints(edge)
             new_endpoints = set(endpoints) - set([u])
-            edge_attr = hypergraph.edge(edge)
-            direction = edge_attr["direction"]
             for v in new_endpoints:
                 if not rball.has_node(v):
                     rball.add_node(v, attr_dict=copy.deepcopy(hypergraph.node[v]))
+            
+            first_new_endpoint = next(iter(new_endpoints))
             # TODO: this condition may be tricky if the graph has hyperedges
-            if not rball.has_edge(u, next(iter(new_endpoints)), edge_dir):
-                rball.add_edge(endpoints, direction=copy.deepcopy(direction), label=u",".join(copy.deepcopy(edge_attr["labels"])))
+            if not rball.has_edge(u, first_new_endpoint, edge_dir):
+                parallel_edges = hypergraph.edges_iter_dir(u, first_new_endpoint, dir_code=edge_dir)
+                # add all parallel edges in the same direction to the r-ball
+                for parallel_edge in parallel_edges:
+                    skip_edges.add(parallel_edge)
+                    p_edge_attr = hypergraph.edge(parallel_edge)
+                    direction = p_edge_attr["direction"]
+                    # TODO: not safe if we have hyperedges
+                    rball.add_edge(endpoints, direction=copy.deepcopy(direction), label=u",".join(copy.deepcopy(p_edge_attr["labels"])))
+            
             if i < r:
                 for v in new_endpoints:
                     if v not in visited_nodes:
