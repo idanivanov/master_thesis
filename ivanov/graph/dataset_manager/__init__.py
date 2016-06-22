@@ -268,7 +268,8 @@ def process_record(record, wl_iterations, state, binary_target_labels=True, shin
 
 def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf=False, compounds_targets_file=None, uri_prefix=None,
                                  shingles_type="features", window_size=5, accumulate_wl_shingles=True, fingerprints=False,
-                                 sort_rdf_nodes_before_processing=True, state_input_file=None, state_output_file=None):
+                                 sort_rdf_nodes_before_processing=True, state_input_file=None, state_output_file=None,
+                                 save_just_last_wl_it=False):
     if format_rdf:
         assert type(in_files) is list
         assert bool(compounds_targets_file)
@@ -305,7 +306,7 @@ def build_svmlight_chemical_data(in_files, wl_iterations, output_dir, format_rdf
     def process_compound(chem_record):
         process_record(chem_record, wl_iterations, state, binary_target_labels=True,
                        shingles_type=shingles_type, window_size=window_size, accumulate_wl_shingles=accumulate_wl_shingles,
-                       fingerprints=fingerprints)
+                       fingerprints=fingerprints, save_just_last_wl_it=save_just_last_wl_it)
     
     if format_rdf:
         chem_database, state['rdf_colors'] = prepare_rdf_chemical_data(in_files, compounds_targets_file, uri_prefix, process_compound,
