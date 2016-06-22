@@ -109,7 +109,10 @@ datasets = {
             data_path + "Carcinogenesis_RDF/carcinogenesis.owl"
         ],
         "compounds_targets": {
-            "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
+            "sample-330": data_path + "Carcinogenesis_RDF/compounds_targets_330",
+            "sample-340": data_path + "Carcinogenesis_RDF/compounds_targets_340",
+            "sample-298": data_path + "Carcinogenesis_RDF/compounds_targets_298",
+            "sample-MUTAG-340": data_path + "Carcinogenesis_RDF/compounds_targets_MUTAG_340",
         },
         "positives-file" : data_path + "Carcinogenesis_RDF/pos.txt",
         "negatives-file" : data_path + "Carcinogenesis_RDF/neg.txt",
@@ -119,7 +122,10 @@ datasets = {
             data_path + "Carcinogenesis_RDF/carcinogenesis.ttl"
         ],
         "compounds_targets": {
-            "sample-1": data_path + "Carcinogenesis_RDF/compounds_targets",
+            "sample-330": data_path + "Carcinogenesis_RDF/compounds_targets_330",
+            "sample-340": data_path + "Carcinogenesis_RDF/compounds_targets_340",
+            "sample-298": data_path + "Carcinogenesis_RDF/compounds_targets_298",
+            "sample-MUTAG-340": data_path + "Carcinogenesis_RDF/compounds_targets_MUTAG_340",
         },
         "positives-file" : data_path + "Carcinogenesis_RDF/pos.txt",
         "negatives-file" : data_path + "Carcinogenesis_RDF/neg.txt",
