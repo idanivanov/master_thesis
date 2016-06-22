@@ -22,5 +22,5 @@ if __name__ == '__main__':
                                                              shingles_type="w-shingles", window_size=w, accumulate_wl_shingles=True,
                                                              save_just_last_wl_it=True)
                 time_elapsed = time.time() - start
-                out_fl.write("w={0}, wl_iter={1}, time={2}".format(w, wl_iter, time_elapsed))
+                out_fl.write("w={0}, wl_iter={1}, time={2}\n".format(w, wl_iter, time_elapsed))
                 out_fl.flush()
