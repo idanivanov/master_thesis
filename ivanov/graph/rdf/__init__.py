@@ -23,7 +23,7 @@ def read_graph(in_files, file_format=None):
     return rdf_graph
 
 def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, test_mode=False, return_colors=False,
-                            base_colors=None, next_color_id=None):
+                            base_colors=None, next_color_id=None, encode_boolean_value_in_color=False):
     '''Converts an RDFLib graph to a Networkx graph.
     :param in_files: Files containing the RDF data.
     :param labels (optional): Set labels of the Networkx graph to be: (by default) "colors" - nodes have the 
@@ -34,14 +34,18 @@ def convert_rdf_to_nx_graph(in_files, labels="colors", discard_classes=True, tes
     :param return_colors: (default False) If True, includes the colors mapping as part of the result.
     :param base_colors: A pre-difined mapping of RDF types to color id's to be used and extended.
     :param next_color_id: An integer with which the new color id's will start.
+    :param encode_boolean_value_in_color: When a node is of type boolean literal, append the boolean value to the type of the node.
     :return: (nx_graph, uri_node_map[, colors, next_color_id])
     '''
     assert type(in_files) in [list, set]
     
     rdf_graph = read_graph(in_files)
-    return convert_rdf_graph_to_nx_graph(rdf_graph, labels=labels, discard_classes=discard_classes, test_mode=test_mode, return_colors=return_colors, base_colors=base_colors, next_color_id=next_color_id)
+    return convert_rdf_graph_to_nx_graph(rdf_graph, labels=labels, discard_classes=discard_classes, test_mode=test_mode,
+                                         return_colors=return_colors, base_colors=base_colors, next_color_id=next_color_id,
+                                         encode_boolean_value_in_color=encode_boolean_value_in_color)
 
-def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=True, test_mode=False, return_colors=False, base_colors=None, next_color_id=None):
+def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=True, test_mode=False, return_colors=False,
+                                  base_colors=None, next_color_id=None, encode_boolean_value_in_color=False):
     nx_graph = nx.MultiDiGraph()
     
     if test_mode:
@@ -114,6 +118,10 @@ def convert_rdf_graph_to_nx_graph(rdf_graph, labels="colors", discard_classes=Tr
 #                     node_colors.add(colors[u"literal"])
                     if node._datatype:
                         datatype = unicode(node._datatype)
+                        if encode_boolean_value_in_color:
+                            if datatype == u"http://www.w3.org/2001/XMLSchema#boolean":
+                                bool_value_str = unicode(node._value)
+                                datatype += '_' + bool_value_str
                         if datatype not in colors:
                             colors[datatype] = str(color_id)
                             color_id += 1
