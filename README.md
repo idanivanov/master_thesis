@@ -1,4 +1,4 @@
-# Ivan's Master Thesis
+# Master Thesis of Ivan Danielov Ivanov
 
 ## External libraries used:
 
